@@ -168,7 +168,7 @@ class JDocumentRendererHead extends JDocumentRenderer
 			$buffer .= $tab . '</style>' . $lnEnd;
 		}
 
-		// Generate script file links
+		// Generate script file links (B/C)
 		foreach ($document->_scripts as $strSrc => $strAttr)
 		{
 			$buffer .= $tab . '<script src="' . $strSrc . '"';
@@ -192,9 +192,12 @@ class JDocumentRendererHead extends JDocumentRenderer
 			}
 
 			$buffer .= '></script>' . $lnEnd;
+
+			// Mark as loaded in _scriptsQueue
+			$document->_scriptsQueue[$strAttr['mime']][sha1($strSrc)]['loaded'] = true;
 		}
 
-		// Generate script declarations
+		// Generate script declarations (B/C)
 		foreach ($document->_script as $type => $content)
 		{
 			$buffer .= $tab . '<script type="' . $type . '">' . $lnEnd;
@@ -214,6 +217,18 @@ class JDocumentRendererHead extends JDocumentRenderer
 			}
 
 			$buffer .= $tab . '</script>' . $lnEnd;
+
+			// Mark as loaded in _scriptsQueue
+			$document->_scriptsQueue[$strAttr['mime']][sha1($content)]['loaded'] = true;
+		}
+
+		// Generate script tags that are in scripts queue
+		foreach ($document->_scriptsQueue as $script_mime => $scripts)
+		{
+			foreach ($scripts as $script_id => $script)
+			{
+				$buffer = $this->renderScript($document, $buffer, $script_mime, $script_id);
+			}
 		}
 
 		// Generate script language declarations.
@@ -243,6 +258,92 @@ class JDocumentRendererHead extends JDocumentRenderer
 		{
 			$buffer .= $tab . $custom . $lnEnd;
 		}
+
+		return $buffer;
+	}
+
+	/**
+	 * Generates a script
+	 *
+	 * @param   JDocument  $document   The document for which the head will be created
+	 * @param   string     $buffer     The current buffer
+	 * @param   string     $script_id  The script id
+	 *
+	 * @return  string  buffer
+	 *
+	 * @since   12.1
+	 */
+	protected function renderScript($document, $buffer, $script_mime, $script_id)
+	{
+		$defaultMimes = array(
+			'text/javascript', 'application/javascript', 'text/x-javascript', 'application/x-javascript'
+		);
+		$lnEnd = $document->_getLineEnd();
+		$tab = $document->_getTab();
+
+		// Load dependencies if needed
+		if (isset($document->_scriptsQueue[$script_mime][$script_id]['dependencies']))
+		{
+			foreach ($document->_scriptsQueue[$script_mime][$script_id]['dependencies'] as $script_dependency)
+			{
+				$dependency_id = sha1($script_dependency);
+				// Load dependent script
+				if (!isset($document->_scriptsQueue[$script_mime][$dependency_id]))
+				{
+					$document->addScriptToQueue($script_dependency, 'external');
+				}
+
+				// Render dependent script if not loaded yet
+				if (!$document->_scriptsQueue[$script_mime][$dependency_id]['loaded'])
+				{
+					$buffer = $this->renderScript($document, $buffer, $script_mime, $dependency_id);
+				}
+			}
+		}
+
+		$buffer .= $tab . '<script';
+
+		// Adds attributes
+		if (isset($document->_scriptsQueue[$script_mime][$script_id]['attribs']))
+		{
+			foreach ($document->_scriptsQueue[$script_mime][$script_id]['attribs'] as $attrib => $attrib_value)
+			{
+				if ($attrib == 'type')
+				{
+					if (!$document->isHtml5() || !in_array($attrib_value, $defaultMimes))
+					{
+						$buffer .= ' type="' . $attrib_value . '"';
+					}
+				}
+				else
+				{
+					$buffer .= ' ' . $attrib . '=' . (!is_array($attrib_value) ? '"' . $attrib_value . '"' : '\'' . json_encode($attrib_value) . '\'');
+				}
+			}
+		}
+
+		$buffer .= '>';
+		// Inline script
+		if (isset($document->_scriptsQueue[$script_mime][$script_id]['content']))
+		{
+			// This is for full XHTML support.
+			if ($document->_mime != 'text/html')
+			{
+				$buffer .= $tab . $tab . '//<![CDATA[' . $lnEnd;
+			}
+
+			$buffer .= $document->_scriptsQueue[$script_mime][$script_id]['content'] . $lnEnd;
+
+			// See above note
+			if ($document->_mime != 'text/html')
+			{
+				$buffer .= $tab . $tab . '//]]>' . $lnEnd;
+			}
+		}
+
+		$buffer .= '</script>' . $lnEnd;
+
+		$document->_scriptsQueue[$script_mime][$script_id]['loaded'] = true;
 
 		return $buffer;
 	}

@@ -128,6 +128,14 @@ class JDocument
 	public $_profile = '';
 
 	/**
+	 * Array of the scripts in queue
+	 *
+	 * @var    array
+	 * @since  12.1
+	 */
+	public $_scriptsQueue = array();
+
+	/**
 	 * Array of linked scripts
 	 *
 	 * @var    array
@@ -451,11 +459,73 @@ class JDocument
 
 	/**
 	 * Adds a linked script to the page
+	 * If you use version will allow to flush it. Ex: myscript.js54771616b5bceae9df03c6173babf11d
+	 * If not specified Joomla! automatically handles versioning	 
 	 *
-	 * @param   string   $url    URL to the linked script
-	 * @param   string   $type   Type of script. Defaults to 'text/javascript'
-	 * @param   boolean  $defer  Adds the defer attribute.
-	 * @param   boolean  $async  Adds the async attribute.
+	 * @param   string   $content       URL to the linked script or inline script
+	 * @param   string   $type          Script type: Inline or external
+	 * @param   array    $attribs       Attributes of the script tag
+	 * @param   array    $dependencies  Javascript file dependencies of the script.
+	 * @param   string   $version       Version of the script
+	 *
+	 * @return  JDocument instance of $this to allow chaining
+	 *
+	 * @since   12.1
+	 */
+	public function addScriptToQueue($content, $type = 'external', $attribs = array(), $dependencies = null, $version = -1)
+	{
+		// Force text/javascript if mime is forgotten
+		if (empty($attribs['type'])) 
+		{
+			$attribs['type'] = 'text/javascript';
+		}
+
+		$script_identifier = sha1($content);
+		if ($type == 'external')
+		{
+			// Automatic version
+			if ($version != -1)
+			{
+				if ($version === null)
+				{
+					$version = $this->getMediaVersion();
+				}
+				if (!empty($version) && strpos($content, '?') === false)
+				{
+					$content .= '?' . $version;
+				}
+			}
+			$attribs['src'] = $content;
+		}
+		else
+		{
+			if (!isset($this->_script[$attribs['type']][$script_identifier]))
+			{
+				$this->_scriptsQueue[$attribs['type']][$script_identifier]['content'] = $content;
+			}
+			else
+			{
+				$new_content = $this->_scriptsQueue[$attribs['type']][$script_identifier]['content'] . chr(13) . $content;
+				unset($this->_scriptsQueue[$attribs['type']][$script_identifier]);
+				$script_identifier = sha1($new_content);
+				$this->_scriptsQueue[$attribs['type']][$script_identifier]['content'] .= $new_content;
+			}
+		}
+
+		$this->_scriptsQueue[$attribs['type']][$script_identifier]['dependencies'] = $dependencies;
+		$this->_scriptsQueue[$attribs['type']][$script_identifier]['attribs']      = $attribs;
+		$this->_scriptsQueue[$attribs['type']][$script_identifier]['loaded']       = false;
+
+		return $this;
+	}
+
+	/**
+	 * Adds a linked script to the page
+	 *
+	 * @param   string   $url      URL to the linked script
+	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
+	 * @param   boolean  $defer    Adds the defer attribute.
+	 * @param   boolean  $async    Adds the async attribute.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
@@ -463,11 +533,20 @@ class JDocument
 	 */
 	public function addScript($url, $type = "text/javascript", $defer = false, $async = false)
 	{
-		$this->_scripts[$url]['mime'] = $type;
-		$this->_scripts[$url]['defer'] = $defer;
-		$this->_scripts[$url]['async'] = $async;
+		if (!empty($type))
+		{
+			$attribs['type'] = $type;
+		}
+		if ($defer)
+		{
+			$attribs['defer'] = 'defer';
+		}
+		if ($async)
+		{
+			$attribs['async'] = 'async';
+		}
 
-		return $this;
+		return $this->addScriptToQueue($url, 'external', $attribs);
 	}
 
 	/**
@@ -478,7 +557,7 @@ class JDocument
 	 * @param   string   $version  Version of the script
 	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
 	 * @param   boolean  $defer    Adds the defer attribute.
-	 * @param   boolean  $async    [description]
+	 * @param   boolean  $async    Adds the async attribute.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
@@ -486,18 +565,20 @@ class JDocument
 	 */
 	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false)
 	{
-		// Automatic version
-		if ($version === null)
+		if (!empty($type))
 		{
-			$version = $this->getMediaVersion();
+			$attribs['type'] = $type;
+		}
+		if ($defer)
+		{
+			$attribs['defer'] = 'defer';
+		}
+		if ($async)
+		{
+			$attribs['async'] = 'async';
 		}
 
-		if (!empty($version) && strpos($url, '?') === false)
-		{
-			$url .= '?' . $version;
-		}
-
-		return $this->addScript($url, $type, $defer, $async);
+		return $this->addScriptToQueue($url, 'external', $attribs, null, $version);
 	}
 
 	/**
@@ -512,16 +593,12 @@ class JDocument
 	 */
 	public function addScriptDeclaration($content, $type = 'text/javascript')
 	{
-		if (!isset($this->_script[strtolower($type)]))
+		if (!empty($type))
 		{
-			$this->_script[strtolower($type)] = $content;
-		}
-		else
-		{
-			$this->_script[strtolower($type)] .= chr(13) . $content;
+			$attribs['type'] = $type;
 		}
 
-		return $this;
+		return $this->addScriptToQueue($content, 'inline', $attribs);
 	}
 
 	/**
