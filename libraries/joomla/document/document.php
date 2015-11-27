@@ -597,7 +597,7 @@ class JDocument
 			$attribs['type'] = $type;
 		}
 
-		return $this->addScriptToQueue($content, 'inline', $attribs);
+		return $this->addScriptToQueue($content, 'inline', $attribs, $dependencies);
 	}
 
 	/**
