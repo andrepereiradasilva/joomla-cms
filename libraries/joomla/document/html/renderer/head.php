@@ -314,13 +314,13 @@ class JDocumentRendererHead extends JDocumentRenderer
 				}
 				else
 				{
-					if (!is_scalar($attrib_value))
+					if (is_scalar($attrib_value))
 					{
 						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars($attrib_value) . '"';
 					}
 					else
 					{
-						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '\'' . json_encode($attrib_value) . '\'';
+						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars(json_encode($attrib_value)) . '"';
 					}				
 				}
 			}
