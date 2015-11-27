@@ -194,7 +194,7 @@ class JDocumentRendererHead extends JDocumentRenderer
 			$buffer .= '></script>' . $lnEnd;
 
 			// Mark as loaded in _scriptsQueue
-			$document->_scriptsQueue[$strAttr['mime']][sha1($strSrc)]['loaded'] = true;
+			$document->_scriptsQueue[sha1($strSrc)]['loaded'] = true;
 		}
 
 		// Generate script declarations (B/C)
@@ -219,16 +219,13 @@ class JDocumentRendererHead extends JDocumentRenderer
 			$buffer .= $tab . '</script>' . $lnEnd;
 
 			// Mark as loaded in _scriptsQueue
-			$document->_scriptsQueue[$strAttr['mime']][sha1($content)]['loaded'] = true;
+			$document->_scriptsQueue[sha1($content)]['loaded'] = true;
 		}
 
 		// Generate script tags that are in scripts queue
-		foreach ($document->_scriptsQueue as $script_mime => $scripts)
+		foreach ($document->_scriptsQueue as $script_id => $script)
 		{
-			foreach ($scripts as $script_id => $script)
-			{
-				$buffer = $this->renderScript($document, $buffer, $script_mime, $script_id);
-			}
+			$buffer = $this->renderScript($document, $buffer, $script_id);
 		}
 
 		// Generate script language declarations.
@@ -273,7 +270,7 @@ class JDocumentRendererHead extends JDocumentRenderer
 	 *
 	 * @since   12.1
 	 */
-	protected function renderScript($document, $buffer, $script_mime, $script_id)
+	protected function renderScript($document, $buffer, $script_id)
 	{
 		$defaultMimes = array(
 			'text/javascript', 'application/javascript', 'text/x-javascript', 'application/x-javascript'
@@ -282,21 +279,21 @@ class JDocumentRendererHead extends JDocumentRenderer
 		$tab = $document->_getTab();
 
 		// Load dependencies if needed
-		if (isset($document->_scriptsQueue[$script_mime][$script_id]['dependencies']))
+		if (isset($document->_scriptsQueue[$script_id]['dependencies']))
 		{
-			foreach ($document->_scriptsQueue[$script_mime][$script_id]['dependencies'] as $script_dependency)
+			foreach ($document->_scriptsQueue[$script_id]['dependencies'] as $script_dependency)
 			{
 				$dependency_id = sha1($script_dependency);
 				// Load dependent script
-				if (!isset($document->_scriptsQueue[$script_mime][$dependency_id]))
+				if (!isset($document->_scriptsQueue[$dependency_id]))
 				{
 					$document->addScriptToQueue($script_dependency, 'external');
 				}
 
 				// Render dependent script if not loaded yet
-				if (!$document->_scriptsQueue[$script_mime][$dependency_id]['loaded'])
+				if (!$document->_scriptsQueue[$dependency_id]['loaded'])
 				{
-					$buffer = $this->renderScript($document, $buffer, $script_mime, $dependency_id);
+					$buffer = $this->renderScript($document, $buffer, $dependency_id);
 				}
 			}
 		}
@@ -304,9 +301,9 @@ class JDocumentRendererHead extends JDocumentRenderer
 		$buffer .= $tab . '<script';
 
 		// Adds attributes
-		if (isset($document->_scriptsQueue[$script_mime][$script_id]['attribs']))
+		if (isset($document->_scriptsQueue[$script_id]['attribs']))
 		{
-			foreach ($document->_scriptsQueue[$script_mime][$script_id]['attribs'] as $attrib => $attrib_value)
+			foreach ($document->_scriptsQueue[$script_id]['attribs'] as $attrib => $attrib_value)
 			{
 				if ($attrib == 'type')
 				{
@@ -317,14 +314,22 @@ class JDocumentRendererHead extends JDocumentRenderer
 				}
 				else
 				{
-					$buffer .= ' ' . $attrib . '=' . (!is_array($attrib_value) ? '"' . $attrib_value . '"' : '\'' . json_encode($attrib_value) . '\'');
+					if (!is_scalar($attrib_value))
+					{
+						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars($attrib_value) . '"';
+					}
+					else
+					{
+						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '\'' . json_encode($attrib_value) . '\'';
+					}				
 				}
 			}
 		}
 
 		$buffer .= '>';
+
 		// Inline script
-		if (isset($document->_scriptsQueue[$script_mime][$script_id]['content']))
+		if (isset($document->_scriptsQueue[$script_id]['content']))
 		{
 			// This is for full XHTML support.
 			if ($document->_mime != 'text/html')
@@ -332,7 +337,7 @@ class JDocumentRendererHead extends JDocumentRenderer
 				$buffer .= $tab . $tab . '//<![CDATA[' . $lnEnd;
 			}
 
-			$buffer .= $document->_scriptsQueue[$script_mime][$script_id]['content'] . $lnEnd;
+			$buffer .= $document->_scriptsQueue[$script_id]['content'] . $lnEnd;
 
 			// See above note
 			if ($document->_mime != 'text/html')
@@ -343,7 +348,7 @@ class JDocumentRendererHead extends JDocumentRenderer
 
 		$buffer .= '</script>' . $lnEnd;
 
-		$document->_scriptsQueue[$script_mime][$script_id]['loaded'] = true;
+		$document->_scriptsQueue[$script_id]['loaded'] = true;
 
 		return $buffer;
 	}

@@ -462,17 +462,17 @@ class JDocument
 	 * If you use version will allow to flush it. Ex: myscript.js54771616b5bceae9df03c6173babf11d
 	 * If not specified Joomla! automatically handles versioning	 
 	 *
-	 * @param   string   $content       URL to the linked script or inline script
-	 * @param   string   $type          Script type: Inline or external
-	 * @param   array    $attribs       Attributes of the script tag
-	 * @param   array    $dependencies  Javascript file dependencies of the script.
-	 * @param   string   $version       Version of the script
+	 * @param   string  $content       URL to the linked script or inline script
+	 * @param   string  $type          Script type: Inline or external
+	 * @param   array   $attribs       Attributes of the script tag
+	 * @param   array   $dependencies  Javascript dependencies of the script.
+	 * @param   string  $version       Version of the script
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   12.1
 	 */
-	public function addScriptToQueue($content, $type = 'external', $attribs = array(), $dependencies = null, $version = -1)
+	public function addScriptToQueue($content, $type = 'external', $attribs = array(), array $dependencies = null, $version = -1)
 	{
 		// Force text/javascript if mime is forgotten
 		if (empty($attribs['type'])) 
@@ -481,9 +481,10 @@ class JDocument
 		}
 
 		$script_identifier = sha1($content);
+		// External scripts
 		if ($type == 'external')
 		{
-			// Automatic version
+			// Script version
 			if ($version != -1)
 			{
 				if ($version === null)
@@ -497,24 +498,15 @@ class JDocument
 			}
 			$attribs['src'] = $content;
 		}
+		// Inline scripts
 		else
 		{
-			if (!isset($this->_script[$attribs['type']][$script_identifier]))
-			{
-				$this->_scriptsQueue[$attribs['type']][$script_identifier]['content'] = $content;
-			}
-			else
-			{
-				$new_content = $this->_scriptsQueue[$attribs['type']][$script_identifier]['content'] . chr(13) . $content;
-				unset($this->_scriptsQueue[$attribs['type']][$script_identifier]);
-				$script_identifier = sha1($new_content);
-				$this->_scriptsQueue[$attribs['type']][$script_identifier]['content'] .= $new_content;
-			}
+			$this->_scriptsQueue[$script_identifier]['content'] = $content;
 		}
 
-		$this->_scriptsQueue[$attribs['type']][$script_identifier]['dependencies'] = $dependencies;
-		$this->_scriptsQueue[$attribs['type']][$script_identifier]['attribs']      = $attribs;
-		$this->_scriptsQueue[$attribs['type']][$script_identifier]['loaded']       = false;
+		$this->_scriptsQueue[$script_identifier]['dependencies'] = $dependencies;
+		$this->_scriptsQueue[$script_identifier]['attribs']      = $attribs;
+		$this->_scriptsQueue[$script_identifier]['loaded']       = false;
 
 		return $this;
 	}
@@ -522,16 +514,18 @@ class JDocument
 	/**
 	 * Adds a linked script to the page
 	 *
-	 * @param   string   $url      URL to the linked script
-	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
-	 * @param   boolean  $defer    Adds the defer attribute.
-	 * @param   boolean  $async    Adds the async attribute.
+	 * @param   string   $url           URL to the linked script
+	 * @param   string   $type          Type of script. Defaults to 'text/javascript'
+	 * @param   boolean  $defer         Adds the defer attribute.
+	 * @param   boolean  $async         Adds the async attribute.
+	 * @param   array    $attribs       Array of attributes
+	 * @param   array    $dependencies  Javascript dependencies of the script.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   11.1
 	 */
-	public function addScript($url, $type = "text/javascript", $defer = false, $async = false)
+	public function addScript($url, $type = "text/javascript", $defer = false, $async = false, array $attribs = array(), array $dependencies = null)
 	{
 		if (!empty($type))
 		{
@@ -546,24 +540,27 @@ class JDocument
 			$attribs['async'] = 'async';
 		}
 
-		return $this->addScriptToQueue($url, 'external', $attribs);
+		return $this->addScriptToQueue($url, 'external', $attribs, $dependencies);
 	}
 
 	/**
 	 * Adds a linked script to the page with a version to allow to flush it. Ex: myscript.js54771616b5bceae9df03c6173babf11d
 	 * If not specified Joomla! automatically handles versioning
 	 *
-	 * @param   string   $url      URL to the linked script
-	 * @param   string   $version  Version of the script
-	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
-	 * @param   boolean  $defer    Adds the defer attribute.
-	 * @param   boolean  $async    Adds the async attribute.
+	 * @param   string   $url           URL to the linked script
+	 * @param   string   $version       Version of the script
+	 * @param   string   $type          Type of script. Defaults to 'text/javascript'
+	 * @param   boolean  $defer         Adds the defer attribute.
+	 * @param   boolean  $async         Adds the async attribute.
+	 * @param   array    $attribs       Array of attributes
+	 * @param   array    $dependencies  Javascript dependencies of the script.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   3.2
 	 */
-	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false)
+	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false, array $attribs = array(),
+		array $dependencies = null)
 	{
 		if (!empty($type))
 		{
@@ -578,20 +575,22 @@ class JDocument
 			$attribs['async'] = 'async';
 		}
 
-		return $this->addScriptToQueue($url, 'external', $attribs, null, $version);
+		return $this->addScriptToQueue($url, 'external', $attribs, $dependencies, $version);
 	}
 
 	/**
 	 * Adds a script to the page
 	 *
-	 * @param   string  $content  Script
-	 * @param   string  $type     Scripting mime (defaults to 'text/javascript')
+	 * @param   string  $content       Script
+	 * @param   string  $type          Scripting mime (defaults to 'text/javascript')
+	 * @param   array   $attribs       Array of attributes
+	 * @param   array   $dependencies  Javascript dependencies of the script.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   11.1
 	 */
-	public function addScriptDeclaration($content, $type = 'text/javascript')
+	public function addScriptDeclaration($content, $type = 'text/javascript', array $attribs = array(), array $dependencies = null)
 	{
 		if (!empty($type))
 		{
