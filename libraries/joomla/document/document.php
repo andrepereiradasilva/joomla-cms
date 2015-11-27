@@ -472,7 +472,7 @@ class JDocument
 	 *
 	 * @since   12.1
 	 */
-	public function addScriptToQueue($content, $type = 'external', $attribs = array(), array $dependencies = null, $version = -1)
+	public function addScriptToQueue($content, $type = 'external', array $attribs = array(), array $dependencies = null, $version = -1)
 	{
 		// Force text/javascript if mime is forgotten
 		if (empty($attribs['type'])) 
