@@ -56,7 +56,7 @@ JHtml::_('bootstrap.tooltip');
 				<?php endif; ?>
 			</div>
 		</div>
-		<?php if ($twofactormethods > 0) : ?>
+		<?php if (count($twofactormethods) > 1) : ?>
 		<div id="form-login-secretkey" class="control-group">
 			<div class="controls">
 				<?php if (!$params->get('usetext')) : ?>

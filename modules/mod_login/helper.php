@@ -64,16 +64,7 @@ class ModLoginHelper
 	 */
 	public static function getTwoFactorMethods()
 	{
-		$db = JFactory::getDbo();
-
-		$query = $db->getQuery(true)
-			->select('*')
-			->from($db->qn('#__extensions'))
-			->where($db->qn('type') . ' = ' . $db->q('plugin'))
-			->where($db->qn('enabled') . ' = ' . $db->q('1'))
-			->where($db->qn('folder') . ' = ' . $db->q('twofactorauth'));
-		$db->setQuery($query);
-
-		return count($db->loadObjectList());
+		require_once JPATH_ADMINISTRATOR . '/components/com_users/helpers/users.php';
+		return UsersHelper::getTwoFactorMethods();
 	}
 }
