@@ -553,7 +553,7 @@ class PlgSystemLanguageFilter extends JPlugin
 			{
 				if ($assoc)
 				{
-					$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $active->id, 'id', '', '');
+					$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $active->id, 'id', null, null, true);
 				}
 
 				if (isset($associations[$lang_code]) && $menu->getItem($associations[$lang_code]))
