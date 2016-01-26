@@ -28,6 +28,7 @@ class JLanguageAssociations
 	 * @param   string   $pk          The name of the primary key in the given $table.
 	 * @param   string   $aliasField  If the table has an alias field set it here. Null to not use it
 	 * @param   string   $catField    If the table has a catid field set it here. Null to not use it
+	 * @param   boolean  $onlyIds     If the method should only return the ids.
 	 *
 	 * @return  array                The associated items
 	 *
@@ -35,7 +36,7 @@ class JLanguageAssociations
 	 *
 	 * @throws  Exception
 	 */
-	public static function getAssociations($extension, $tablename, $context, $id, $pk = 'id', $aliasField = 'alias', $catField = 'catid')
+	public static function getAssociations($extension, $tablename, $context, $id, $pk = 'id', $aliasField = 'alias', $catField = 'catid', $onlyIds = false)
 	{
 		// To avoid doing duplicate database queries.
 		static $multilanguageAssociations = array();
@@ -115,7 +116,7 @@ class JLanguageAssociations
 					// Do not return itself as result
 					if ((int) $item->{$pk} != $id)
 					{
-						$multilanguageAssociations[$queryKey][$tag] = $item;
+						$multilanguageAssociations[$queryKey][$tag] = ($onlyIds) ? $item->id : $item;
 					}
 				}
 			}
@@ -153,9 +154,13 @@ class JLanguageAssociations
 		$associations[$component] = array();
 
 		// If component allows associations return the associations.
-		if (self::allowsAssociations($component))
+		if (JLanguageAssociations::isEnabled())
 		{
 			$className = JString::ucfirst(JString::str_ireplace('com_', '', $component)) . 'HelperAssociation';
+			if (!(class_exists($className) && is_callable(array($className, 'getAssociations'))))
+			{
+				JLoader::register($className, JPath::clean(JPATH_COMPONENT_SITE . '/helpers/association.php'));
+			}
 			$associations[$component] = call_user_func(array($className, 'getAssociations'));
 		}
 
@@ -194,37 +199,14 @@ class JLanguageAssociations
 		if (JLanguageAssociations::isEnabled())
 		{
 			$className = JString::ucfirst(JString::str_ireplace('com_', '', $component)) . 'HelperAssociation';
-			JLoader::register($className, JPath::clean(JPATH_COMPONENT_SITE . '/helpers/association.php'));
-			$associations[$component] = class_exists($className) && is_callable(array($className, 'getAssociations'));	
+			if (!(class_exists($className) && is_callable(array($className, 'getAssociations'))))
+			{
+				JLoader::register($className, JPath::clean(JPATH_COMPONENT_SITE . '/helpers/association.php'));
+			}
+			$associations[$component] = class_exists($className) && is_callable(array($className, 'getAssociations'));
 		}
 
 		return $associations[$component];
-	}
-
-	/**
-	 * Get the item language associations in language code / menu item id format.
-	 *
-	 * @param   array  $associations   The array with the associations objects.
-	 *
-	 * @return  array                  The array with the associations ids.
-	 *
-	 * @since   3.6
-	 */
-	public static function getAssociationsIds(array $associations = array())
-	{
-		// If id is empty return an empty array.
-		if ($associations === array())
-		{
-			return array();
-		}
-
-		$associationsIds = array();
-		foreach ($associations as $association)
-		{
-			$associationsIds[$association->language] = $association->id;
-		}
-
-		return $associationsIds;
 	}
 
 	/**

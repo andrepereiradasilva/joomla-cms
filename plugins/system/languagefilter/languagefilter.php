@@ -600,7 +600,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	{
 		$doc = $this->app->getDocument();
 
-		if ($this->app->isSite() && (boolean) $this->params->get('alternate_meta', true) && $doc->getType() == 'html')
+		if ($this->app->isSite() && $this->params->get('alternate_meta') && $doc->getType() == 'html')
 		{
 			$languages  = $this->lang_codes;
 			$homes      = JLanguageMultilang::getSiteHomePages();
@@ -623,14 +623,15 @@ class PlgSystemLanguageFilter extends JPlugin
 			// Fetch language associations for the menu and for the current component.
 			$associations = array();
 
-			// Load menu associations
-			if ($activeMenu && $activeMenuUri == $currentUri)
-			{
-				$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $activeMenu->id, 'id', '', '');
-			}
-
 			// Load component associations.
 			$cassociations = JLanguageAssociations::getComponentAssociations($this->app->input->get('option'));
+
+			// Load menu associations
+			$associations = array();
+			if ($activeMenu && $activeMenuUri == $currentUri)
+			{
+				$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $activeMenu->id, 'id', null, null, true);
+			}
 
 			// For each language...
 			foreach ($languages as $i => $language)
@@ -661,7 +662,7 @@ class PlgSystemLanguageFilter extends JPlugin
 
 					// Menu items association
 					// Heads up! "$item = $menu" here below is an assignment, *NOT* comparison
-					case (isset($associations[$i]) && ($item = $menu->getItem($associations[$i]->id))):
+					case (isset($associations[$i]) && ($item = $menu->getItem($associations[$i]))):
 						$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
 						break;
 

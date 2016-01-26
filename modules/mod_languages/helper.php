@@ -51,14 +51,15 @@ abstract class ModLanguagesHelper
 
 			if (JLanguageAssociations::isEnabled())
 			{
+				// Current component language associations.
+				$cassociations = JLanguageAssociations::getComponentAssociations($app->input->get('option'));
+
 				// Current menu item language associations.
 				if ($active = $menu->getActive())
 				{
-					$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $active->id, 'id', '', '');
+					$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $active->id, 'id', null, null, true);
 				}
 
-				// Current component language associations.
-				$cassociations = JLanguageAssociations::getComponentAssociations($app->input->get('option'));
 			}
 		}
 
@@ -103,7 +104,7 @@ abstract class ModLanguagesHelper
 					{
 						$language->link = JRoute::_($cassociations[$language->lang_code] . '&lang=' . $language->sef);
 					}
-					elseif (isset($associations[$language->lang_code]) && ($item = $menu->getItem($associations[$language->lang_code]->id)))
+					elseif (isset($associations[$language->lang_code]) && ($item = $menu->getItem($associations[$language->lang_code])))
 					{
 						$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
 					}
