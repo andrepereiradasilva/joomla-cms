@@ -40,10 +40,13 @@ class JLanguageAssociations
 		// To avoid doing duplicate database queries.
 		static $multilanguageAssociations = array();
 
-		// Multilanguage association array key. If the key is already in the array we don't need to run the query again, just return it.
-		$queryKey = implode('|', func_get_args());
-		if (!isset($multilanguageAssociations[$queryKey]))
+		// Multilanguage association memory key.
+		$queryKey = md5(implode('|', func_get_args()));
+
+		// If tested before, don't test again.
+		if (isset($multilanguageAssociations[$queryKey]))
 		{
+			// Set it as an empty array by default.
 			$multilanguageAssociations[$queryKey] = array();
 
 			$db = JFactory::getDbo();
@@ -122,6 +125,109 @@ class JLanguageAssociations
 	}
 
 	/**
+	 * Get the component associations.
+	 *
+	 * @param   string  $component   The name of the component or extension id.
+	 *
+	 * @return  array                The associated items.
+	 *
+	 * @since   3.6
+	 */
+	public static function getComponentAssociations($component = 'com_content')
+	{
+		static $associations = array();
+
+		// It was called by the extension id, not the component name. Gets the component name.
+		if (strpos($component, '.') !== false)
+		{
+			$component = array_shift(explode('.', $component));
+		}
+
+		// If tested before, don't test again. Return the previous result.
+		if (isset($associations[$component]))
+		{
+			return $associations[$component];
+		}
+
+		// Set it as an empty array by default.
+		$associations[$component] = array();
+
+		// If component allows associations return the associations.
+		if (self::allowsAssociations($component))
+		{
+			$className = JString::ucfirst(JString::str_ireplace('com_', '', $component)) . 'HelperAssociation';
+			$associations[$component] = call_user_func(array($className, 'getAssociations'));
+		}
+
+		return $associations[$component];
+	}
+
+	/**
+	 * Check if a component allows language associations.
+	 *
+	 * @param   string  $component   The name of the component or extension id.
+	 *
+	 * @return  boolean              True if component allows associations; false otherwise.
+	 *
+	 * @since   3.6
+	 */
+	public static function allowsAssociations($component = 'com_content')
+	{
+		static $associations = array();
+
+		// It was called by the extension id, not the component name. Gets the component name.
+		if (strpos($component, '.') !== false)
+		{
+			$component = array_shift(explode('.', $component));
+		}
+
+		// If tested before, don't test again. Return the previous result.
+		if (isset($associations[$component]))
+		{
+			return $associations[$component];
+		}
+
+		// Set it as false by default.
+		$associations[$component] = false;
+
+		// If language associations are enabled check if there is a associations class in the component folder.
+		if (JLanguageAssociations::isEnabled())
+		{
+			$className = JString::ucfirst(JString::str_ireplace('com_', '', $component)) . 'HelperAssociation';
+			JLoader::register($className, JPath::clean(JPATH_COMPONENT_SITE . '/helpers/association.php'));
+			$associations[$component] = class_exists($className) && is_callable(array($className, 'getAssociations'));	
+		}
+
+		return $associations[$component];
+	}
+
+	/**
+	 * Get the item language associations in language code / menu item id format.
+	 *
+	 * @param   array  $associations   The array with the associations objects.
+	 *
+	 * @return  array                  The array with the associations ids.
+	 *
+	 * @since   3.6
+	 */
+	public static function getAssociationsIds(array $associations = array())
+	{
+		// If id is empty return an empty array.
+		if ($associations === array())
+		{
+			return array();
+		}
+
+		$associationsIds = array();
+		foreach ($associations as $association)
+		{
+			$associationsIds[$association->language] = $association->id;
+		}
+
+		return $associationsIds;
+	}
+
+	/**
 	 * Method to determine if the language filter Items Associations parameter is enabled.
 	 * This works for both site and administrator.
 	 *
@@ -131,26 +237,26 @@ class JLanguageAssociations
 	 */
 	public static function isEnabled()
 	{
-		// Flag to avoid doing multiple database queries.
-		static $tested = false;
+		static $enabled = null;
 
-		// Status of language filter parameter.
-		static $enabled = false;
+		// If already tested, don't test again. Return the previous result.
+		if (!is_null($enabled))
+		{
+			return $enabled;
+		}
 
+		// Set it as false by default.
+		$enabled = false;
+
+		// If multilanguage is enabled, languague filter plugin is enabled and item_association param is set, return true.
 		if (JLanguageMultilang::isEnabled())
 		{
-			// If already tested, don't test again.
-			if (!$tested)
+			$plugin = JPluginHelper::getPlugin('system', 'languagefilter');
+
+			if (!empty($plugin))
 			{
-				$plugin = JPluginHelper::getPlugin('system', 'languagefilter');
-
-				if (!empty($plugin))
-				{
-					$params = new Registry($plugin->params);
-					$enabled  = (boolean) $params->get('item_associations', true);
-				}
-
-				$tested = true;
+				$params = new Registry($plugin->params);
+				$enabled  = (boolean) $params->get('item_associations', true);
 			}
 		}
 

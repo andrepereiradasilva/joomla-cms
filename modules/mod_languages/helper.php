@@ -9,8 +9,6 @@
 
 defined('_JEXEC') or die;
 
-JLoader::register('MenusHelper', JPATH_ADMINISTRATOR . '/components/com_menus/helpers/menus.php');
-
 /**
  * Helper for mod_languages
  *
@@ -30,54 +28,42 @@ abstract class ModLanguagesHelper
 	 */
 	public static function getList(&$params)
 	{
-		$user      = JFactory::getUser();
-		$lang      = JFactory::getLanguage();
-		$languages = JLanguageHelper::getLanguages();
-		$app       = JFactory::getApplication();
-		$menu      = $app->getMenu();
+		$app        = JFactory::getApplication();
+		$menu       = $app->getMenu();
+		$lang       = JFactory::getLanguage();
+		$langTag    = $lang->getTag();
+		$langRtl    = $lang->isRtl();		
+		$languages  = JLanguageHelper::getLanguages();
+		$levels     = JFactory::getUser()->getAuthorisedViewLevels();
+		$sitelangs  = JLanguageMultilang::getSiteLangs();
+		$multilang  = JLanguageMultilang::isEnabled();
+		$homepages  = JLanguageMultilang::getSiteHomePages();
+		$currentUri = JUri::getInstance()->toString(array('path', 'query'));
 
-		// Get menu home items
-		$homes = array();
-		$homes['*'] = $menu->getDefault('*');
-
-		foreach ($languages as $item)
+		// If multilanguage and language associations enabled, load language associations.
+		// Note that if the associations are not loaded yet by the language filter plugin onAfterDispatch event
+		// or other previous event, they will be loaded for the first time here so it will take some more time to load.
+		// This happens, for instance, when alternate_meta param of language filter plugin is set to false.
+		if ($multilang)
 		{
-			$default = $menu->getDefault($item->lang_code);
+			$associations  = array();
+			$cassociations = array();
 
-			if ($default && $default->language == $item->lang_code)
+			if (JLanguageAssociations::isEnabled())
 			{
-				$homes[$item->lang_code] = $default;
+				// Current menu item language associations.
+				if ($active = $menu->getActive())
+				{
+					$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $active->id, 'id', '', '');
+				}
+
+				// Current component language associations.
+				$cassociations = JLanguageAssociations::getComponentAssociations($app->input->get('option'));
 			}
 		}
-
-		// Load associations
-		$assoc = JLanguageAssociations::isEnabled();
-
-		if ($assoc)
-		{
-			$active = $menu->getActive();
-
-			if ($active)
-			{
-				$associations = MenusHelper::getAssociations($active->id);
-			}
-
-			// Load component associations
-			$class = str_replace('com_', '', $app->input->get('option')) . 'HelperAssociation';
-			JLoader::register($class, JPATH_COMPONENT_SITE . '/helpers/association.php');
-
-			if (class_exists($class) && is_callable(array($class, 'getAssociations')))
-			{
-				$cassociations = call_user_func(array($class, 'getAssociations'));
-			}
-		}
-
-		$levels    = $user->getAuthorisedViewLevels();
-		$sitelangs = JLanguageMultilang::getSiteLangs();
-		$multilang = JLanguageMultilang::isEnabled();
 
 		// Filter allowed languages
-		foreach ($languages as $i => &$language)
+		foreach ($languages as $i => $language)
 		{
 			// Do not display language without frontend UI
 			if (!array_key_exists($language->lang_code, $sitelangs))
@@ -85,7 +71,7 @@ abstract class ModLanguagesHelper
 				unset($languages[$i]);
 			}
 			// Do not display language without specific home menu
-			elseif (!isset($homes[$language->lang_code]))
+			elseif (!isset($homepages[$language->lang_code]))
 			{
 				unset($languages[$i]);
 			}
@@ -96,13 +82,13 @@ abstract class ModLanguagesHelper
 			}
 			else
 			{
-				$language->active = ($language->lang_code == $lang->getTag());
+				$language->active = ($language->lang_code == $langTag);
 
 				// Fetch language rtl
 				// If loaded language get from current JLanguage metadata
 				if ($language->active)
 				{
-					$language->rtl = $lang->isRtl();
+					$language->rtl = $langRtl;
 				}
 				// If not loaded language fetch metadata directly for performance
 				else
@@ -117,27 +103,26 @@ abstract class ModLanguagesHelper
 					{
 						$language->link = JRoute::_($cassociations[$language->lang_code] . '&lang=' . $language->sef);
 					}
-					elseif (isset($associations[$language->lang_code]) && $menu->getItem($associations[$language->lang_code]))
+					elseif (isset($associations[$language->lang_code]) && ($item = $menu->getItem($associations[$language->lang_code]->id)))
 					{
-						$itemid = $associations[$language->lang_code];
-						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $itemid);
+						$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
 					}
 					else
 					{
 						if ($language->active)
 						{
-							$language->link = JUri::getInstance()->toString(array('path', 'query'));
+							$language->link = $currentUri;
 						}
 						else
 						{
-							$itemid = isset($homes[$language->lang_code]) ? $homes[$language->lang_code]->id : $homes['*']->id;
+							$itemid = isset($homepages[$language->lang_code]) ? $homepages[$language->lang_code]->id : $homepages['*']->id;
 							$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $itemid);
 						}
 					}
 				}
 				else
 				{
-					$language->link = JRoute::_('&Itemid=' . $homes['*']->id);
+					$language->link = JRoute::_('&Itemid=' . $homepages['*']->id);
 				}
 			}
 		}

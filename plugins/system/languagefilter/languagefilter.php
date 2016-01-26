@@ -11,8 +11,6 @@ defined('_JEXEC') or die;
 
 use Joomla\Registry\Registry;
 
-JLoader::register('MenusHelper', JPATH_ADMINISTRATOR . '/components/com_menus/helpers/menus.php');
-
 /**
  * Joomla! Language Filter Plugin.
  *
@@ -52,30 +50,8 @@ class PlgSystemLanguageFilter extends JPlugin
 	{
 		parent::__construct($subject, $config);
 
-		$this->app = JFactory::getApplication();
-
 		if ($this->app->isSite())
 		{
-			// Setup language data.
-			$this->mode_sef     = $this->app->get('sef', 0);
-			$this->sefs         = JLanguageHelper::getLanguages('sef');
-			$this->lang_codes   = JLanguageHelper::getLanguages('lang_code');
-			$this->default_lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
-
-			$levels = JFactory::getUser()->getAuthorisedViewLevels();
-
-			foreach ($this->sefs as $sef => $language)
-			{
-				// @todo: In Joomla 2.5.4 and earlier access wasn't set. Non modified Content Languages got 0 as access value
-				// we also check if frontend language exists and is enabled
-				if (($language->access && !in_array($language->access, $levels))
-					|| (!array_key_exists($language->lang_code, JLanguageMultilang::getSiteLangs())))
-				{
-					unset($this->lang_codes[$language->lang_code]);
-					unset($this->sefs[$language->sef]);
-				}
-			}
-
 			$this->app->setLanguageFilter(true);
 
 			// Detect browser feature.
@@ -96,6 +72,26 @@ class PlgSystemLanguageFilter extends JPlugin
 
 		if ($this->app->isSite())
 		{
+			// Setup language data.
+			$this->mode_sef     = $this->app->get('sef', 0);
+			$this->sefs         = JLanguageHelper::getLanguages('sef');
+			$this->lang_codes   = JLanguageHelper::getLanguages('lang_code');
+			$this->default_lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
+			$sitelangs          = JLanguageMultilang::getSiteLangs();
+			$levels             = JFactory::getUser()->getAuthorisedViewLevels();
+
+			foreach ($this->sefs as $sef => $language)
+			{
+				// @todo: In Joomla 2.5.4 and earlier access wasn't set. Non modified Content Languages got 0 as access value
+				// we also check if frontend language exists and is enabled
+				if (($language->access && !in_array($language->access, $levels)) || (!array_key_exists($language->lang_code, $sitelangs)))
+				{
+					unset($this->lang_codes[$language->lang_code]);
+					unset($this->sefs[$language->sef]);
+				}
+			}
+
+			// Routes for language SEF.
 			$router = $this->app->getRouter();
 
 			// Attach build rules for language SEF.
@@ -557,7 +553,7 @@ class PlgSystemLanguageFilter extends JPlugin
 			{
 				if ($assoc)
 				{
-					$associations = MenusHelper::getAssociations($active->id);
+					$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $active->id, 'id', '', '');
 				}
 
 				if (isset($associations[$lang_code]) && $menu->getItem($associations[$lang_code]))
@@ -602,65 +598,60 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onAfterDispatch()
 	{
-		$doc = JFactory::getDocument();
+		$doc = $this->app->getDocument();
 
-		if ($this->app->isSite() && $this->params->get('alternate_meta') && $doc->getType() == 'html')
+		if ($this->app->isSite() && (boolean) $this->params->get('alternate_meta', true) && $doc->getType() == 'html')
 		{
-			$languages = $this->lang_codes;
-			$homes = JLanguageMultilang::getSiteHomePages();
-			$menu = $this->app->getMenu();
-			$active = $menu->getActive();
-			$levels = JFactory::getUser()->getAuthorisedViewLevels();
-			$remove_default_prefix = $this->params->get('remove_default_prefix', 0);
-			$server = JUri::getInstance()->toString(array('scheme', 'host', 'port'));
-			$is_home = false;
+			$languages  = $this->lang_codes;
+			$homes      = JLanguageMultilang::getSiteHomePages();
+			$siteLangs  = JLanguageMultilang::getSiteLangs();
+			$menu       = $this->app->getMenu();
+			$activeMenu = $menu->getActive();
+			$uri        = JUri::getInstance();
+			$currentUri = $uri->toString(array('path', 'query'));
+			$levels     = JFactory::getUser()->getAuthorisedViewLevels();
+			$isHome     = false;
 
-			if ($active)
+			// Check if current menu item is a homepage
+			if ($activeMenu)
 			{
-				$active_link = JRoute::_($active->link . '&Itemid=' . $active->id, false);
-				$current_link = JUri::getInstance()->toString(array('path', 'query'));
+				$activeMenuUri = JRoute::_($activeMenu->link . '&Itemid=' . $activeMenu->id, false);
+				$isHome = ($activeMenu->home
+					&& ($activeMenuUri == $currentUri || $activeMenuUri == $currentUri . 'index.php' || $activeMenuUri . '/' == $currentUri));
+			}
 
-				// Load menu associations
-				if ($active_link == $current_link)
-				{
-					$associations = MenusHelper::getAssociations($active->id);
-				}
+			// Fetch language associations for the menu and for the current component.
+			$associations = array();
 
-				// Check if we are on the homepage
-				$is_home = ($active->home
-					&& ($active_link == $current_link || $active_link == $current_link . 'index.php' || $active_link . '/' == $current_link));
+			// Load menu associations
+			if ($activeMenu && $activeMenuUri == $currentUri)
+			{
+				$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $activeMenu->id, 'id', '', '');
 			}
 
 			// Load component associations.
-			$option = $this->app->input->get('option');
-			$cName = JString::ucfirst(JString::str_ireplace('com_', '', $option)) . 'HelperAssociation';
-			JLoader::register($cName, JPath::clean(JPATH_COMPONENT_SITE . '/helpers/association.php'));
-
-			if (class_exists($cName) && is_callable(array($cName, 'getAssociations')))
-			{
-				$cassociations = call_user_func(array($cName, 'getAssociations'));
-			}
+			$cassociations = JLanguageAssociations::getComponentAssociations($this->app->input->get('option'));
 
 			// For each language...
-			foreach ($languages as $i => &$language)
+			foreach ($languages as $i => $language)
 			{
 				switch (true)
 				{
 					// Language without frontend UI || Language without specific home menu || Language without authorized access level
-					case (!array_key_exists($i, JLanguageMultilang::getSiteLangs())):
+					case (!array_key_exists($i, $siteLangs)):
 					case (!isset($homes[$i])):
 					case (isset($language->access) && $language->access && !in_array($language->access, $levels)):
 						unset($languages[$i]);
 						break;
 
 					// Home page
-					case ($is_home):
+					case ($isHome):
 						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $homes[$i]->id);
 						break;
 
 					// Current language link
 					case ($i == $this->current_lang):
-						$language->link = JUri::getInstance()->toString(array('path', 'query'));
+						$language->link = $currentUri;
 						break;
 
 					// Component association
@@ -670,7 +661,7 @@ class PlgSystemLanguageFilter extends JPlugin
 
 					// Menu items association
 					// Heads up! "$item = $menu" here below is an assignment, *NOT* comparison
-					case (isset($associations[$i]) && ($item = $menu->getItem($associations[$i]))):
+					case (isset($associations[$i]) && ($item = $menu->getItem($associations[$i]->id))):
 						$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
 						break;
 
@@ -683,8 +674,10 @@ class PlgSystemLanguageFilter extends JPlugin
 			// If there are at least 2 of them, add the rel="alternate" links to the <head>
 			if (count($languages) > 1)
 			{
+				$server = $uri->toString(array('scheme', 'host', 'port'));
+
 				// Remove the sef from the default language if "Remove URL Language Code" is on
-				if (isset($languages[$this->default_lang]) && $remove_default_prefix)
+				if (isset($languages[$this->default_lang]) && $this->params->get('remove_default_prefix', 0))
 				{
 					$languages[$this->default_lang]->link
 									= preg_replace('|/' . $languages[$this->default_lang]->sef . '/|', '/', $languages[$this->default_lang]->link, 1);
@@ -696,7 +689,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				}
 
 				// Add x-default language tag
-				if ($this->params->get('xdefault', 1))
+				if ((boolean) $this->params->get('xdefault', true))
 				{
 					$xdefault_language = $this->params->get('xdefault_language', $this->default_lang);
 					$xdefault_language = ( $xdefault_language == 'default' ) ? $this->default_lang : $xdefault_language;

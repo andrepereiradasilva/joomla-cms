@@ -100,12 +100,7 @@ class CategoriesHelper
 	public static function getAssociations($pk, $extension = 'com_content')
 	{
 		$langAssociations = JLanguageAssociations::getAssociations($extension, '#__categories', 'com_categories.item', $pk, 'id', 'alias', '');
-		$associations = array();
-		foreach ($langAssociations as $langAssociation)
-		{
-			$associations[$langAssociation->language] = $langAssociation->id;
-		}
 
-		return $associations;
+		return JLanguageAssociations::getAssociationsIds($langAssociations);
 	}
 }
