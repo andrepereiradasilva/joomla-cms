@@ -44,7 +44,7 @@ class JLanguageAssociations
 		$queryKey = md5(implode('|', func_get_args()));
 
 		// If tested before, don't test again.
-		if (isset($multilanguageAssociations[$queryKey]))
+		if (!isset($multilanguageAssociations[$queryKey]))
 		{
 			// Set it as an empty array by default.
 			$multilanguageAssociations[$queryKey] = array();
