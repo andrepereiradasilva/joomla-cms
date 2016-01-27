@@ -48,7 +48,7 @@ class JLanguageMultilang
 			// Determine status of language filter plug-in.
 			$db = JFactory::getDbo();
 			$query = $db->getQuery(true)
-				->select('enabled')
+				->select($db->quoteName('enabled'))
 				->from($db->quoteName('#__extensions'))
 				->where($db->quoteName('type') . ' = ' . $db->quote('plugin'))
 				->where($db->quoteName('folder') . ' = ' . $db->quote('system'))
@@ -82,8 +82,8 @@ class JLanguageMultilang
 		// Check for published Site Languages.
 		$db = JFactory::getDbo();
 		$query = $db->getQuery(true)
-			->select('element')
-			->from('#__extensions')
+			->select($db->quoteName('element'))
+			->from($db->quoteName('#__extensions'))
 			->where($db->quoteName('type') . ' = ' . $db->quote('language'))
 			->where($db->quoteName('client_id') . ' = 0')
 			->where($db->quoteName('enabled') . ' = 1');
@@ -115,8 +115,8 @@ class JLanguageMultilang
 		// Check for Home pages languages.
 		$db = JFactory::getDbo();
 		$query = $db->getQuery(true)
-			->select('language')
-			->select('id')
+			->select($db->quoteName('language'))
+			->select($db->quoteName('id'))
 			->from($db->quoteName('#__menu'))
 			->where($db->quoteName('home') . ' = 1')
 			->where($db->quoteName('published') . ' = 1')
@@ -126,5 +126,39 @@ class JLanguageMultilang
 		$multilangSiteHomePages = $db->loadObjectList('language');
 
 		return $multilangSiteHomePages;
+	}
+
+	/**
+	 * Method to the global default homepage menu item id.
+	 *
+	 * @return  integer  The menu item id.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getGlobalHomepage()
+	{
+		// To avoid doing duplicate database queries.
+		static $globalHomepage = null;
+
+		// If already fetched, don't fetch again. Return the previous result.
+		if (!is_null($globalHomepage))
+		{
+			return $globalHomepage;
+		}
+
+		// Check for Home pages languages.
+		$db = JFactory::getDbo();
+		$query = $db->getQuery(true)
+			->select($db->quoteName('id'))
+			->from($db->quoteName('#__menu'))
+			->where($db->quoteName('home') . ' = 1')
+			->where($db->quoteName('published') . ' = 1')
+			->where($db->quoteName('language') . ' = ' . $db->quote('*'))
+			->where($db->quoteName('client_id') . ' = 0');
+		$db->setQuery($query);
+
+		$globalHomepage = $db->loadResult();
+
+		return (int) $globalHomepage;
 	}
 }
