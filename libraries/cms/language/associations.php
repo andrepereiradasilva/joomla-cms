@@ -154,7 +154,7 @@ class JLanguageAssociations
 			$cassociations    = array();
 			$associations     = array();
 			$isHome           = (isset($activeMenu) && $languages[$langTag]->homeid == $activeMenu->id);
-			$currentUri       = JUri::getInstance()->toString(array('path', 'query'));
+			$currentUri       = $uri->toString(array('path', 'query'));
 
 			// Get the internal uri without the language query string var
 			// This will be used when the user is in a component without menu item (ex: login page).
