@@ -54,19 +54,13 @@ class PlgSystemLanguageFilter extends JPlugin
 		{
 			// Setup language data.
 			$this->lang_codes   = JLanguageHelper::getFrontendLanguages('lang_code');
-			
-			// Only activate language filter plugin if there is a language that meets the requirements: language exists and is published, 
-			// language extension exists and is enabled, there is a home menu item and user has access to language and home menu item.
-			if ($this->lang_codes !== array())
-			{
-				$this->mode_sef     = $this->app->get('sef', 0);
-				$this->sefs         = JLanguageHelper::getFrontendLanguages('sef');
-				$this->default_lang = JLanguageHelper::getDefaultLanguage()->lang_code;
-				$this->app->setLanguageFilter(true);
+			$this->mode_sef     = $this->app->get('sef', 0);
+			$this->sefs         = JLanguageHelper::getFrontendLanguages('sef');
+			$this->default_lang = JLanguageHelper::getDefaultLanguage()->lang_code;
+			$this->app->setLanguageFilter(true);
 
-				// Detect browser feature.
-				$this->app->setDetectBrowser($this->params->get('detect_browser', '1') == '1');
-			}
+			// Detect browser feature.
+			$this->app->setDetectBrowser($this->params->get('detect_browser', '1') == '1');
 		}
 	}
 
