@@ -160,10 +160,10 @@ class JLanguageAssociations
 			// This will be used when the user is in a component without menu item (ex: login page).
 			if (!isset($activeMenu))
 			{
-				$internal_uri = preg_replace('#&lang=[a-zA-Z0-9\-]+#', '', 'index.php?' . JUri::getInstance()->buildQuery($app->getRouter()->getVars()));
+				$internal_uri = preg_replace('#&lang=[a-zA-Z0-9\-]+#', '', 'index.php?' . $uri->buildQuery($app->getRouter()->getVars()));
 			}
 
-			if (JLanguageMultilang::isEnabled() && self::isEnabled())
+			if (!$isHome && JLanguageMultilang::isEnabled() && self::isEnabled())
 			{
 				// Load component associations.
 				$cassociations = self::getComponentAssociations($app->input->get('option'));
