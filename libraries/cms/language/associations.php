@@ -149,7 +149,7 @@ class JLanguageAssociations
 			$lang             = JFactory::getLanguage();
 			$langTag          = $lang->getTag();
 			$activeMenu       = $menu->getActive();
-			$languages        = JLanguageHelper::getViewLanguages('lang_code');
+			$languages        = JLanguageHelper::getFrontendLanguages('lang_code');
 			$uri              = JUri::getInstance();
 			$cassociations    = array();
 			$associations     = array();

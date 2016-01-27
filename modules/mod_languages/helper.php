@@ -31,7 +31,7 @@ abstract class ModLanguagesHelper
 		$lang      = JFactory::getLanguage();
 		$langTag   = $lang->getTag();
 		$langRtl   = $lang->isRtl();		
-		$languages = JLanguageHelper::getViewLanguages('lang_code');
+		$languages = JLanguageHelper::getFrontendLanguages('lang_code');
 		$multilang = JLanguageMultilang::isEnabled();
 
 		// Load the association links.

@@ -65,17 +65,17 @@ class JLanguageWrapperHelper
 	}
 
 	/**
-	 * Helper wrapper method for getViewLanguages
+	 * Helper wrapper method for getFrontendLanguages
 	 *
 	 * @param   string  $key  Array key
 	 *
-	 * @return  array  An array with all active view languages.
+	 * @return  array  An array with all frontend languages.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getViewLanguages($key = 'default')
+	public static function getFrontendLanguages($key = 'default')
 	{
-		return JLanguageHelper::getViewLanguages($key);
+		return JLanguageHelper::getFrontendLanguages($key);
 	}
 
 	/**

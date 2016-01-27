@@ -217,16 +217,16 @@ class JLanguageHelper
 	}
 
 	/**
-	 * Get view languages. An active language is published, the extension is enabled,
-	 * has a homepage and the user can view the language and the homepage.	 
+	 * Get frontend languages. A frontend language is published, the language extension is enabled,
+	 * has a homepage menu item, the user can view the language and the homepage and the directory of the language exists.	 
 	 *
 	 * @param   string  $key  Array key
 	 *
-	 * @return  array  An array with all active view languages.
+	 * @return  array  An array with all frontend languages.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getViewLanguages($key = 'default')
+	public static function getFrontendLanguages($key = 'default')
 	{
 		static $languages = array();
 
@@ -240,18 +240,27 @@ class JLanguageHelper
 				if (empty($language->extension_enabled))
 				{
 					unset($languages[$key][$index]);
+					continue;
 				}
 				if (empty($language->homeid))
 				{
 					unset($languages[$key][$index]);
+					continue;
 				}
 				if (isset($language->access) && $language->access != 0 && !in_array($language->access, $levels))
 				{
 					unset($languages[$key][$index]);
+					continue;
 				}
 				if (isset($language->homeaccess) && $language->homeaccess != 0 && !in_array($language->homeaccess, $levels))
 				{
 					unset($languages[$key][$index]);
+					continue;
+				}
+				if (!is_dir(JPATH_SITE . '/language/' . $language->lang_code))
+				{
+					unset($languages[$key][$index]);
+					continue;
 				}
 			}
 		}
