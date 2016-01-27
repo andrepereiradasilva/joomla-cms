@@ -199,7 +199,10 @@ class JLanguageAssociations
 					// If current URI is a component without menu item (no active menu, ex: /en/component/content/),
 					// associated URI for this language will be the version of the component in the language (ex: /fr/component/content/).
 					case (!isset($activeMenu)):
-						$internalUri = (empty($internalUri)) ? preg_replace('#&lang=[a-zA-Z0-9\-]+#', '', $uri->buildQuery($app->getRouter()->getVars())) : $internalUri;
+						if (empty($internalUri))
+						{
+							$internalUri = http_build_query($app->getRouter()->getVars(array_diff_key($app->getRouter()->getVars(), array('lang' => ''))));
+						}
 						$associationLinks[$i] = JRoute::_('index.php?' . $internalUri . '&lang=' . $language->sef);
 						break;
 
