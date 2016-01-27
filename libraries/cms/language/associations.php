@@ -156,25 +156,20 @@ class JLanguageAssociations
 			$isHome           = (isset($activeMenu) && $languages[$langTag]->homeid == $activeMenu->id);
 			$currentUri       = $uri->toString(array('path', 'query'));
 
-			// Get the internal uri without the language query string var
-			// This will be used when the user is in a component without menu item (ex: login page).
-			if (!isset($activeMenu))
-			{
-				$internal_uri = preg_replace('#&lang=[a-zA-Z0-9\-]+#', '', 'index.php?' . $uri->buildQuery($app->getRouter()->getVars()));
-			}
-
+			// If is not the homepage, multilanguage is enable and associations is enabled load the associations.
 			if (!$isHome && JLanguageMultilang::isEnabled() && self::isEnabled())
 			{
 				// Load component associations.
 				$cassociations = self::getComponentAssociations($app->input->get('option'));
 
-				// Load menu associations
+				// Load menu associations (only if there is an active menu)
 				if (isset($activeMenu))
 				{
 					$associations = self::getAssociations('com_menus', '#__menu', 'com_menus.item', $activeMenu->id, 'id', null, null, true);
 				}
 			}
 
+			$internalUri = '';
 			// For each language get the association link
 			foreach ($languages as $i => $language)
 			{
@@ -204,7 +199,8 @@ class JLanguageAssociations
 					// If current URI is a component without menu item (no active menu, ex: /en/component/content/),
 					// associated URI for this language will be the version of the component in the language (ex: /fr/component/content/).
 					case (!isset($activeMenu)):
-						$associationLinks[$i] = JRoute::_($internal_uri . '&lang=' . $language->sef);
+						$internalUri = (empty($internalUri)) ? preg_replace('#&lang=[a-zA-Z0-9\-]+#', '', $uri->buildQuery($app->getRouter()->getVars())) : $internalUri;
+						$associationLinks[$i] = JRoute::_('index.php?' . $internalUri . '&lang=' . $language->sef);
 						break;
 
 					// If no association ... set to this language home page menu item id to be treated after.
