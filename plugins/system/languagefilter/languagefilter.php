@@ -75,7 +75,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	{
 		$this->app->item_associations = $this->params->get('item_associations', 0);
 
-		if ($this->app->isSite() && $this->app->getLanguageFilter())
+		if ($this->app->isSite())
 		{
 			// Routes for language SEF.
 			$router = $this->app->getRouter();
@@ -584,7 +584,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onAfterDispatch()
 	{
-		if ($this->app->isSite() && $this->app->getLanguageFilter())
+		if ($this->app->isSite())
 		{
 			$doc = $this->app->getDocument();
 
