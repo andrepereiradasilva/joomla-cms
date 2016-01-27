@@ -602,36 +602,19 @@ class PlgSystemLanguageFilter extends JPlugin
 
 		if ($this->app->isSite() && $this->params->get('alternate_meta') && $doc->getType() == 'html')
 		{
-			$languages  = $this->lang_codes;
 			$homes      = JLanguageMultilang::getSiteHomePages();
-			$siteLangs  = JLanguageMultilang::getSiteLangs();
+			$languages  = array_intersect_key($this->lang_codes, JLanguageMultilang::getSiteLangs(), $homes);
 			$menu       = $this->app->getMenu();
 			$activeMenu = $menu->getActive();
 			$uri        = JUri::getInstance();
 			$currentUri = $uri->toString(array('path', 'query'));
 			$levels     = JFactory::getUser()->getAuthorisedViewLevels();
-			$isHome     = false;
-
-			// Check if current menu item is a homepage
-			if ($activeMenu)
-			{
-				$activeMenuUri = JRoute::_($activeMenu->link . '&Itemid=' . $activeMenu->id, false);
-				$isHome = ($activeMenu->home
-					&& ($activeMenuUri == $currentUri || $activeMenuUri == $currentUri . 'index.php' || $activeMenuUri . '/' == $currentUri));
-			}
-
-			// Fetch language associations for the menu and for the current component.
-			$associations = array();
 
 			// Load component associations.
 			$cassociations = JLanguageAssociations::getComponentAssociations($this->app->input->get('option'));
 
 			// Load menu associations
-			$associations = array();
-			if ($activeMenu && $activeMenuUri == $currentUri)
-			{
-				$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $activeMenu->id, 'id', null, null, true);
-			}
+			$associations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $activeMenu->id, 'id', null, null, true);
 
 			// For each language...
 			foreach ($languages as $i => $language)
@@ -639,14 +622,12 @@ class PlgSystemLanguageFilter extends JPlugin
 				switch (true)
 				{
 					// Language without frontend UI || Language without specific home menu || Language without authorized access level
-					case (!array_key_exists($i, $siteLangs)):
-					case (!isset($homes[$i])):
 					case (isset($language->access) && $language->access && !in_array($language->access, $levels)):
 						unset($languages[$i]);
 						break;
 
 					// Home page
-					case ($isHome):
+					case ($homes[$i]->id == $activeMenu->id):
 						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $homes[$i]->id);
 						break;
 
