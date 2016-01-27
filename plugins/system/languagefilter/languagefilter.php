@@ -643,7 +643,6 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	private function setLanguageCookie($lang_code)
 	{
-
 		// Get the cookie lifetime we want.
 		$cookie_expire = 0;
 		if ($this->params->get('lang_cookie', 1) == 1)
