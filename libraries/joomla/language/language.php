@@ -680,29 +680,14 @@ class JLanguage
 	 * @return  boolean  True if the language exists.
 	 *
 	 * @since   11.1
+	 *
+	 * @deprecated  4.0  Use JLanguageHelper::exists() instead.
 	 */
 	public static function exists($lang, $basePath = JPATH_BASE)
 	{
-		static $paths = array();
+		JLog::add(__METHOD__ . ' is deprecated, use JLanguageHelper::exists() instead.', JLog::WARNING, 'deprecated');
 
-		// Return false if no language was specified
-		if (!$lang)
-		{
-			return false;
-		}
-
-		$path = $basePath . '/language/' . $lang;
-
-		// Return previous check results if it exists
-		if (isset($paths[$path]))
-		{
-			return $paths[$path];
-		}
-
-		// Check if the language exists
-		$paths[$path] = is_dir($path);
-
-		return $paths[$path];
+		return JLanguageHelper::exists($lang, $basePath);
 	}
 
 	/**
@@ -1329,32 +1314,31 @@ class JLanguage
 	{
 		$languages = array();
 
-		$iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir));
-
-		foreach ($iterator as $file)
+		// Search main language directory for subdirectories
+		foreach (glob($dir . '/*', GLOB_NOSORT | GLOB_ONLYDIR) as $directory)
 		{
-			$langs    = array();
-			$fileName = $file->getFilename();
-
-			if (!$file->isFile() || !preg_match("/^([-_A-Za-z]*)\.xml$/", $fileName))
+			// But only directories with lang code format
+			if (preg_match('#/[a-z]{2,3}-[A-Z]{2}$#', $directory))
 			{
-				continue;
-			}
+				$dirPathParts = pathinfo($directory);
+				$file         = $directory . '/' . $dirPathParts['filename'] . '.xml';
 
-			try
-			{
-				$metadata = self::parseXMLLanguageFile($file->getRealPath());
-
-				if ($metadata)
+				if (!is_file($file))
 				{
-					$lang = str_replace('.xml', '', $fileName);
-					$langs[$lang] = $metadata;
+					continue;
 				}
 
-				$languages = array_merge($languages, $langs);
-			}
-			catch (RuntimeException $e)
-			{
+				try
+				{
+					// Get installed language metadata from xml file and merge it with lang array
+					if ($metadata = self::parseXMLLanguageFile($file))
+					{
+						$languages = array_replace($languages, array($dirPathParts['filename'] => $metadata));
+					}
+				}
+				catch (RuntimeException $e)
+				{
+				}
 			}
 		}
 
