@@ -28,12 +28,11 @@ abstract class ModLanguagesHelper
 	 */
 	public static function getList(&$params)
 	{
-		// If there are no languages available return an empty array.
+		// If multilanguage is not active return an empty array.
 		// There can be no languages if language filter is published but no languages are available.
-		$languages = JLanguageMultilang::getAvailableLanguages('lang_code');
-		if ($languages === array())
+		if (!JLanguageMultilang::isEnabled())
 		{
-			return $languages;
+			return array();
 		}
 
 		// Prefetch variables
