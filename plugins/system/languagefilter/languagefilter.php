@@ -28,6 +28,8 @@ class PlgSystemLanguageFilter extends JPlugin
 
 	protected $default_lang;
 
+	protected $activated = 0;
+
 	private $user_lang_code;
 
 	/**
@@ -52,12 +54,23 @@ class PlgSystemLanguageFilter extends JPlugin
 
 		if ($this->app->isSite())
 		{
-			// Setup language data.
+			// If there are no languages available return an empty array.
+			// There can be no languages if language filter is published but no languages are available.
 			$this->lang_codes   = JLanguageMultilang::getAvailableLanguages('lang_code');
-			$this->mode_sef     = $this->app->get('sef', 0);
-			$this->sefs         = JLanguageMultilang::getAvailableLanguages('sef');
-			$this->default_lang = JLanguageMultilang::getDefaultLanguage()->lang_code;
+			if ($this->lang_codes === array())
+			{
+				return;
+			}
+
+			// Setup language data.
+			$this->mode_sef               = $this->app->get('sef', 0);
+			$this->sefs                   = JLanguageMultilang::getAvailableLanguages('sef');
+			$this->default_lang           = JLanguageHelper::getDefaultLanguageCode();
+			$this->app->item_associations = $this->params->get('item_associations', 0);
+
+			// Set language filter as activated in the app context and in the language filter plugin context.
 			$this->app->setLanguageFilter(true);
+			$this->activated = 1;
 
 			// Detect browser feature.
 			$this->app->setDetectBrowser($this->params->get('detect_browser', '1') == '1');
@@ -73,9 +86,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onAfterInitialise()
 	{
-		$this->app->item_associations = $this->params->get('item_associations', 0);
-
-		if ($this->app->isSite())
+		if ($this->activated && $this->app->isSite())
 		{
 			// Routes for language SEF.
 			$router = $this->app->getRouter();
@@ -107,10 +118,13 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onAfterRoute()
 	{
-		// Add custom site name.
-		if (isset($this->lang_codes[$this->current_lang]) && $this->lang_codes[$this->current_lang]->sitename)
+		if ($this->activated)
 		{
-			$this->app->set('sitename', $this->lang_codes[$this->current_lang]->sitename);
+			// Add custom site name.
+			if (isset($this->lang_codes[$this->current_lang]) && $this->lang_codes[$this->current_lang]->sitename)
+			{
+				$this->app->set('sitename', $this->lang_codes[$this->current_lang]->sitename);
+			}
 		}
 	}
 
@@ -433,7 +447,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onUserBeforeSave($user, $isnew, $new)
 	{
-		if ($this->params->get('automatic_change', '1') == '1' && key_exists('params', $user))
+		if ($this->activated && $this->params->get('automatic_change', '1') == '1' && key_exists('params', $user))
 		{
 			$registry = new Registry;
 			$registry->loadString($user['params']);
@@ -462,7 +476,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onUserAfterSave($user, $isnew, $success, $msg)
 	{
-		if ($this->params->get('automatic_change', '1') == '1' && key_exists('params', $user) && $success)
+		if ($this->activated && $this->params->get('automatic_change', '1') == '1' && key_exists('params', $user) && $success)
 		{
 			$registry = new Registry;
 			$registry->loadString($user['params']);
@@ -507,10 +521,10 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onUserLogin($user, $options = array())
 	{
-		$menu = $this->app->getMenu();
-
-		if ($this->app->isSite() && $this->params->get('automatic_change', 1))
+		if ($this->activated && $this->app->isSite() && $this->params->get('automatic_change', 1))
 		{
+			$menu = $this->app->getMenu();
+
 			$assoc = JLanguageAssociations::isEnabled();
 			$lang_code = $user['language'];
 
@@ -580,7 +594,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onAfterDispatch()
 	{
-		if ($this->app->isSite())
+		if ($this->activated && $this->app->isSite())
 		{
 			$doc = $this->app->getDocument();
 

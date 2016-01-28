@@ -639,7 +639,7 @@ final class JApplicationSite extends JApplicationCms
 		if (empty($options['language']))
 		{
 			// Detect default language
-			$options['language'] = JLanguageMultilang::getDefaultLanguage()->lang_code;
+			$options['language'] = JLanguageHelper::getDefaultLanguageCode();
 		}
 
 		// One last check to make sure we have something

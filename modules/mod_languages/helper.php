@@ -28,24 +28,26 @@ abstract class ModLanguagesHelper
 	 */
 	public static function getList(&$params)
 	{
+		// If there are no languages available return an empty array.
+		// There can be no languages if language filter is published but no languages are available.
+		$languages = JLanguageMultilang::getAvailableLanguages('lang_code');
+		if ($languages === array())
+		{
+			return $languages;
+		}
+
+		// Prefetch variables
 		$lang      = JFactory::getLanguage();
 		$langTag   = $lang->getTag();
 		$langRtl   = $lang->isRtl();
 		$languages = JLanguageMultilang::getAvailableLanguages('lang_code');
-		$multilang = JLanguageMultilang::isEnabled();
 
-		// Load the association links.
+		// If there are languages, load the association links.
 		$associationLinks = JLanguageAssociations::getAssociationsLinks(true);
 
 		// Get the if language is rtl and the association link for each language.
 		foreach ($languages as $i => $language)
 		{
-			// If multilanguage is not enabled, use only the default language link.
-			if (!$multilang && !$language->default)
-			{
-				unset($languages[$i]);
-			}
-	
 			$language->active = ($language->lang_code == $langTag);
 
 			// If language already loaded language get the rtl from current JLanguage metadata.

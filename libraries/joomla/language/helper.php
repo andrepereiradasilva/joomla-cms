@@ -218,4 +218,23 @@ class JLanguageHelper
 
 		return $paths[$path];
 	}
+
+	/**
+	 * Get default language.
+	 *
+	 * @return  object  Object with default language properties.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getDefaultLanguageCode()
+	{
+		static $defaultLanguageCode;
+
+		if (empty($defaultLanguageCode))
+		{
+			$defaultLanguageCode = JComponentHelper::getParams('com_languages')->get('site', JFactory::getApplication()->get('language', 'en-GB'));
+		}
+
+		return $defaultLanguageCode;
+	}
 }
