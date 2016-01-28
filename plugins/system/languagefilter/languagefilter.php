@@ -53,10 +53,10 @@ class PlgSystemLanguageFilter extends JPlugin
 		if ($this->app->isSite())
 		{
 			// Setup language data.
-			$this->lang_codes   = JLanguageHelper::getFrontendLanguages('lang_code');
+			$this->lang_codes   = JLanguageMultilang::getAvailableLanguages('lang_code');
 			$this->mode_sef     = $this->app->get('sef', 0);
-			$this->sefs         = JLanguageHelper::getFrontendLanguages('sef');
-			$this->default_lang = JLanguageHelper::getDefaultLanguage()->lang_code;
+			$this->sefs         = JLanguageMultilang::getAvailableLanguages('sef');
+			$this->default_lang = JLanguageMultilang::getDefaultLanguage()->lang_code;
 			$this->app->setLanguageFilter(true);
 
 			// Detect browser feature.
@@ -520,13 +520,9 @@ class PlgSystemLanguageFilter extends JPlugin
 				$lang_code = $this->default_lang;
 			}
 
-			jimport('joomla.filesystem.folder');
-
 			// The language has been deleted/disabled or the related content language does not exist/has been unpublished
 			// or the related home page does not exist/has been unpublished
-			if (!array_key_exists($lang_code, $this->lang_codes)
-				|| !array_key_exists($lang_code, JLanguageMultilang::getSiteHomePages())
-				|| !JFolder::exists(JPATH_SITE . '/language/' . $lang_code))
+			if (!array_key_exists($lang_code, $this->lang_codes))
 			{
 				$lang_code = $this->current_lang;
 			}

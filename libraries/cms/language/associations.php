@@ -149,7 +149,7 @@ class JLanguageAssociations
 			$lang             = JFactory::getLanguage();
 			$langTag          = $lang->getTag();
 			$activeMenu       = $menu->getActive();
-			$languages        = JLanguageHelper::getFrontendLanguages('lang_code');
+			$languages        = JLanguageMultilang::getAvailableLanguages('lang_code');
 			$uri              = JUri::getInstance();
 			$cassociations    = array();
 			$associations     = array();
@@ -226,14 +226,16 @@ class JLanguageAssociations
 				// If we want as a last resort that the association link is the language homepage (used in mod_languages).
 				if ($lastHome)
 				{
-					$item = $menu->getItem($associationLink);
+					if ($item = $menu->getItem($associationLink))
+					{
+						$associationFinal[$i] = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $i);
+					}
 					// If the default home page for this language is not ative (does not exist, not published, etc) use the global default menu item instead.
 					// This is rare, only a bad configured site will do this, so we will leave this inside the query for not making an extra query in all multilanguage sites.
-					if (!isset($item))
+					else
 					{
-						$item = $menu->getItem(JLanguageMultilang::getGlobalHomepage());
+						$associationFinal[$i] = '/';
 					}
-					$associationFinal[$i] = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $i);
 				}
 				// If no association ... unset the association link for this language (used in language filter alternate meta tags).
 				else

@@ -30,17 +30,17 @@ abstract class ModLanguagesHelper
 	{
 		$lang      = JFactory::getLanguage();
 		$langTag   = $lang->getTag();
-		$langRtl   = $lang->isRtl();		
-		$languages = JLanguageHelper::getFrontendLanguages('lang_code');
+		$langRtl   = $lang->isRtl();
+		$languages = JLanguageMultilang::getAvailableLanguages('lang_code');
 		$multilang = JLanguageMultilang::isEnabled();
 
 		// Load the association links.
 		$associationLinks = JLanguageAssociations::getAssociationsLinks(true);
 
-		// Add rtl an the association link to languages array
+		// Get the if language is rtl and the association link for each language.
 		foreach ($languages as $i => $language)
 		{
-			// If multilanguage is not enabled, use only the default language link
+			// If multilanguage is not enabled, use only the default language link.
 			if (!$multilang && !$language->default)
 			{
 				unset($languages[$i]);
@@ -48,13 +48,12 @@ abstract class ModLanguagesHelper
 	
 			$language->active = ($language->lang_code == $langTag);
 
-			// Fetch language rtl
-			// If already loaded language get it from current JLanguage metadata
+			// If language already loaded language get the rtl from current JLanguage metadata.
 			if ($language->active)
 			{
 				$language->rtl = $langRtl;
 			}
-			// If not loaded language fetch metadata directly for performance
+			// If language not loaded fetch rtl from metadata directly for performance.
 			else
 			{
 				$languageMetadata = JLanguage::getMetadata($language->lang_code);

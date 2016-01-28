@@ -129,36 +129,121 @@ class JLanguageMultilang
 	}
 
 	/**
-	 * Method to the global default homepage menu item id.
+	 * Get available languages. A available language is published, the language extension is enabled,
+	 * has a homepage menu item, the user can view the language and the homepage and the directory of the language exists.	 
 	 *
-	 * @return  integer  The menu item id.
+	 * @param   string  $key  Array key
+	 *
+	 * @return  array  An array with all available languages.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getGlobalHomepage()
+	public static function getAvailableLanguages($key = 'default')
 	{
-		// To avoid doing duplicate database queries.
-		static $globalHomepage = null;
+		static $languages = array();
 
-		// If already fetched, don't fetch again. Return the previous result.
-		if (!is_null($globalHomepage))
+		if (!isset($languages[$key]))
 		{
-			return $globalHomepage;
+			$languages[$key] = JLanguageHelper::getLanguages($key);
+			$levels          = JFactory::getUser()->getAuthorisedViewLevels();
+
+			// Add the default language
+			$defaultLanguage = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
+			foreach ($languages[$key] as $language)
+			{
+				$language->default = ($language->lang_code == $defaultLanguage) ? 1 : 0;
+			}
+
+			// Fetch the extensions table.
+			$db = JFactory::getDbo();
+			$query = $db->getQuery(true)
+				->select($db->quoteName('element'))
+				->select($db->quoteName('enabled'))
+				->from($db->quoteName('#__extensions'))
+				->where($db->quoteName('type') . ' = ' . $db->quote('language'))
+				->where($db->quoteName('client_id') . ' = 0');
+			$db->setQuery($query);
+			$extensions = $db->loadObjectList('element');
+			foreach ($languages[$key] as $language)
+			{
+				$language->extension_enabled = (!empty($extensions[$language->lang_code]->enabled)) ? 1 : 0;
+			}
+
+			// Fetch the menu homepages
+			$query = $db->getQuery(true)
+				->select($db->quoteName('id'))
+				->select($db->quoteName('language'))
+				->select($db->quoteName('level'))
+				->from($db->quoteName('#__menu'))
+				->where($db->quoteName('home') . ' = 1')
+				->where($db->quoteName('published') . ' = 1')
+				->where($db->quoteName('client_id') . ' = 0');
+			$db->setQuery($query);
+			$homepages = $db->loadObjectList('language');
+			foreach ($languages[$key] as $language)
+			{
+				$language->homeid     = (!empty($homepages[$language->lang_code]->id)) ? $homepages[$language->lang_code]->id : 0;
+				$language->homeaccess = (!empty($homepages[$language->lang_code]->level)) ? $homepages[$language->lang_code]->level : 0;
+			}
+
+			foreach ($languages[$key] as $index => $language)
+			{
+				if (empty($language->extension_enabled))
+				{
+					unset($languages[$key][$index]);
+					continue;
+				}
+				if (empty($language->homeid))
+				{
+					unset($languages[$key][$index]);
+					continue;
+				}
+				if (isset($language->access) && $language->access != 0 && !in_array($language->access, $levels))
+				{
+					unset($languages[$key][$index]);
+					continue;
+				}
+				if (isset($language->homeaccess) && $language->homeaccess != 0 && !in_array($language->homeaccess, $levels))
+				{
+					unset($languages[$key][$index]);
+					continue;
+				}
+				if (!is_dir(JPATH_SITE . '/language/' . $language->lang_code))
+				{
+					unset($languages[$key][$index]);
+					continue;
+				}
+			}
 		}
 
-		// Check for Home pages languages.
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select($db->quoteName('id'))
-			->from($db->quoteName('#__menu'))
-			->where($db->quoteName('home') . ' = 1')
-			->where($db->quoteName('published') . ' = 1')
-			->where($db->quoteName('language') . ' = ' . $db->quote('*'))
-			->where($db->quoteName('client_id') . ' = 0');
-		$db->setQuery($query);
+		return $languages[$key];
+	}
 
-		$globalHomepage = $db->loadResult();
+	/**
+	 * Get default language.
+	 *
+	 * @return  object  Object with default language properties.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getDefaultLanguage()
+	{
+		$languages = self::getAvailableLanguages('lang_code');
+		foreach ($languages as $index => $language)
+		{
+			if ($language->default)
+			{
+				return $languages[$index];
+			}
+		}
 
-		return (int) $globalHomepage;
+		// If no default language is available (example the default language is not published).
+		// Use the system default language as a fallback.
+		$params = JComponentHelper::getParams('com_languages');
+		$defaultLanguageCode = $params->get('site', $this->get('language', 'en-GB'));
+		$defaultLanguage = new stdClass();
+		$defaultLanguage->lang_code = $defaultLanguageCode;
+
+		return $defaultLanguage;
 	}
 }

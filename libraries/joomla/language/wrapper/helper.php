@@ -63,30 +63,4 @@ class JLanguageWrapperHelper
 	{
 		return JLanguageHelper::getLanguages($key);
 	}
-
-	/**
-	 * Helper wrapper method for getFrontendLanguages
-	 *
-	 * @param   string  $key  Array key
-	 *
-	 * @return  array  An array with all frontend languages.
-	 *
-	 * @since   __DEPLOY_VERSION__
-	 */
-	public static function getFrontendLanguages($key = 'default')
-	{
-		return JLanguageHelper::getFrontendLanguages($key);
-	}
-
-	/**
-	 * Helper wrapper method for getDefaultLanguage
-	 *
-	 * @return  object  Object with default language properties.
-	 *
-	 * @since   __DEPLOY_VERSION__
-	 */
-	public static function getDefaultLanguage()
-	{
-		return JLanguageHelper::getDefaultLanguage();
-	}
 }
