@@ -491,12 +491,9 @@ class JDocumentHtml extends JDocument
 	 */
 	public function countModules($condition)
 	{
-		$operators = '(\+|\-|\*|\/|==|\!=|\<\>|\<|\>|\<=|\>=|and|or|xor)';
-		$words = preg_split('# ' . $operators . ' #', $condition, null, PREG_SPLIT_DELIM_CAPTURE);
-
-		if (count($words) === 1)
+		if (strpos($condition, ' ') === false)
 		{
-			$name = strtolower($words[0]);
+			$name = strtolower($condition);
 			$result = ((isset(parent::$_buffer['modules'][$name])) && (parent::$_buffer['modules'][$name] === false))
 				? 0 : count(JModuleHelper::getModules($name));
 
@@ -504,6 +501,9 @@ class JDocumentHtml extends JDocument
 		}
 
 		JLog::add('Using an expression in JDocumentHtml::countModules() is deprecated.', JLog::WARNING, 'deprecated');
+
+		$operators = '(\+|\-|\*|\/|==|\!=|\<\>|\<|\>|\<=|\>=|and|or|xor)';
+		$words = preg_split('# ' . $operators . ' #', $condition, null, PREG_SPLIT_DELIM_CAPTURE);
 
 		for ($i = 0, $n = count($words); $i < $n; $i += 2)
 		{
