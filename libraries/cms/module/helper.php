@@ -79,7 +79,6 @@ abstract class JModuleHelper
 	{
 		$position = strtolower($position);
 		$result = array();
-		$input  = JFactory::getApplication()->input;
 
 		$modules =& static::load();
 
@@ -95,6 +94,7 @@ abstract class JModuleHelper
 
 		if (count($result) == 0)
 		{
+			$input  = JFactory::getApplication()->input;
 			if ($input->getBool('tp') && JComponentHelper::getParams('com_templates')->get('template_positions_display'))
 			{
 				$result[0] = static::getModule('mod_' . $position);
@@ -369,11 +369,6 @@ abstract class JModuleHelper
 	public static function getModuleList()
 	{
 		$app = JFactory::getApplication();
-		$Itemid = $app->input->getInt('Itemid');
-		$groups = implode(',', JFactory::getUser()->getAuthorisedViewLevels());
-		$lang = JFactory::getLanguage()->getTag();
-		$clientId = (int) $app->getClientId();
-
 		$db = JFactory::getDbo();
 
 		$query = $db->getQuery(true)
@@ -384,19 +379,18 @@ abstract class JModuleHelper
 			->join('LEFT', '#__extensions AS e ON e.element = m.module AND e.client_id = m.client_id')
 			->where('e.enabled = 1');
 
-		$date = JFactory::getDate();
-		$now = $date->toSql();
+		$now = JFactory::getDate()->toSql();
 		$nullDate = $db->getNullDate();
 		$query->where('(m.publish_up = ' . $db->quote($nullDate) . ' OR m.publish_up <= ' . $db->quote($now) . ')')
 			->where('(m.publish_down = ' . $db->quote($nullDate) . ' OR m.publish_down >= ' . $db->quote($now) . ')')
-			->where('m.access IN (' . $groups . ')')
-			->where('m.client_id = ' . $clientId)
-			->where('(mm.menuid = ' . (int) $Itemid . ' OR mm.menuid <= 0)');
+			->where('m.access IN (' . implode(',', JFactory::getUser()->getAuthorisedViewLevels()) . ')')
+			->where('m.client_id = ' . (int) $app->getClientId())
+			->where('(mm.menuid = ' . (int) $app->input->getInt('Itemid') . ' OR mm.menuid <= 0)');
 
 		// Filter by language
 		if ($app->isSite() && $app->getLanguageFilter())
 		{
-			$query->where('m.language IN (' . $db->quote($lang) . ',' . $db->quote('*') . ')');
+			$query->where('m.language IN (' . $db->quote(JFactory::getLanguage()->getTag()) . ',' . $db->quote('*') . ')');
 		}
 
 		$query->order('m.position, m.ordering');
