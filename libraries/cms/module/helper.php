@@ -358,6 +358,8 @@ abstract class JModuleHelper
 
 		$app->triggerEvent('onAfterCleanModuleList', array(&$modules));
 
+		JDEBUG ? JProfiler::getInstance('Application')->mark('afterModuleList') : null;
+
 		return $modules;
 	}
 
