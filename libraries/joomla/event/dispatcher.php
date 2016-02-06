@@ -157,12 +157,16 @@ class JEventDispatcher extends JObject
 			if (is_object($this->_observers[$key]))
 			{
 				$args['event'] = $event;
+				JDEBUG ? JProfiler::getInstance('Application')->mark('- ' . $this->_observers[$key] . ' ' . $event . ' started.') : null;
 				$value = $this->_observers[$key]->update($args);
+				JDEBUG ? JProfiler::getInstance('Application')->mark('- ' . $this->_observers[$key] . ' ' . $event . ' <strong>Ended!</strong>') : null;
 			}
 			// Fire the event for a function based observer.
 			elseif (is_array($this->_observers[$key]))
 			{
+				JDEBUG ? JProfiler::getInstance('Application')->mark('- '. get_class($this->_observers[$key]['handler'][0]) . ' ' . $event . 'started.') : null;
 				$value = call_user_func_array($this->_observers[$key]['handler'], $args);
+				JDEBUG ? JProfiler::getInstance('Application')->mark('- '. get_class($this->_observers[$key]['handler'][0]) . ' ' . $event . 'started.') : null;
 			}
 
 			if (isset($value))
