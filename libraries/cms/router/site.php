@@ -134,7 +134,7 @@ class JRouterSite extends JRouter
 		// Exclude parameters that don't matter
 		if (substr($url, 0, 1) != '&')
 		{
-			$excludeParameters = array(
+			$excludeParametersList = array(
 				'global'      => array('link' => '', 'template' => '', 'page' => '', 'print' => '', 'layout' => '', 'tmpl' => '', 'task' => ''),
 				'com_users'   => array('view' => ''),
 				'com_content' => array('format' => '', 'type' => '', 'start' => '', 'limitstart' => ''),
@@ -144,11 +144,11 @@ class JRouterSite extends JRouter
 			if (isset($queryStringParameters['option']))
 			{
 				$component = $queryStringParameters['option'];
-				$excludeParameters = array_merge($excludeParameters['global'], $excludeParameters[$component]);
+				$excludeParameters = array_merge($excludeParametersList['global'], $excludeParametersList[$component]);
 			}
 			else
 			{
-				$excludeParameters = array_merge($excludeParameters['global']);
+				$excludeParameters = array_merge($excludeParametersList['global']);
 			}
 			$parametersToIgnore = array_intersect_key($queryStringParameters, $excludeParameters);
 			$parametersToRoute = array_diff_key($queryStringParameters, $excludeParameters);
