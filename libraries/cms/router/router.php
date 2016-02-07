@@ -283,37 +283,40 @@ class JRouter
 		// Do the postprocess stage of the URL build process
 		$this->processBuildRules($uri, self::PROCESS_AFTER);
 
-		// Get the path data
-		$route = $uri->getPath();
-
-		// Add the suffix to the uri
-		if ($this->_mode == JROUTER_MODE_SEF && $route)
+		if (JFactory::getApplication()->isSite())
 		{
-			if ($this->app->get('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/'))
+			// Get the path data
+			$route = $uri->getPath();
+
+			// Add the suffix to the uri
+			if ($this->_mode == JROUTER_MODE_SEF && $route)
 			{
-				if ($format = $uri->getVar('format', 'html'))
+				if ($this->app->get('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/'))
 				{
-					$route .= '.' . $format;
-					$uri->delVar('format');
+					if ($format = $uri->getVar('format', 'html'))
+					{
+						$route .= '.' . $format;
+						$uri->delVar('format');
+					}
+				}
+
+				if ($this->app->get('sef_rewrite'))
+				{
+					// Transform the route
+					if ($route == 'index.php')
+					{
+						$route = '';
+					}
+					else
+					{
+						$route = str_replace('index.php/', '', $route);
+					}
 				}
 			}
 
-			if ($this->app->get('sef_rewrite'))
-			{
-				// Transform the route
-				if ($route == 'index.php')
-				{
-					$route = '';
-				}
-				else
-				{
-					$route = str_replace('index.php/', '', $route);
-				}
-			}
+			// Add basepath to the uri
+			$uri->setPath(JUri::base(true) . '/' . $route);
 		}
-
-		// Add basepath to the uri
-		$uri->setPath(JUri::base(true) . '/' . $route);
 
 		$this->cache[$key] = $uri;
 
