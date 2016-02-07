@@ -251,7 +251,7 @@ class JRouter
 	 */
 	public function build($url)
 	{
-		$key = md5(serialize($url));
+		$key = is_array($url) ? md5(serialize($url)) : md5($url);
 
 		if (isset($this->cache[$key]))
 		{
