@@ -119,7 +119,7 @@ class JLanguageHelper
 	}
 
 	/**
-	 * Get available languages
+	 * Get available languages.
 	 *
 	 * @param   string  $key  Array key
 	 *
@@ -133,6 +133,7 @@ class JLanguageHelper
 
 		if (empty($languages))
 		{
+			$languages = array();
 			// Installation uses available languages
 			if (JFactory::getApplication()->getClientId() == 2)
 			{
@@ -157,7 +158,7 @@ class JLanguageHelper
 					$query = $db->getQuery(true)
 						->select('*')
 						->from('#__languages')
-						->where('published=1')
+						->where('published = 1')
 						->order('ordering ASC');
 					$db->setQuery($query);
 
@@ -180,5 +181,60 @@ class JLanguageHelper
 		}
 
 		return $languages[$key];
+	}
+
+	/**
+	 * Checks if a language exists.
+	 *
+	 * This is a simple, quick check for the directory that should contain language files for the given user.
+	 *
+	 * @param   string  $lang      Language to check.
+	 * @param   string  $basePath  Optional path to check.
+	 *
+	 * @return  boolean  True if the language exists.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function exists($lang, $basePath = JPATH_BASE)
+	{
+		static $paths = array();
+
+		// Return false if no language was specified
+		if (!$lang)
+		{
+			return false;
+		}
+
+		$path = $basePath . '/language/' . $lang;
+
+		// Return previous check results if it exists
+		if (isset($paths[$path]))
+		{
+			return $paths[$path];
+		}
+
+		// Check if the language exists
+		$paths[$path] = is_dir($path);
+
+		return $paths[$path];
+	}
+
+	/**
+	 * Get default language.
+	 *
+	 * @return  object  Object with default language properties.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getDefaultLanguageCode()
+	{
+		static $defaultLanguageCode;
+
+		if (empty($defaultLanguageCode))
+		{
+			$defaultLanguageCode = JComponentHelper::getParams('com_languages')->get('site', JFactory::getApplication()->get('language', 'en-GB'));
+		}
+
+		return $defaultLanguageCode;
 	}
 }
