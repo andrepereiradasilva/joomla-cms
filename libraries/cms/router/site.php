@@ -141,7 +141,7 @@ class JRouterSite extends JRouter
 				);
 			$urlArray = parse_url($url);
 			parse_str($urlArray['query'], $queryStringParameters);
-			if (isset($queryStringParameters['option']))
+			if (isset($queryStringParameters['option']) && isset($excludeParametersList['option']))
 			{
 				$component = $queryStringParameters['option'];
 				$excludeParameters = array_merge($excludeParametersList['global'], $excludeParametersList[$component]);
