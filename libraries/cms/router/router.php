@@ -697,7 +697,7 @@ class JRouter
 	{
 		if (!is_array($url) && substr($url, 0, 1) != '&')
 		{
-			return JUri::getInstance($url);
+			return new JUri($url);
 		}
 
 		$uri = new JUri('index.php');
