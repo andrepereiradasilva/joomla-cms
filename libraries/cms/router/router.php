@@ -255,7 +255,7 @@ class JRouter
 
 		if (isset($this->cache[$key]))
 		{
-			return clone $this->cache[$key];
+			return $this->cache[$key];
 		}
 
 		// Create the URI object
@@ -283,7 +283,39 @@ class JRouter
 		// Do the postprocess stage of the URL build process
 		$this->processBuildRules($uri, self::PROCESS_AFTER);
 
-		$this->cache[$key] = clone $uri;
+		// Get the path data
+		$route = $uri->getPath();
+
+		// Add the suffix to the uri
+		if ($this->_mode == JROUTER_MODE_SEF && $route)
+		{
+			if ($this->app->get('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/'))
+			{
+				if ($format = $uri->getVar('format', 'html'))
+				{
+					$route .= '.' . $format;
+					$uri->delVar('format');
+				}
+			}
+
+			if ($this->app->get('sef_rewrite'))
+			{
+				// Transform the route
+				if ($route == 'index.php')
+				{
+					$route = '';
+				}
+				else
+				{
+					$route = str_replace('index.php/', '', $route);
+				}
+			}
+		}
+
+		// Add basepath to the uri
+		$uri->setPath(JUri::base(true) . '/' . $route);
+
+		$this->cache[$key] = $uri;
 
 		return $uri;
 	}
@@ -665,7 +697,7 @@ class JRouter
 	{
 		if (!is_array($url) && substr($url, 0, 1) != '&')
 		{
-			return new JUri($url);
+			return JUri::getInstance($url);
 		}
 
 		$uri = new JUri('index.php');

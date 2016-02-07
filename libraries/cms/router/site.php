@@ -131,39 +131,40 @@ class JRouterSite extends JRouter
 	 */
 	public function build($url)
 	{
-		$uri = parent::build($url);
-
-		// Get the path data
-		$route = $uri->getPath();
-
-		// Add the suffix to the uri
-		if ($this->_mode == JROUTER_MODE_SEF && $route)
+		// Exclude parameters that don't matter
+		if (substr($url, 0, 1) != '&')
 		{
-			if ($this->app->get('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/'))
+			$excludeParameters = array(
+				'global'      => array('link' => '', 'template' => '', 'page' => '', 'print' => '', 'layout' => '', 'tmpl' => '', 'task' => ''),
+				'com_users'   => array('view' => ''),
+				'com_content' => array('format' => '', 'type' => '', 'start' => '', 'limitstart' => ''),
+				);
+			$urlArray = parse_url($url);
+			parse_str($urlArray['query'], $queryStringParameters);
+			if (isset($queryStringParameters['option']))
 			{
-				if ($format = $uri->getVar('format', 'html'))
-				{
-					$route .= '.' . $format;
-					$uri->delVar('format');
-				}
+				$component = $queryStringParameters['option'];
+				$excludeParameters = array_merge($excludeParameters['global'], $excludeParameters[$component]);
 			}
-
-			if ($this->app->get('sef_rewrite'))
+			else
 			{
-				// Transform the route
-				if ($route == 'index.php')
-				{
-					$route = '';
-				}
-				else
-				{
-					$route = str_replace('index.php/', '', $route);
-				}
+				$excludeParameters = array_merge($excludeParameters['global']);
 			}
+			$parametersToIgnore = array_intersect_key($queryStringParameters, $excludeParameters);
+			$parametersToRoute = array_diff_key($queryStringParameters, $excludeParameters);
+			$url = preg_replace('%\?(.+?)(#|$)%', '?' . http_build_query($parametersToRoute) . '$2', $url);
 		}
 
-		// Add basepath to the uri
-		$uri->setPath(JUri::base(true) . '/' . $route);
+		$uri = parent::build($url);
+
+		// Add the parameters that don't matter
+		if (substr($url, 0, 1) != '&')
+		{
+			foreach ($parametersToIgnore as $parameter => $value)
+			{
+				$uri->setVar($parameter, $value);
+			}
+		}
 
 		return $uri;
 	}
