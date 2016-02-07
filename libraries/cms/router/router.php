@@ -255,7 +255,7 @@ class JRouter
 
 		if (isset($this->cache[$key]))
 		{
-			return clone $this->cache[$key];
+			return $this->cache[$key];
 		}
 
 		// Create the URI object

@@ -131,39 +131,61 @@ class JRouterSite extends JRouter
 	 */
 	public function build($url)
 	{
-		// Exclude parameters that don't matter
+		// Pre-process: Exclude parameters not used for routing.
+
+		// Get url query string parameters.
 		if (substr($url, 0, 1) != '&')
 		{
-			$excludeParametersList = array(
-				'global'      => array('link' => '', 'template' => '', 'page' => '', 'print' => '', 'layout' => '', 'tmpl' => '', 'task' => ''),
-				'com_users'   => array('view' => ''),
-				'com_content' => array('format' => '', 'type' => '', 'start' => '', 'limitstart' => ''),
-				);
-			$urlArray = parse_url($url);
-			parse_str($urlArray['query'], $queryStringParameters);
-			if (isset($queryStringParameters['option']) && isset($excludeParametersList['option']))
-			{
-				$component = $queryStringParameters['option'];
-				$excludeParameters = array_merge($excludeParametersList['global'], $excludeParametersList[$component]);
-			}
-			else
-			{
-				$excludeParameters = array_merge($excludeParametersList['global']);
-			}
-			$parametersToIgnore = array_intersect_key($queryStringParameters, $excludeParameters);
-			$parametersToRoute = array_diff_key($queryStringParameters, $excludeParameters);
-			$url = preg_replace('%\?(.+?)(#|$)%', '?' . http_build_query($parametersToRoute) . '$2', $url);
+			parse_str(parse_url($url, PHP_URL_QUERY), $queryStringParameters);
+		}
+		else
+		{
+			parse_str(trim(str_replace('&amp;', '&', $url), '&'), $queryStringParameters);
 		}
 
-		$uri = parent::build($url);
+		$queryStringParameters = array_filter($queryStringParameters, 'strlen');
 
-		// Add the parameters that don't matter
+		// Define which query string parameters are excluded from routing
+		$excludeParametersList = array(
+			'global'      => array('link' => '', 'template' => '', 'page' => '', 'print' => '', 'layout' => '', 'tmpl' => '', 'task' => '', 'format' => '', 'type' => '', 'start' => '', 'limitstart' => ''),
+			'com_users'   => array('view' => ''),
+			);
+
+		if (isset($queryStringParameters['option']) && isset($excludeParametersList['option']))
+		{
+			$excludeParameters = array_replace($excludeParametersList['global'], $excludeParametersList[$queryStringParameters['option']]);
+		}
+		else
+		{
+			$excludeParameters = array_replace($excludeParametersList['global']);
+		}
+
+		// Remove those parameters from the Uri string.
+		$parametersToRoute = array_diff_key($queryStringParameters, $excludeParameters);
+		$newQueryString = '';
+		if (count($parametersToRoute) > 0)
+		{
+			ksort($parametersToRoute);
+			$newQueryString = http_build_query($parametersToRoute);
+		}
+
 		if (substr($url, 0, 1) != '&')
 		{
-			foreach ($parametersToIgnore as $parameter => $value)
-			{
-				$uri->setVar($parameter, $value);
-			}
+			$url = preg_replace('%\?(.+?)(#|$)%', '?' . $newQueryString . '$2', $url);
+		}
+		else
+		{
+			$url = preg_replace('%^&(.+?)(#|$)%', '&' . $newQueryString . '$2', $url);
+		}
+
+		// Process: Get routed Uri.
+		$uri = parent::build($url);
+
+		// Post-process: Restore the parameters that have not been used for routing.
+		$parametersToIgnore = array_intersect_key($queryStringParameters, $excludeParameters);
+		foreach ($parametersToIgnore as $parameter => $value)
+		{
+			$uri->setVar($parameter, $value);
 		}
 
 		return $uri;
