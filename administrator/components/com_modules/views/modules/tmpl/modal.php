@@ -12,7 +12,7 @@ defined('_JEXEC') or die;
 JHtml::_('bootstrap.tooltip');
 JHtml::_('formbehavior.chosen', 'select');
 
-$client    = $this->state->get('filter.client_id') ? 'administrator' : 'site';
+$client    = $this->state->get('client_id') ? 'administrator' : 'site';
 $user      = JFactory::getUser();
 $listOrder = $this->escape($this->state->get('list.ordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));

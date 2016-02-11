@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Modules Component Module Model
  *
@@ -62,75 +64,25 @@ class ModulesModelModules extends JModelList
 	 *
 	 * @since   1.6
 	 */
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'ordering', $direction = 'asc')
 	{
 		$app = JFactory::getApplication('administrator');
 
 		// Load the filter state.
-		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
-		$this->setState('filter.search', $search);
-
-		$access = $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access');
-		$this->setState('filter.access', $access);
-
-		$state = $this->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
-		$this->setState('filter.state', $state);
-
-		$position = $this->getUserStateFromRequest($this->context . '.filter.position', 'filter_position', '', 'string');
-		$this->setState('filter.position', $position);
-
-		$module = $this->getUserStateFromRequest($this->context . '.filter.module', 'filter_module', '', 'string');
-		$this->setState('filter.module', $module);
-
-		// Special handling for filter client_id.
-
-		// Try to get current Client selection from $_POST.
-		$clientId = $app->input->getString('client_id', null);
-
-		// Client Site(0) or Administrator(1) selected?
-		if (in_array($clientId, array('0', '1')))
-		{
-			// Not the same client like saved previous one?
-			if ($clientId != $app->getUserState($this->context . '.client_id'))
-			{
-				// Save current selection as new previous value in session.
-				$app->setUserState($this->context . '.client_id', $clientId);
-
-				// Reset pagination.
-				$app->input->set('limitstart', 0);
-			}
-		}
-
-		// No Client selected?
-		else
-		{
-			// Try to get previous one from session.
-			$clientId = (string) $app->getUserState($this->context . '.client_id');
-
-			// Client not Site(0) and not Administrator(1)? So, set to Site(0).
-			if (!in_array($clientId, array('0', '1')))
-			{
-				$clientId = '0';
-			}
-		}
-
-		// Modal view should return only front end modules
-		if (JFactory::getApplication()->input->get('layout') == 'modal')
-		{
-			$clientId = 0;
-		}
-
-		$this->setState('filter.client_id', $clientId);
-
-		$language = $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '');
-		$this->setState('filter.language', $language);
+		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
+		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', '', 'string'));
+		$this->setState('filter.state', $this->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string'));
+		$this->setState('filter.position', $this->getUserStateFromRequest($this->context . '.filter.position', 'filter_position', '', 'string'));
+		$this->setState('filter.module', $this->getUserStateFromRequest($this->context . '.filter.module', 'filter_module', '', 'string'));
+		$this->setState('filter.language', $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '', 'string'));
+		$this->setState('client_id', $this->getUserStateFromRequest($this->context . '.client_id', 'client_id', 0, 'int'));
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_modules');
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::populateState('position', 'asc');
+		parent::populateState($ordering, $direction);
 	}
 
 	/**
@@ -152,8 +104,8 @@ class ModulesModelModules extends JModelList
 		$id .= ':' . $this->getState('filter.state');
 		$id .= ':' . $this->getState('filter.position');
 		$id .= ':' . $this->getState('filter.module');
-		$id .= ':' . $this->getState('filter.client_id');
 		$id .= ':' . $this->getState('filter.language');
+		$id .= ':' . $this->getState('client_id');
 
 		return parent::getStoreId($id);
 	}
@@ -176,7 +128,7 @@ class ModulesModelModules extends JModelList
 			$this->_db->setQuery($query);
 			$result = $this->_db->loadObjectList();
 			$this->translate($result);
-			JArrayHelper::sortObjects($result, $ordering, $this->getState('list.direction') == 'desc' ? -1 : 1, true, true);
+			$result = ArrayHelper::sortObjects($result, $ordering, $this->getState('list.direction') == 'desc' ? -1 : 1, true, true);
 			$total = count($result);
 			$this->cache[$this->getStoreId('getTotal')] = $total;
 
@@ -225,7 +177,7 @@ class ModulesModelModules extends JModelList
 	protected function translate(&$items)
 	{
 		$lang = JFactory::getLanguage();
-		$client = $this->getState('filter.client_id') ? 'administrator' : 'site';
+		$client = $this->getState('client_id') ? 'administrator' : 'site';
 
 		foreach ($items as $item)
 		{
@@ -346,7 +298,7 @@ class ModulesModelModules extends JModelList
 		}
 
 		// Filter by client.
-		$clientId = $this->getState('filter.client_id');
+		$clientId = $this->getState('client_id');
 
 		// Modal view should return only front end modules
 		if (JFactory::getApplication()->input->get('layout') == 'modal')
