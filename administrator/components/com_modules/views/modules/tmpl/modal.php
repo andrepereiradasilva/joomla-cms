@@ -18,7 +18,7 @@ $listOrder = $this->escape($this->state->get('list.ordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));
 $trashed   = $this->state->get('filter.state') == -2 ? true : false;
 $canOrder  = $user->authorise('core.edit.state', 'com_modules');
-$saveOrder = $listOrder == 'ordering';
+$saveOrder = $listOrder == 'a.ordering';
 $editor    = JFactory::getApplication()->input->get('editor', '', 'cmd');
 
 if ($saveOrder)
@@ -143,7 +143,7 @@ JFactory::getDocument()->addScriptDeclaration('
 				</tfoot>
 				<tbody>
 				<?php foreach ($this->items as $i => $item) :
-					$ordering   = ($listOrder == 'ordering');
+					$ordering   = ($listOrder == 'a.ordering');
 					?>
 					<tr class="row<?php echo $i % 2; ?>" sortable-group-id="<?php echo $item->position?>">
 						<td class="has-context">
