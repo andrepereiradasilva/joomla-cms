@@ -92,7 +92,6 @@ if ($saveOrder)
 					<tr class="row<?php echo $i % 2; ?>" sortable-group-id="<?php echo $item->ordering; ?>">
 						<td class="order hidden-phone">
 							<?php
-							echo $item->ordering;
 							$iconClass = '';
 							if (!$canChange)
 							{
