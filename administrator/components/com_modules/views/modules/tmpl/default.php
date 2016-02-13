@@ -17,7 +17,7 @@ $user		= JFactory::getUser();
 $listOrder	= $this->escape($this->state->get('list.ordering'));
 $listDirn	= $this->escape($this->state->get('list.direction'));
 $trashed	= $this->state->get('filter.state') == -2 ? true : false;
-$saveOrder	= ($listOrder == 'ordering');
+$saveOrder	= ($listOrder == 'a.ordering');
 if ($saveOrder)
 {
 	$saveOrderingUrl = 'index.php?option=com_modules&task=modules.saveOrderAjax&tmpl=component';
@@ -43,7 +43,7 @@ if ($saveOrder)
 				<thead>
 					<tr>
 						<th width="1%" class="center nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', '', 'ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING', 'icon-menu-2'); ?>
+							<?php echo JHtml::_('searchtools.sort', '', 'a.ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING', 'icon-menu-2'); ?>
 						</th>
 						<th width="1%" class="center">
 							<?php echo JHtml::_('grid.checkall'); ?>
@@ -55,7 +55,7 @@ if ($saveOrder)
 							<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
 						</th>
 						<th width="15%" class="nowrap">
-							<?php echo JHtml::_('searchtools.sort', 'COM_MODULES_HEADING_POSITION', 'position', $listDirn, $listOrder); ?>
+							<?php echo JHtml::_('searchtools.sort', 'COM_MODULES_HEADING_POSITION', 'a.position', $listDirn, $listOrder); ?>
 						</th>
 						<th width="10%" class="nowrap hidden-phone" >
 							<?php echo JHtml::_('searchtools.sort', 'COM_MODULES_HEADING_MODULE', 'name', $listDirn, $listOrder); ?>
@@ -67,7 +67,7 @@ if ($saveOrder)
 							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ACCESS', 'a.access', $listDirn, $listOrder); ?>
 						</th>
 						<th width="10%" class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_LANGUAGE', 'language_title', $listDirn, $listOrder); ?>
+							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_LANGUAGE', 'l.title', $listDirn, $listOrder); ?>
 						</th>
 						<th width="1%" class="nowrap center hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
@@ -83,7 +83,7 @@ if ($saveOrder)
 				</tfoot>
 				<tbody>
 				<?php foreach ($this->items as $i => $item) :
-					$ordering   = ($listOrder == 'ordering');
+					$ordering   = ($listOrder == 'a.ordering');
 					$canCreate  = $user->authorise('core.create',     'com_modules');
 					$canEdit	= $user->authorise('core.edit',		  'com_modules.module.' . $item->id);
 					$canCheckin = $user->authorise('core.manage',     'com_checkin') || $item->checked_out == $user->get('id')|| $item->checked_out == 0;
@@ -92,6 +92,7 @@ if ($saveOrder)
 					<tr class="row<?php echo $i % 2; ?>" sortable-group-id="<?php echo $item->ordering; ?>">
 						<td class="order hidden-phone">
 							<?php
+							echo $item->ordering;
 							$iconClass = '';
 							if (!$canChange)
 							{
