@@ -17,8 +17,7 @@ $user		= JFactory::getUser();
 $listOrder	= $this->escape($this->state->get('list.ordering'));
 $listDirn	= $this->escape($this->state->get('list.direction'));
 $trashed	= $this->state->get('filter.state') == -2 ? true : false;
-$canOrder	= $user->authorise('core.edit.state', 'com_modules');
-$saveOrder	= ($listOrder == 'ordering');
+$saveOrder	= ($listOrder == 'a.ordering');
 if ($saveOrder)
 {
 	$saveOrderingUrl = 'index.php?option=com_modules&task=modules.saveOrderAjax&tmpl=component';
@@ -26,40 +25,37 @@ if ($saveOrder)
 }
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_modules'); ?>" method="post" name="adminForm" id="adminForm">
-<?php if (!empty( $this->sidebar)) : ?>
+	<?php if (!empty( $this->sidebar)) : ?>
 	<div id="j-sidebar-container" class="span2">
 		<?php echo $this->sidebar; ?>
 	</div>
 	<div id="j-main-container" class="span10">
-<?php else : ?>
+	<?php else : ?>
 	<div id="j-main-container">
-<?php endif;?>
-		<?php
-		// Search tools bar and filters
-		echo JLayoutHelper::render('joomla.searchtools.default', array('view' => $this));
-		?>
+	<?php endif;?>
+		<?php echo JLayoutHelper::render('joomla.searchtools.default', array('view' => $this)); ?>
 		<?php if (empty($this->items)) : ?>
-			<div class="alert alert-no-items">
-				<?php echo JText::_('COM_MODULES_MSG_MANAGE_NO_MODULES'); ?>
-			</div>
+		<div class="alert alert-no-items">
+			<?php echo JText::_('COM_MODULES_MSG_MANAGE_NO_MODULES'); ?>
+		</div>
 		<?php else : ?>
 			<table class="table table-striped" id="moduleList">
 				<thead>
 					<tr>
-						<th width="1%" class="hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', '', 'ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING', 'icon-menu-2'); ?>
+						<th width="1%" class="center nowrap hidden-phone">
+							<?php echo JHtml::_('searchtools.sort', '', 'a.ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING', 'icon-menu-2'); ?>
 						</th>
-						<th width="1%" class="hidden-phone">
+						<th width="1%" class="center">
 							<?php echo JHtml::_('grid.checkall'); ?>
 						</th>
-						<th width="1%" class="nowrap center" style="min-width:55px">
+						<th width="1%" class="nowrap center">
 							<?php echo JHtml::_('searchtools.sort', 'JSTATUS', 'a.published', $listDirn, $listOrder); ?>
 						</th>
-						<th class="title">
+						<th class="nowrap title">
 							<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
 						</th>
-						<th width="15%" class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'COM_MODULES_HEADING_POSITION', 'position', $listDirn, $listOrder); ?>
+						<th width="15%" class="nowrap">
+							<?php echo JHtml::_('searchtools.sort', 'COM_MODULES_HEADING_POSITION', 'a.position', $listDirn, $listOrder); ?>
 						</th>
 						<th width="10%" class="nowrap hidden-phone" >
 							<?php echo JHtml::_('searchtools.sort', 'COM_MODULES_HEADING_MODULE', 'name', $listDirn, $listOrder); ?>
@@ -71,7 +67,7 @@ if ($saveOrder)
 							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ACCESS', 'a.access', $listDirn, $listOrder); ?>
 						</th>
 						<th width="10%" class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_LANGUAGE', 'language_title', $listDirn, $listOrder); ?>
+							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_LANGUAGE', 'l.title', $listDirn, $listOrder); ?>
 						</th>
 						<th width="1%" class="nowrap center hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
@@ -87,14 +83,14 @@ if ($saveOrder)
 				</tfoot>
 				<tbody>
 				<?php foreach ($this->items as $i => $item) :
-					$ordering   = ($listOrder == 'ordering');
+					$ordering   = ($listOrder == 'a.ordering');
 					$canCreate  = $user->authorise('core.create',     'com_modules');
 					$canEdit	= $user->authorise('core.edit',		  'com_modules.module.' . $item->id);
 					$canCheckin = $user->authorise('core.manage',     'com_checkin') || $item->checked_out == $user->get('id')|| $item->checked_out == 0;
 					$canChange  = $user->authorise('core.edit.state', 'com_modules.module.' . $item->id) && $canCheckin;
 				?>
-					<tr class="row<?php echo $i % 2; ?>" sortable-group-id="<?php echo $item->ordering; ?>">
-						<td class="order nowrap center hidden-phone">
+					<tr class="row<?php echo $i % 2; ?>" sortable-group-id="<?php echo $item->position ? $item->position : 'none'; ?>">
+						<td class="order hidden-phone">
 							<?php
 							$iconClass = '';
 							if (!$canChange)
@@ -106,7 +102,7 @@ if ($saveOrder)
 								$iconClass = ' inactive tip-top hasTooltip" title="' . JHtml::tooltipText('JORDERINGDISABLED');
 							}
 							?>
-							<span class="sortable-handler<?php echo $iconClass ?>">
+							<span class="sortable-handler<?php echo $iconClass; ?>">
 								<span class="icon-menu"></span>
 							</span>
 							<?php if ($canChange && $saveOrder) : ?>
@@ -149,12 +145,12 @@ if ($saveOrder)
 
 								<?php if (!empty($item->note)) : ?>
 									<div class="small">
-										<?php echo JText::sprintf('JGLOBAL_LIST_NOTE', $this->escape($item->note));?>
+										<?php echo JText::sprintf('JGLOBAL_LIST_NOTE', $this->escape($item->note)); ?>
 									</div>
 								<?php endif; ?>
 							</div>
 						</td>
-						<td class="small hidden-phone">
+						<td class="small">
 							<?php if ($item->position) : ?>
 								<span class="label label-info">
 									<?php echo $item->position; ?>
@@ -166,7 +162,7 @@ if ($saveOrder)
 							<?php endif; ?>
 						</td>
 						<td class="small hidden-phone">
-							<?php echo $item->name;?>
+							<?php echo $item->name; ?>
 						</td>
 						<td class="small hidden-phone">
 							<?php echo $item->pages; ?>
@@ -176,13 +172,13 @@ if ($saveOrder)
 							<?php echo $this->escape($item->access_level); ?>
 						</td>
 						<td class="small hidden-phone">
-							<?php if ($item->language == ''):?>
+							<?php if ($item->language == '') : ?>
 								<?php echo JText::_('JDEFAULT'); ?>
-							<?php elseif ($item->language == '*'):?>
+							<?php elseif ($item->language == '*') : ?>
 								<?php echo JText::alt('JALL', 'language'); ?>
-							<?php else:?>
+							<?php else: ?>
 								<?php echo $item->language_title ? JHtml::_('image', 'mod_languages/' . $item->language_image . '.gif', $item->language_title, array('title' => $item->language_title), true) . '&nbsp;' . $this->escape($item->language_title) : JText::_('JUNDEFINED'); ?>
-							<?php endif;?>
+							<?php endif; ?>
 						</td>
 						<td class="hidden-phone">
 							<?php echo (int) $item->id; ?>

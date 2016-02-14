@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Modules Component Module Model
  *
@@ -37,12 +39,13 @@ class ModulesModelModules extends JModelList
 				'access', 'a.access', 'access_level',
 				'ordering', 'a.ordering',
 				'module', 'a.module',
-				'language', 'a.language', 'language_title',
+				'language', 'a.language', 
+				'language_title', 'l.title',
 				'publish_up', 'a.publish_up',
 				'publish_down', 'a.publish_down',
 				'client_id', 'a.client_id',
 				'position', 'a.position',
-				'pages',
+				'pages', 'assignment',
 				'name', 'e.name',
 			);
 		}
@@ -62,75 +65,33 @@ class ModulesModelModules extends JModelList
 	 *
 	 * @since   1.6
 	 */
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'a.position', $direction = 'asc')
 	{
-		$app = JFactory::getApplication('administrator');
+		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
+		$this->setState('filter.state', $this->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string'));
+		$this->setState('filter.position', $this->getUserStateFromRequest($this->context . '.filter.position', 'filter_position', '', 'string'));
+		$this->setState('filter.module', $this->getUserStateFromRequest($this->context . '.filter.module', 'filter_module', '', 'string'));
+		$this->setState('filter.assignment', $this->getUserStateFromRequest($this->context . '.filter.assignment', 'filter_assignment', '', 'string'));
+		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', '', 'string'));
+		$this->setState('filter.language', $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '', 'string'));
 
-		// Load the filter state.
-		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
-		$this->setState('filter.search', $search);
+		// Special case for client id.
+		$clientId = (int) $this->getUserStateFromRequest($this->context . '.client_id', 'client_id', 0, 'int');
 
-		$access = $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access');
-		$this->setState('filter.access', $access);
-
-		$state = $this->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string');
-		$this->setState('filter.state', $state);
-
-		$position = $this->getUserStateFromRequest($this->context . '.filter.position', 'filter_position', '', 'string');
-		$this->setState('filter.position', $position);
-
-		$module = $this->getUserStateFromRequest($this->context . '.filter.module', 'filter_module', '', 'string');
-		$this->setState('filter.module', $module);
-
-		// Special handling for filter client_id.
-
-		// Try to get current Client selection from $_POST.
-		$clientId = $app->input->getString('client_id', null);
-
-		// Client Site(0) or Administrator(1) selected?
-		if (in_array($clientId, array('0', '1')))
-		{
-			// Not the same client like saved previous one?
-			if ($clientId != $app->getUserState($this->context . '.client_id'))
-			{
-				// Save current selection as new previous value in session.
-				$app->setUserState($this->context . '.client_id', $clientId);
-
-				// Reset pagination.
-				$app->input->set('limitstart', 0);
-			}
-		}
-
-		// No Client selected?
-		else
-		{
-			// Try to get previous one from session.
-			$clientId = (string) $app->getUserState($this->context . '.client_id');
-
-			// Client not Site(0) and not Administrator(1)? So, set to Site(0).
-			if (!in_array($clientId, array('0', '1')))
-			{
-				$clientId = '0';
-			}
-		}
-
-		// Modal view should return only front end modules
-		if (JFactory::getApplication()->input->get('layout') == 'modal')
+		// Only 0 or 1 are allowed for client_id, also, modal view should return only front end modules.
+		if (!in_array($clientId, array (0, 1)) || JFactory::getApplication()->input->get('layout') == 'modal')
 		{
 			$clientId = 0;
 		}
 
-		$this->setState('filter.client_id', $clientId);
-
-		$language = $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '');
-		$this->setState('filter.language', $language);
+		$this->setState('client_id', $clientId);
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_modules');
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::populateState('position', 'asc');
+		parent::populateState($ordering, $direction);
 	}
 
 	/**
@@ -148,12 +109,13 @@ class ModulesModelModules extends JModelList
 	{
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
-		$id .= ':' . $this->getState('filter.access');
 		$id .= ':' . $this->getState('filter.state');
 		$id .= ':' . $this->getState('filter.position');
 		$id .= ':' . $this->getState('filter.module');
-		$id .= ':' . $this->getState('filter.client_id');
+		$id .= ':' . $this->getState('filter.assignment');
+		$id .= ':' . $this->getState('filter.access');
 		$id .= ':' . $this->getState('filter.language');
+		$id .= ':' . $this->getState('client_id');
 
 		return parent::getStoreId($id);
 	}
@@ -169,14 +131,16 @@ class ModulesModelModules extends JModelList
 	 */
 	protected function _getList($query, $limitstart = 0, $limit = 0)
 	{
-		$ordering = $this->getState('list.ordering', 'ordering');
+		$listOrder = $this->getState('list.ordering', 'a.position');
+		$listDirn  = $this->getState('list.direction', 'ASC');
 
-		if (in_array($ordering, array('pages', 'name')))
+		// Pages (pages) and Type (name) need to translate the results before sorting.
+		if (in_array($listOrder, array('pages', 'name')))
 		{
 			$this->_db->setQuery($query);
 			$result = $this->_db->loadObjectList();
 			$this->translate($result);
-			JArrayHelper::sortObjects($result, $ordering, $this->getState('list.direction') == 'desc' ? -1 : 1, true, true);
+			$result = ArrayHelper::sortObjects($result, $listOrder, strtolower($listDirn) == 'desc' ? -1 : 1, true, true);
 			$total = count($result);
 			$this->cache[$this->getStoreId('getTotal')] = $total;
 
@@ -188,24 +152,25 @@ class ModulesModelModules extends JModelList
 
 			return array_slice($result, $limitstart, $limit ? $limit : null);
 		}
+		// For the other sorting options we can use query order by.
 		else
 		{
-			if ($ordering == 'ordering')
+			// For ordering use the position ascending and then ordering.
+			if ($listOrder === 'a.ordering')
 			{
-				$query->order('a.position ASC');
-				$ordering = 'a.ordering';
+				$query->order($this->_db->quoteName('a.position') . ' ASC')
+					->order($this->_db->quoteName('a.ordering') . ' ' . $this->_db->escape($listDirn));
 			}
-
-			if ($ordering == 'language_title')
+			// For position use the position and then ordering ascending.
+			elseif ($listOrder === 'a.position')
 			{
-				$ordering = 'l.title';
+				$query->order($this->_db->quoteName('a.position') . ' ' . $this->_db->escape($listDirn))
+					->order($this->_db->quoteName('a.ordering') . ' ASC');
 			}
-
-			$query->order($this->_db->quoteName($ordering) . ' ' . $this->getState('list.direction'));
-
-			if ($ordering == 'position')
+			// For other order options use the standard ordering.
+			else
 			{
-				$query->order('a.ordering ASC');
+				$query->order($this->_db->quoteName($listOrder) . ' ' . $this->_db->escape($listDirn));
 			}
 
 			$result = parent::_getList($query, $limitstart, $limit);
@@ -225,7 +190,7 @@ class ModulesModelModules extends JModelList
 	protected function translate(&$items)
 	{
 		$lang = JFactory::getLanguage();
-		$client = $this->getState('filter.client_id') ? 'administrator' : 'site';
+		$client = $this->getState('client_id') ? 'administrator' : 'site';
 
 		foreach ($items as $item)
 		{
@@ -261,6 +226,8 @@ class ModulesModelModules extends JModelList
 	 */
 	protected function getListQuery()
 	{
+		$app = JFactory::getApplication();
+
 		// Create a new query object.
 		$db = $this->getDbo();
 		$query = $db->getQuery(true);
@@ -269,124 +236,137 @@ class ModulesModelModules extends JModelList
 		$query->select(
 			$this->getState(
 				'list.select',
-				'a.id, a.title, a.note, a.position, a.module, a.language,' .
-					'a.checked_out, a.checked_out_time, a.published as published, e.enabled as enabled, a.access, a.ordering, a.publish_up, a.publish_down'
+				'a.id, a.title, a.note, a.position, a.module, a.language, ' .
+				'a.checked_out, a.checked_out_time, a.published AS published, e.enabled AS enabled, a.access, a.ordering, a.publish_up, a.publish_down'
 			)
 		);
-		$query->from($db->quoteName('#__modules') . ' AS a');
+		$query->from($db->quoteName('#__modules', 'a'));
 
 		// Join over the language
-		$query->select('l.title AS language_title, l.image AS language_image')
-			->join('LEFT', $db->quoteName('#__languages') . ' AS l ON l.lang_code = a.language');
+		$query->select($db->quoteName('l.title', 'language_title'))
+			->select($db->quoteName('l.image', 'language_image'))
+			->join('LEFT', $db->quoteName('#__languages', 'l') . ' ON ' . $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'));
 
 		// Join over the users for the checked out user.
-		$query->select('uc.name AS editor')
-			->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+		$query->select($db->quoteName('uc.name', 'editor'))
+			->join('LEFT', $db->quoteName('#__users', 'uc') . ' ON ' . $db->quoteName('uc.id') . ' = ' . $db->quoteName('a.checked_out'));
 
 		// Join over the asset groups.
-		$query->select('ag.title AS access_level')
-			->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+		$query->select($db->quoteName('ag.title', 'access_level'))
+			->join('LEFT', $db->quoteName('#__viewlevels', 'ag') . ' ON ' . $db->quoteName('ag.id') . ' = ' . $db->quoteName('a.access'));
 
 		// Join over the module menus
 		$query->select('MIN(mm.menuid) AS pages')
-			->join('LEFT', '#__modules_menu AS mm ON mm.moduleid = a.id');
+			->join('LEFT', $db->quoteName('#__modules_menu', 'mm') . ' ON ' . $db->quoteName('mm.moduleid') . ' = ' . $db->quoteName('a.id'));
 
 		// Join over the extensions
-		$query->select('e.name AS name')
-			->join('LEFT', '#__extensions AS e ON e.element = a.module')
+		$query->select($db->quoteName('e.name', 'name'))
+			->join('LEFT', $db->quoteName('#__extensions', 'e') . ' ON ' . $db->quoteName('e.element') . ' = ' . $db->quoteName('a.module'))
 			->group(
-				'a.id, a.title, a.note, a.position, a.module, a.language,a.checked_out,' .
-					'a.checked_out_time, a.published, a.access, a.ordering,l.title, uc.name, ag.title, e.name,' .
-					'l.lang_code, uc.id, ag.id, mm.moduleid, e.element, a.publish_up, a.publish_down,e.enabled'
+				'a.id, a.title, a.note, a.position, a.module, a.language, a.checked_out, ' .
+				'a.checked_out_time, a.published, a.access, a.ordering, l.title, uc.name, ag.title, e.name, ' .
+				'l.lang_code, uc.id, ag.id, mm.moduleid, e.element, a.publish_up, a.publish_down, e.enabled'
 			);
 
-		// Filter by access level.
-		if ($access = $this->getState('filter.access'))
-		{
-			$query->where('a.access = ' . (int) $access);
-		}
+		// Show only selected client.
+		$clientId = (int) $this->getState('client_id');
+		$query->where('(' . $db->quoteName('a.client_id') . ' = ' . $clientId . ' AND ' . $db->quoteName('e.client_id') . ' = ' . $clientId . ')');
 
-		// Filter by published state
-		$state = $this->getState('filter.state');
+		// Process select filters.
+		$state      = $this->getState('filter.state');
+		$position   = $this->getState('filter.position');
+		$module     = $this->getState('filter.module');
+		$assignment = $this->getState('filter.assignment');
+		$access     = $this->getState('filter.access');
+		$language   = $this->getState('filter.language');
 
-		// Modal view should return only front end modules
-		if (JFactory::getApplication()->input->get('layout') == 'modal')
+		// Filter by published state.
+		// Modal view should return only front end modules.
+		if ($app->input->get('layout') == 'modal')
 		{
 			$state = 1;
 		}
-
 		if (is_numeric($state))
 		{
-			$query->where('a.published = ' . (int) $state);
+			$query->where($db->quoteName('a.published') . ' = ' . (int) $state);
 		}
 		elseif ($state === '')
 		{
-			$query->where('(a.published IN (0, 1))');
+			$query->where($db->quoteName('a.published') . ' IN (0, 1)');
 		}
 
-		// Filter by position
-		$position = $this->getState('filter.position');
-
+		// Filter by position.
 		if ($position && $position != 'none')
 		{
-			$query->where('a.position = ' . $db->quote($position));
+			$query->where($db->quoteName('a.position') . ' = ' . $db->quote($position));
 		}
-
 		elseif ($position == 'none')
 		{
-			$query->where('a.position = ' . $db->quote(''));
+			$query->where($db->quoteName('a.position') . ' = ' . $db->quote(''));
 		}
 
-		// Filter by module
-		$module = $this->getState('filter.module');
-
+		// Filter by module.
 		if ($module)
 		{
-			$query->where('a.module = ' . $db->quote($module));
+			$query->where($db->quoteName('a.module') . ' = ' . $db->quote($module));
 		}
 
-		// Filter by client.
-		$clientId = $this->getState('filter.client_id');
-
-		// Modal view should return only front end modules
-		if (JFactory::getApplication()->input->get('layout') == 'modal')
+		// Filter by pages assigned.
+		// For this we need having since pages is an alias.
+		if ($assignment != '')
 		{
-			$clientId = 0;
+			if ($assignment == '-')
+			{
+				$query->having($db->quoteName('pages') . ' IS NULL');
+			}
+			elseif ($assignment == '-1')
+			{
+				$query->having($db->quoteName('pages') . ' < 0');
+			}
+			elseif ($assignment == '1')
+			{
+				$query->having($db->quoteName('pages') . ' > 0');
+			}
+			elseif ($assignment == '0')
+			{
+				$query->having($db->quoteName('pages') . ' = 0');
+			}
 		}
 
-		if (is_numeric($clientId))
+		// Filter by access level.
+		if ($access)
 		{
-			$query->where('a.client_id = ' . (int) $clientId . ' AND e.client_id =' . (int) $clientId);
+			$query->where($db->quoteName('a.access') . ' = ' . (int) $access);
 		}
 
-		// Filter by search in title
+		// Filter on the language.
+		// Modal view should return only specific language and ALL.
+		if ($app->input->get('layout') == 'modal')
+		{
+			if ($app->isSite() && JLanguageMultilang::isEnabled())
+			{
+				$query->where($db->quoteName('a.language') . ' IN (' . $db->quote(JFactory::getLanguage()->getTag()) . ', ' . $db->quote('*') . ')');
+			}
+		}
+		elseif ($language)
+		{
+			$query->where($db->quoteName('a.language') . ' = ' . $db->quote($language));
+		}
+
+		// Process search filter.
 		$search = $this->getState('filter.search');
 
 		if (!empty($search))
 		{
 			if (stripos($search, 'id:') === 0)
 			{
-				$query->where('a.id = ' . (int) substr($search, 3));
+				$query->where($db->quoteName('a.id') . ' = ' . (int) substr($search, 3));
 			}
 			else
 			{
-				$search = $db->quote('%' . strtolower($search) . '%');
-				$query->where('(' . ' LOWER(a.title) LIKE ' . $search . ' OR LOWER(a.note) LIKE ' . $search . ')');
+				$search = $db->quote('%' . str_replace(' ', '%', $db->escape(trim($search), true)) . '%');
+				$query->where('(' . $db->quoteName('a.title') . ' LIKE ' . $search . ' OR ' . $db->quoteName('a.note') . ' LIKE ' . $search . ')');
 			}
-		}
-
-		// Modal view should return only specific language and ALL
-		if (JFactory::getApplication()->input->get('layout') == 'modal')
-		{
-			if (JFactory::getApplication()->isSite() && JLanguageMultilang::isEnabled())
-			{
-				$query->where('a.language in (' . $db->quote(JFactory::getLanguage()->getTag()) . ',' . $db->quote('*') . ')');
-			}
-		}
-		elseif ($language = $this->getState('filter.language'))
-		{
-			// Filter on the language.
-			$query->where('a.language = ' . $db->quote($language));
 		}
 
 		return $query;
