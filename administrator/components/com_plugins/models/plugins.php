@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Methods supporting a list of plugin records.
  *
@@ -58,30 +60,21 @@ class PluginsModelPlugins extends JModelList
 	 *
 	 * @since   1.6
 	 */
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'folder', $direction = 'asc')
 	{
 		// Load the filter state.
-		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
-		$this->setState('filter.search', $search);
-
-		$accessId = $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', null, 'int');
-		$this->setState('filter.access', $accessId);
-
-		$state = $this->getUserStateFromRequest($this->context . '.filter.enabled', 'filter_enabled', '', 'string');
-		$this->setState('filter.enabled', $state);
-
-		$folder = $this->getUserStateFromRequest($this->context . '.filter.folder', 'filter_folder', null, 'cmd');
-		$this->setState('filter.folder', $folder);
-
-		$language = $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '');
-		$this->setState('filter.language', $language);
+		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
+		$this->setState('filter.enabled', $this->getUserStateFromRequest($this->context . '.filter.enabled', 'filter_enabled', '', 'string'));
+		$this->setState('filter.folder', $this->getUserStateFromRequest($this->context . '.filter.folder', 'filter_folder', null, 'cmd'));
+		$this->setState('filter.element', $this->getUserStateFromRequest($this->context . '.filter.element', 'filter_element', '', 'string'));
+		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', null, 'int'));
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_plugins');
 		$this->setState('params', $params);
 
 		// List state information.
-		parent::populateState('folder', 'asc');
+		parent::populateState($ordering, $direction);
 	}
 
 	/**
@@ -99,10 +92,10 @@ class PluginsModelPlugins extends JModelList
 	{
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
-		$id .= ':' . $this->getState('filter.access');
 		$id .= ':' . $this->getState('filter.state');
 		$id .= ':' . $this->getState('filter.folder');
-		$id .= ':' . $this->getState('filter.language');
+		$id .= ':' . $this->getState('filter.element');
+		$id .= ':' . $this->getState('filter.access');
 
 		return parent::getStoreId($id);
 	}
@@ -118,16 +111,12 @@ class PluginsModelPlugins extends JModelList
 	 */
 	protected function _getList($query, $limitstart = 0, $limit = 0)
 	{
-		$search = $this->getState('filter.search');
-		$ordering = $this->getState('list.ordering', 'ordering');
+		$search    = $this->getState('filter.search');
+		$listOrder = $this->getState('list.ordering', 'folder');
+		$listDirn  = $this->getState('list.direction', 'ASC');
 
-		// If "Sort Table By:" is not set, set ordering to name
-		if ($ordering == '')
-		{
-			$ordering = "name";
-		}
-
-		if ($ordering == 'name' || (!empty($search) && stripos($search, 'id:') !== 0))
+		// Plugin name (name) and Search (name) need to translate the results before sorting.
+		if ($listOrder == 'name' || (!empty($search) && stripos($search, 'id:') !== 0))
 		{
 			$this->_db->setQuery($query);
 			$result = $this->_db->loadObjectList();
@@ -146,8 +135,7 @@ class PluginsModelPlugins extends JModelList
 				}
 			}
 
-			$direction = ($this->getState('list.direction') == 'desc') ? -1 : 1;
-			JArrayHelper::sortObjects($result, $ordering, $direction, true, true);
+			$result = ArrayHelper::sortObjects($result, $listOrder, strtolower($listDirn) == 'desc' ? -1 : 1, true, true);
 
 			$total = count($result);
 			$this->cache[$this->getStoreId('getTotal')] = $total;
@@ -160,19 +148,26 @@ class PluginsModelPlugins extends JModelList
 
 			return array_slice($result, $limitstart, $limit ? $limit : null);
 		}
+		// For the other sorting options we can use query order by.
 		else
 		{
-			if ($ordering == 'ordering')
+			// For ordering use the folder ascending and then ordering.
+			if ($listOrder == 'ordering')
 			{
-				$query->order('a.folder ASC');
-				$ordering = 'a.ordering';
+				$query->order($this->_db->quoteName('a.folder') . ' ASC')
+					->order($this->_db->quoteName($listOrder) . ' ' . $this->_db->escape($listDirn));
+				$listOrder = 'a.ordering';
 			}
-
-			$query->order($this->_db->quoteName($ordering) . ' ' . $this->getState('list.direction'));
-
-			if ($ordering == 'folder')
+			// For folder use the folder and then ordering ascending.
+			elseif ($listOrder == 'folder')
 			{
-				$query->order('a.ordering ASC');
+				$query->order($this->_db->quoteName($listOrder) . ' ' . $this->_db->escape($listDirn))
+					->order($this->_db->quoteName('a.ordering') . ' ASC');
+			}
+			// For other order options use the standard ordering.
+			else
+			{
+				$query->order($this->_db->quoteName($listOrder) . ' ' . $this->_db->escape($listDirn));
 			}
 
 			$result = parent::_getList($query, $limitstart, $limit);
@@ -218,77 +213,65 @@ class PluginsModelPlugins extends JModelList
 		$query->select(
 			$this->getState(
 				'list.select',
-				'a.extension_id , a.name, a.element, a.folder, a.checked_out, a.checked_out_time,' .
-					' a.enabled, a.access, a.ordering'
+				'a.extension_id , a.name, a.element, a.folder, a.checked_out, a.checked_out_time, ' .
+				'a.enabled, a.access, a.ordering'
 			)
 		)
-			->from($db->quoteName('#__extensions') . ' AS a')
+			->from($db->quoteName('#__extensions', 'a'))
 			->where($db->quoteName('type') . ' = ' . $db->quote('plugin'));
 
 		// Join over the users for the checked out user.
-		$query->select('uc.name AS editor')
-			->join('LEFT', '#__users AS uc ON uc.id=a.checked_out');
+		$query->select($db->quoteName('uc.name', 'editor'))
+			->join('LEFT', $db->quoteName('#__users', 'uc') . ' ON ' . $db->quoteName('uc.id') . ' = ' . $db->quoteName('a.checked_out'));
 
 		// Join over the asset groups.
-		$query->select('ag.title AS access_level')
-			->join('LEFT', '#__viewlevels AS ag ON ag.id = a.access');
+		$query->select($db->quoteName('ag.title', 'access_level'))
+			->join('LEFT', $db->quoteName('#__viewlevels', 'ag') . ' ON ' . $db->quoteName('ag.id') . ' = ' . $db->quoteName('a.access'));
 
-		// Filter by access level.
-		if ($access = $this->getState('filter.access'))
-		{
-			$query->where('a.access = ' . (int) $access);
-		}
+		// Only active plugins.
+		$query->where($db->quoteName('a.state') . ' >= 0');
 
 		// Filter by published state.
 		$published = $this->getState('filter.enabled');
 
 		if (is_numeric($published))
 		{
-			$query->where('a.enabled = ' . (int) $published);
+			$query->where($db->quoteName('a.enabled') . ' = ' . (int) $published);
 		}
 		elseif ($published === '')
 		{
-			$query->where('(a.enabled IN (0, 1))');
+			$query->where($db->quoteName('a.enabled') . ' IN (0, 1)');
 		}
-
-		// Filter by state.
-		$query->where('a.state >= 0');
 
 		// Filter by folder.
 		if ($folder = $this->getState('filter.folder'))
 		{
-			$query->where('a.folder = ' . $db->quote($folder));
+			$query->where($db->quoteName('a.folder') . ' = ' . $db->quote($folder));
 		}
 
-		// Filter by search in name or id.
+		// Filter by element.
+		if ($element = $this->getState('filter.element'))
+		{
+			$query->where($db->quoteName('a.element') . ' = ' . $db->quote($element));
+		}
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access'))
+		{
+			$query->where($db->quoteName('a.access') . ' = ' . (int) $access);
+		}
+
+		// Filter by search for id.
 		$search = $this->getState('filter.search');
 
 		if (!empty($search))
 		{
 			if (stripos($search, 'id:') === 0)
 			{
-				$query->where('a.extension_id = ' . (int) substr($search, 3));
+				$query->where($db->quoteName('a.extension_id') . ' = ' . (int) substr($search, 3));
 			}
 		}
 
 		return $query;
-	}
-
-	/**
-	 * Method to get the data that should be injected in the form.
-	 *
-	 * @return	mixed	The data for the form.
-	 *
-	 * @since	3.5
-	 */
-	protected function loadFormData()
-	{
-		$data = parent::loadFormData();
-
-		// Set the selected filter values for pages that use the JLayouts for filtering
-		$data->list['sortTable'] = $this->state->get('list.ordering');
-		$data->list['directionTable'] = $this->state->get('list.direction');
-
-		return $data;
 	}
 }
