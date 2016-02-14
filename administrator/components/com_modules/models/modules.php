@@ -45,7 +45,7 @@ class ModulesModelModules extends JModelList
 				'publish_down', 'a.publish_down',
 				'client_id', 'a.client_id',
 				'position', 'a.position',
-				'pages',
+				'pages', 'assignment',
 				'name', 'e.name',
 			);
 		}
@@ -68,10 +68,11 @@ class ModulesModelModules extends JModelList
 	protected function populateState($ordering = 'a.position', $direction = 'asc')
 	{
 		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
-		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', '', 'string'));
 		$this->setState('filter.state', $this->getUserStateFromRequest($this->context . '.filter.state', 'filter_state', '', 'string'));
 		$this->setState('filter.position', $this->getUserStateFromRequest($this->context . '.filter.position', 'filter_position', '', 'string'));
 		$this->setState('filter.module', $this->getUserStateFromRequest($this->context . '.filter.module', 'filter_module', '', 'string'));
+		$this->setState('filter.assignment', $this->getUserStateFromRequest($this->context . '.filter.assignment', 'filter_assignment', '', 'string'));
+		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', '', 'string'));
 		$this->setState('filter.language', $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '', 'string'));
 
 		// Special case for client id.
@@ -108,10 +109,11 @@ class ModulesModelModules extends JModelList
 	{
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
-		$id .= ':' . $this->getState('filter.access');
 		$id .= ':' . $this->getState('filter.state');
 		$id .= ':' . $this->getState('filter.position');
 		$id .= ':' . $this->getState('filter.module');
+		$id .= ':' . $this->getState('filter.assignment');
+		$id .= ':' . $this->getState('filter.access');
 		$id .= ':' . $this->getState('filter.language');
 		$id .= ':' . $this->getState('client_id');
 
@@ -271,25 +273,19 @@ class ModulesModelModules extends JModelList
 		$query->where('(' . $db->quoteName('a.client_id') . ' = ' . $clientId . ' AND ' . $db->quoteName('e.client_id') . ' = ' . $clientId . ')');
 
 		// Process select filters.
-		$access   = $this->getState('filter.access');
-		$state    = $this->getState('filter.state');
-		$position = $this->getState('filter.position');
-		$module   = $this->getState('filter.module');
-		$language = $this->getState('filter.language');
+		$state      = $this->getState('filter.state');
+		$position   = $this->getState('filter.position');
+		$module     = $this->getState('filter.module');
+		$assignment = $this->getState('filter.assignment');
+		$access     = $this->getState('filter.access');
+		$language   = $this->getState('filter.language');
 
+		// Filter by published state.
 		// Modal view should return only front end modules.
 		if ($app->input->get('layout') == 'modal')
 		{
 			$state = 1;
 		}
-
-		// Filter by access level.
-		if ($access)
-		{
-			$query->where($db->quoteName('a.access') . ' = ' . (int) $access);
-		}
-
-		// Filter by published state.
 		if (is_numeric($state))
 		{
 			$query->where($db->quoteName('a.published') . ' = ' . (int) $state);
@@ -313,6 +309,34 @@ class ModulesModelModules extends JModelList
 		if ($module)
 		{
 			$query->where($db->quoteName('a.module') . ' = ' . $db->quote($module));
+		}
+
+		// Filter by pages assigned.
+		// For this we need having since pages is an alias.
+		if ($assignment != '')
+		{
+			if ($assignment == '-')
+			{
+				$query->having($db->quoteName('pages') . ' IS NULL');
+			}
+			elseif ($assignment == '-1')
+			{
+				$query->having($db->quoteName('pages') . ' < 0');
+			}
+			elseif ($assignment == '1')
+			{
+				$query->having($db->quoteName('pages') . ' > 0');
+			}
+			elseif ($assignment == '0')
+			{
+				$query->having($db->quoteName('pages') . ' = 0');
+			}
+		}
+
+		// Filter by access level.
+		if ($access)
+		{
+			$query->where($db->quoteName('a.access') . ' = ' . (int) $access);
 		}
 
 		// Filter on the language.
