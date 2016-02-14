@@ -64,10 +64,10 @@ class PluginsModelPlugins extends JModelList
 	{
 		// Load the filter state.
 		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
-		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', null, 'int'));
 		$this->setState('filter.enabled', $this->getUserStateFromRequest($this->context . '.filter.enabled', 'filter_enabled', '', 'string'));
 		$this->setState('filter.folder', $this->getUserStateFromRequest($this->context . '.filter.folder', 'filter_folder', null, 'cmd'));
-		$this->setState('filter.language', $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '', 'string'));
+		$this->setState('filter.element', $this->getUserStateFromRequest($this->context . '.filter.element', 'filter_element', '', 'string'));
+		$this->setState('filter.access', $this->getUserStateFromRequest($this->context . '.filter.access', 'filter_access', null, 'int'));
 
 		// Load the parameters.
 		$params = JComponentHelper::getParams('com_plugins');
@@ -92,10 +92,10 @@ class PluginsModelPlugins extends JModelList
 	{
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
-		$id .= ':' . $this->getState('filter.access');
 		$id .= ':' . $this->getState('filter.state');
 		$id .= ':' . $this->getState('filter.folder');
-		$id .= ':' . $this->getState('filter.language');
+		$id .= ':' . $this->getState('filter.element');
+		$id .= ':' . $this->getState('filter.access');
 
 		return parent::getStoreId($id);
 	}
@@ -228,11 +228,8 @@ class PluginsModelPlugins extends JModelList
 		$query->select($db->quoteName('ag.title', 'access_level'))
 			->join('LEFT', $db->quoteName('#__viewlevels', 'ag') . ' ON ' . $db->quoteName('ag.id') . ' = ' . $db->quoteName('a.access'));
 
-		// Filter by access level.
-		if ($access = $this->getState('filter.access'))
-		{
-			$query->where($db->quoteName('a.access') . ' = ' . (int) $access);
-		}
+		// Only active plugins.
+		$query->where($db->quoteName('a.state') . ' >= 0');
 
 		// Filter by published state.
 		$published = $this->getState('filter.enabled');
@@ -246,16 +243,25 @@ class PluginsModelPlugins extends JModelList
 			$query->where($db->quoteName('a.enabled') . ' IN (0, 1)');
 		}
 
-		// Filter by state.
-		$query->where($db->quoteName('a.state') . ' >= 0');
-
 		// Filter by folder.
 		if ($folder = $this->getState('filter.folder'))
 		{
 			$query->where($db->quoteName('a.folder') . ' = ' . $db->quote($folder));
 		}
 
-		// Filter by search in name or id.
+		// Filter by element.
+		if ($element = $this->getState('filter.element'))
+		{
+			$query->where($db->quoteName('a.element') . ' = ' . $db->quote($element));
+		}
+
+		// Filter by access level.
+		if ($access = $this->getState('filter.access'))
+		{
+			$query->where($db->quoteName('a.access') . ' = ' . (int) $access);
+		}
+
+		// Filter by search for id.
 		$search = $this->getState('filter.search');
 
 		if (!empty($search))
@@ -267,23 +273,5 @@ class PluginsModelPlugins extends JModelList
 		}
 
 		return $query;
-	}
-
-	/**
-	 * Method to get the data that should be injected in the form.
-	 *
-	 * @return	mixed	The data for the form.
-	 *
-	 * @since	3.5
-	 */
-	protected function loadFormData()
-	{
-		$data = parent::loadFormData();
-
-		// Set the selected filter values for pages that use the JLayouts for filtering
-		$data->list['sortTable'] = $this->state->get('list.ordering');
-		$data->list['directionTable'] = $this->state->get('list.direction');
-
-		return $data;
 	}
 }
