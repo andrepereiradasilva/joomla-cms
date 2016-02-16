@@ -2,7 +2,7 @@
 <form>
 	<fieldset addfieldpath="/administrator/components/com_installer/models/fields"/>
 
-    <fields name="filter">
+	<fields name="filter">
 		<field
 			name="search"
 			type="text"
