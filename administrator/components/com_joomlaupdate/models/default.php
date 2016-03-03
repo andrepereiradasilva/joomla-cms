@@ -123,7 +123,7 @@ class JoomlaupdateModelDefault extends JModelLegacy
 			if (!JUpdater::getInstance()->findUpdates(700, $cache_timeout))
 			{
 				// If the joomla update return nothing, let's see if this is caused by unable to connect to joomla update server.
-				JHttpFactory::getHttp()->get('https://updsdfate.joomla.org/');
+				JHttpFactory::getHttp()->get('https://update.joomla.org/');
 			}
 		}
 		catch (RuntimeException $e)
