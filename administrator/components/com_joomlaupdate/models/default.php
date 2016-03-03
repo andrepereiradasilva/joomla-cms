@@ -118,9 +118,18 @@ class JoomlaupdateModelDefault extends JModelLegacy
 			$cache_timeout = $update_params->get('cachetimeout', 6, 'int');
 			$cache_timeout = 3600 * $cache_timeout;
 		}
-
-		$updater = JUpdater::getInstance();
-		$updater->findUpdates(700, $cache_timeout);
+		try
+		{
+			if (!JUpdater::getInstance()->findUpdates(700, $cache_timeout))
+			{
+				// If the joomla update return nothing, let's see if this is caused by unable to connect to joomla update server.
+				JHttpFactory::getHttp()->get('https://updsdfate.joomla.org/');
+			}
+		}
+		catch (RuntimeException $e)
+		{
+			JFactory::getApplication()->enqueueMessage(JText::_('JLIB_UPDATER_ERROR_MANUAL_UPDATE_INFORMATION'), 'info');
+		}
 	}
 
 	/**
