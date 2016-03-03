@@ -120,15 +120,14 @@ class JoomlaupdateModelDefault extends JModelLegacy
 		}
 		try
 		{
-			if (!JUpdater::getInstance()->findUpdates(700, $cache_timeout))
-			{
-				// If the joomla update return nothing, let's see if this is caused by unable to connect to joomla update server.
-				JHttpFactory::getHttp()->get('https://update.joomla.org/');
-			}
+			// Try to connect to Joomla! Update Server. Trows exception if connection not available.
+			JHttpFactory::getHttp()->get('https://update.joomla.org/');
+			// Get Joomla! updates.
+			JUpdater::getInstance()->findUpdates(700, $cache_timeout);
 		}
 		catch (RuntimeException $e)
 		{
-			JFactory::getApplication()->enqueueMessage(JText::_('JLIB_UPDATER_ERROR_MANUAL_UPDATE_INFORMATION'), 'info');
+			JFactory::getApplication()->enqueueMessage(JText::_('JLIB_UPDATER_ERROR_MANUAL_UPDATE_INFORMATION'), 'warning');
 		}
 	}
 
