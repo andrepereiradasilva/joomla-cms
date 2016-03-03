@@ -118,10 +118,13 @@ class JoomlaupdateModelDefault extends JModelLegacy
 			$cache_timeout = $update_params->get('cachetimeout', 6, 'int');
 			$cache_timeout = 3600 * $cache_timeout;
 		}
+
+		// Get Joomla! updates.
 		try
 		{
-			// Try to connect to Joomla! Update Server. Trows exception if connection not available.
+			// Try to connect to Joomla! Update Server. Throws an exception if connection not available.
 			JHttpFactory::getHttp()->get('https://update.joomla.org/');
+
 			// Get Joomla! updates.
 			JUpdater::getInstance()->findUpdates(700, $cache_timeout);
 		}
