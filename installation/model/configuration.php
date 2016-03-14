@@ -83,9 +83,9 @@ class InstallationModelConfiguration extends JModelBase
 		$registry->set('password', $options->db_pass);
 		$registry->set('db', $options->db_name);
 		$registry->set('dbprefix', $options->db_prefix);
-		$registry->set('dbsecure', 0);
-		$registry->set('dbcompress', 0);
 		$registry->set('dbpersistent', 0);
+		$registry->set('dbcompress', 0);		
+		$registry->set('dbsecure', 0);
 
 		// Server settings.
 		$registry->set('live_site', '');
