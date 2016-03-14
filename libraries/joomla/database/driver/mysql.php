@@ -49,9 +49,10 @@ class JDatabaseDriverMysql extends JDatabaseDriverMysqli
 		$options['password'] = (isset($options['password'])) ? $options['password'] : '';
 		$options['database'] = (isset($options['database'])) ? $options['database'] : '';
 		$options['select'] = (isset($options['select'])) ? (bool) $options['select'] : true;
-		$options['secure']     = (isset($options['secure'])) ? $options['secure'] : 0;
-		$options['compress']   = (isset($options['compress'])) ? $options['compress'] : 0;
 		$options['persistent'] = (isset($options['persistent'])) ? $options['persistent'] : 0;
+		$options['compress']   = (isset($options['compress'])) ? $options['compress'] : 0;
+		$options['secure']     = (isset($options['secure'])) ? $options['secure'] : 0;
+
 
 		// Finalize initialisation.
 		parent::__construct($options);
@@ -103,13 +104,13 @@ class JDatabaseDriverMysql extends JDatabaseDriverMysqli
 		}
 
 		// Optionally make a persistent connection to database server.
-        if ($this->options['persistent'])
+		if ($this->options['persistent'])
 		{
 			if (!($this->connection = @mysql_pconnect($this->options['host'], $this->options['user'], $this->options['password'], $clientFlags)))
 			{
 				throw new RuntimeException('Could not connect to MySQL.');
 			}
-        }
+		}
 		else
 		{
 			// Attempt to connect to the server.
