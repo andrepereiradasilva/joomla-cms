@@ -99,12 +99,15 @@ class ConfigModelApplication extends ConfigModelForm
 
 		// Check that we aren't setting wrong database configuration
 		$options = array(
-			'driver'   => $data['dbtype'],
-			'host'     => $data['host'],
-			'user'     => $data['user'],
-			'password' => JFactory::getConfig()->get('password'),
-			'database' => $data['db'],
-			'prefix'   => $data['dbprefix']
+			'driver'     => $data['dbtype'],
+			'host'       => $data['host'],
+			'user'       => $data['user'],
+			'password'   => JFactory::getConfig()->get('password'),
+			'database'   => $data['db'],
+			'prefix'     => $data['dbprefix'],
+			'secure'     => $data['dbsecure'],
+			'compress'   => $data['compress'],
+			'persistent' => $data['persistent'],
 		);
 
 		try
