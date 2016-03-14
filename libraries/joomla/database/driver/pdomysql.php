@@ -88,6 +88,23 @@ class JDatabaseDriverPdomysql extends JDatabaseDriverPdo
 		 */
 		$this->utf8mb4 = ($options['charset'] == 'utf8mb4');
 
+		if (!isset($options['connectionOptions']))
+		{
+			$options['connectionOptions'] = array();
+		}
+
+		// Optionally make a persistent connection to database server.
+        if ($options['persistent'] && defined("PDO::ATTR_PERSISTENT"))
+		{
+			array_push($options['connectionOptions'], array(PDO::ATTR_PERSISTENT => true));
+		}
+
+		// Optionally compress connection to database server.
+		if ($options['compress'] && defined("PDO::MYSQL_ATTR_COMPRESS"))
+		{
+			array_push($options['connectionOptions'], array(PDO::MYSQL_ATTR_COMPRESS => true));
+		}
+
 		// Finalize initialisation.
 		parent::__construct($options);
 	}
