@@ -106,8 +106,8 @@ class ConfigModelApplication extends ConfigModelForm
 			'database'   => $data['db'],
 			'prefix'     => $data['dbprefix'],
 			'secure'     => $data['dbsecure'],
-			'compress'   => $data['compress'],
-			'persistent' => $data['persistent'],
+			'compress'   => $data['dbcompress'],
+			'persistent' => $data['dbpersistent'],
 		);
 
 		try
