@@ -617,15 +617,17 @@ abstract class JFactory
 	{
 		$conf = self::getConfig();
 
-		$host = $conf->get('host');
-		$user = $conf->get('user');
-		$password = $conf->get('password');
-		$database = $conf->get('db');
-		$prefix = $conf->get('dbprefix');
-		$driver = $conf->get('dbtype');
-		$debug = $conf->get('debug');
-
-		$options = array('driver' => $driver, 'host' => $host, 'user' => $user, 'password' => $password, 'database' => $database, 'prefix' => $prefix);
+		$options = array(
+			'driver'     => $conf->get('dbtype'),
+			'host'       => $conf->get('host'),
+			'user'       => $conf->get('user'),
+			'password'   => $conf->get('password'),
+			'database'   => $conf->get('db'),
+			'prefix'     => $conf->get('dbprefix'),
+			'secure'     => $conf->get('dbsecure', 0, 'int'),
+			'compress'   => $conf->get('dbcompress', 0, 'int'),
+			'persistent' => $conf->get('dbpersistent', 0, 'int'),
+		);
 
 		try
 		{
@@ -641,7 +643,7 @@ abstract class JFactory
 			jexit('Database Error: ' . $e->getMessage());
 		}
 
-		$db->setDebug($debug);
+		$db->setDebug($conf->get('debug'));
 
 		return $db;
 	}
