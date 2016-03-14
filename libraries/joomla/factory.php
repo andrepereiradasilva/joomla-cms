@@ -624,9 +624,9 @@ abstract class JFactory
 			'password'   => $conf->get('password'),
 			'database'   => $conf->get('db'),
 			'prefix'     => $conf->get('dbprefix'),
-			'secure'     => $conf->get('dbsecure', 0, 'int'),
-			'compress'   => $conf->get('dbcompress', 0, 'int'),
 			'persistent' => $conf->get('dbpersistent', 0, 'int'),
+			'compress'   => $conf->get('dbcompress', 0, 'int'),
+			'secure'     => $conf->get('dbsecure', 0, 'int'),
 		);
 
 		try
