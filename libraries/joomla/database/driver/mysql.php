@@ -44,11 +44,11 @@ class JDatabaseDriverMysql extends JDatabaseDriverMysqli
 		}
 
 		// Get some basic values from the options.
-		$options['host'] = (isset($options['host'])) ? $options['host'] : 'localhost';
-		$options['user'] = (isset($options['user'])) ? $options['user'] : 'root';
-		$options['password'] = (isset($options['password'])) ? $options['password'] : '';
-		$options['database'] = (isset($options['database'])) ? $options['database'] : '';
-		$options['select'] = (isset($options['select'])) ? (bool) $options['select'] : true;
+		$options['host']       = (isset($options['host'])) ? $options['host'] : 'localhost';
+		$options['user']       = (isset($options['user'])) ? $options['user'] : 'root';
+		$options['password']   = (isset($options['password'])) ? $options['password'] : '';
+		$options['database']   = (isset($options['database'])) ? $options['database'] : '';
+		$options['select']     = (isset($options['select'])) ? (bool) $options['select'] : true;
 		$options['persistent'] = (isset($options['persistent'])) ? $options['persistent'] : 0;
 		$options['compress']   = (isset($options['compress'])) ? $options['compress'] : 0;
 		$options['secure']     = (isset($options['secure'])) ? $options['secure'] : 0;
