@@ -177,10 +177,10 @@ class JDatabaseDriverMysqli extends JDatabaseDriver
 		}
 
 		// Optionally make a persistent connection to database server.
-        if ($this->options['persistent'])
+		if ($this->options['persistent'])
 		{
-            $this->options['host'] = 'p:' . $this->options['host'];
-        }
+			$this->options['host'] = 'p:' . $this->options['host'];
+		}
 
 		$clientFlags = 0;
 
