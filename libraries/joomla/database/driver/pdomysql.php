@@ -94,7 +94,7 @@ class JDatabaseDriverPdomysql extends JDatabaseDriverPdo
 		}
 
 		// Optionally make a persistent connection to database server.
-        if ($options['persistent'] && defined("PDO::ATTR_PERSISTENT"))
+		if ($options['persistent'] && defined("PDO::ATTR_PERSISTENT"))
 		{
 			array_push($options['connectionOptions'], array(PDO::ATTR_PERSISTENT => true));
 		}
