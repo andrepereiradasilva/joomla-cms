@@ -82,6 +82,7 @@ abstract class JDatabaseDriverPdo extends JDatabaseDriver
 		$options['user'] = (isset($options['user'])) ? $options['user'] : '';
 		$options['password'] = (isset($options['password'])) ? $options['password'] : '';
 		$options['driverOptions'] = (isset($options['driverOptions'])) ? $options['driverOptions'] : array();
+		$options['connectionOptions'] = (isset($options['connectionOptions'])) ? $options['connectionOptions'] : array();
 
 		$hostParts = explode(':', $options['host']);
 
@@ -301,7 +302,7 @@ abstract class JDatabaseDriverPdo extends JDatabaseDriver
 				$connectionString,
 				$this->options['user'],
 				$this->options['password'],
-				$this->options['driverOptions']
+				array_replace($this->options['driverOptions'], $this->options['connectionOptions'])
 			);
 		}
 		catch (PDOException $e)
