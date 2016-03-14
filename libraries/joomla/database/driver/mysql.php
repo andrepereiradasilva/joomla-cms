@@ -53,7 +53,6 @@ class JDatabaseDriverMysql extends JDatabaseDriverMysqli
 		$options['compress']   = (isset($options['compress'])) ? $options['compress'] : 0;
 		$options['secure']     = (isset($options['secure'])) ? $options['secure'] : 0;
 
-
 		// Finalize initialisation.
 		parent::__construct($options);
 	}
