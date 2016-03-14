@@ -75,13 +75,16 @@ class JDatabaseDriverMysqli extends JDatabaseDriver
 	public function __construct($options)
 	{
 		// Get some basic values from the options.
-		$options['host']     = (isset($options['host'])) ? $options['host'] : 'localhost';
-		$options['user']     = (isset($options['user'])) ? $options['user'] : 'root';
-		$options['password'] = (isset($options['password'])) ? $options['password'] : '';
-		$options['database'] = (isset($options['database'])) ? $options['database'] : '';
-		$options['select']   = (isset($options['select'])) ? (bool) $options['select'] : true;
-		$options['port']     = null;
-		$options['socket']   = null;
+		$options['host']       = (isset($options['host'])) ? $options['host'] : 'localhost';
+		$options['user']       = (isset($options['user'])) ? $options['user'] : 'root';
+		$options['password']   = (isset($options['password'])) ? $options['password'] : '';
+		$options['database']   = (isset($options['database'])) ? $options['database'] : '';
+		$options['select']     = (isset($options['select'])) ? (bool) $options['select'] : true;
+		$options['port']       = null;
+		$options['socket']     = null;
+		$options['persistent'] = (isset($options['persistent'])) ? $options['persistent'] : 0;
+		$options['compress']   = (isset($options['compress'])) ? $options['compress'] : 0;
+		$options['secure']     = (isset($options['secure'])) ? $options['secure'] : 0;
 
 		// Finalize initialisation.
 		parent::__construct($options);
@@ -166,15 +169,42 @@ class JDatabaseDriverMysqli extends JDatabaseDriver
 		{
 			$this->options['socket'] = $port;
 		}
-
+	
 		// Make sure the MySQLi extension for PHP is installed and enabled.
-		if (!function_exists('mysqli_connect'))
+		if (!function_exists('mysqli_real_connect'))
 		{
-			throw new RuntimeException('The MySQL adapter mysqli is not available');
+			throw new RuntimeException('The MySQL adapter mysqli is not available.');
 		}
 
-		$this->connection = @mysqli_connect(
-			$this->options['host'], $this->options['user'], $this->options['password'], null, $this->options['port'], $this->options['socket']
+		// Optionally make a persistent connection to database server.
+        if ($this->options['persistent'])
+		{
+            $this->options['host'] = 'p:' . $this->options['host'];
+        }
+
+		$clientFlags = 0;
+
+		// Optionally compress connection to database server.
+		if ($this->options['compress'] && defined('MYSQLI_CLIENT_COMPRESS'))
+		{
+			$clientFlags |= MYSQLI_CLIENT_COMPRESS;
+		}
+
+		// Optionally enable secure connection to database server.
+		if ($this->options['secure'] && defined('MYSQLI_CLIENT_SSL'))
+		{
+			$clientFlags |= MYSQLI_CLIENT_SSL;
+		}
+
+		$this->connection = mysqli_init();
+
+		if (!$this->connection)
+		{
+			throw new RuntimeException('The MySQL connection init failed.');
+		}
+
+		@mysqli_real_connect(
+			$this->connection, $this->options['host'], $this->options['user'], $this->options['password'], null, $this->options['port'], $this->options['socket'], $clientFlags
 		);
 
 		// Attempt to connect to the server.
