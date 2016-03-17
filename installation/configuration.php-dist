@@ -35,6 +35,9 @@ class JConfig {
 	public $password = '';                   // DB password
 	public $db = '';                         // DB database name
 	public $dbprefix = 'jos_';               // Do not change unless you need to!
+	public $dbpersistent = '0';              // Persistent connection to the database
+	public $dbcompress = '0';                // Compress connection to the database
+	public $dbsecure = '0';                  // Secure connection to database
 
 	/* Server Settings */
 	public $secret = 'FBVtggIk5lAzEU9H';     // Change this to something more secure

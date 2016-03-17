@@ -44,11 +44,14 @@ class JDatabaseDriverMysql extends JDatabaseDriverMysqli
 		}
 
 		// Get some basic values from the options.
-		$options['host'] = (isset($options['host'])) ? $options['host'] : 'localhost';
-		$options['user'] = (isset($options['user'])) ? $options['user'] : 'root';
-		$options['password'] = (isset($options['password'])) ? $options['password'] : '';
-		$options['database'] = (isset($options['database'])) ? $options['database'] : '';
-		$options['select'] = (isset($options['select'])) ? (bool) $options['select'] : true;
+		$options['host']       = (isset($options['host'])) ? $options['host'] : 'localhost';
+		$options['user']       = (isset($options['user'])) ? $options['user'] : 'root';
+		$options['password']   = (isset($options['password'])) ? $options['password'] : '';
+		$options['database']   = (isset($options['database'])) ? $options['database'] : '';
+		$options['select']     = (isset($options['select'])) ? (bool) $options['select'] : true;
+		$options['persistent'] = (isset($options['persistent'])) ? $options['persistent'] : 0;
+		$options['compress']   = (isset($options['compress'])) ? $options['compress'] : 0;
+		$options['secure']     = (isset($options['secure'])) ? $options['secure'] : 0;
 
 		// Finalize initialisation.
 		parent::__construct($options);
@@ -85,10 +88,35 @@ class JDatabaseDriverMysql extends JDatabaseDriverMysqli
 			throw new RuntimeException('Could not connect to MySQL.');
 		}
 
-		// Attempt to connect to the server.
-		if (!($this->connection = @ mysql_connect($this->options['host'], $this->options['user'], $this->options['password'], true)))
+		$clientFlags = 0;
+
+		// Optionally compress connection to database server.
+		if ($this->options['compress'] && defined('MYSQL_CLIENT_COMPRESS'))
 		{
-			throw new RuntimeException('Could not connect to MySQL.');
+			$clientFlags |= MYSQL_CLIENT_COMPRESS;
+		}
+
+		// Optionally enable secure connection to database server.
+		if ($this->options['secure'] && defined('MYSQL_CLIENT_SSL'))
+		{
+			$clientFlags |= MYSQL_CLIENT_SSL;
+		}
+
+		// Optionally make a persistent connection to database server.
+		if ($this->options['persistent'])
+		{
+			if (!($this->connection = @mysql_pconnect($this->options['host'], $this->options['user'], $this->options['password'], $clientFlags)))
+			{
+				throw new RuntimeException('Could not connect to MySQL.');
+			}
+		}
+		else
+		{
+			// Attempt to connect to the server.
+			if (!($this->connection = @mysql_connect($this->options['host'], $this->options['user'], $this->options['password'], true, $clientFlags)))
+			{
+				throw new RuntimeException('Could not connect to MySQL.');
+			}
 		}
 
 		// Set sql_mode to non_strict mode

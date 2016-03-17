@@ -246,6 +246,48 @@
 			filter="string"
 			size="10" />
 
+		<field
+			name="dbpersistent"
+			type="radio"
+			label="COM_CONFIG_FIELD_DATABASE_PERSISTENT_LABEL"
+			description="COM_CONFIG_FIELD_DATABASE_PERSISTENT_DESC"
+			class="btn-group btn-group-yesno"
+			default="0"
+			filter="integer"
+			showon="dbtype:mysql,mysqli,pdomysql"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
+			name="dbcompress"
+			type="radio"
+			label="COM_CONFIG_FIELD_DATABASE_COMPRESS_LABEL"
+			description="COM_CONFIG_FIELD_DATABASE_COMPRESS_DESC"
+			class="btn-group btn-group-yesno"
+			default="0"
+			filter="integer"
+			showon="dbtype:mysql,mysqli,pdomysql"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
+			name="dbsecure"
+			type="radio"
+			label="COM_CONFIG_FIELD_DATABASE_SECURE_LABEL"
+			description="COM_CONFIG_FIELD_DATABASE_SECURE_DESC"
+			class="btn-group btn-group-yesno"
+			default="0"
+			filter="integer"
+			showon="dbtype:mysql,mysqli"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
 	</fieldset>
 
 	<fieldset
