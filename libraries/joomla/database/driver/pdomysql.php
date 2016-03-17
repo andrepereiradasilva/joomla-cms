@@ -90,8 +90,9 @@ class JDatabaseDriverPdomysql extends JDatabaseDriverPdo
 
 		// Set general connection options.
 		$this->options['connectionOptions'] = array(
-							PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-							PDO::ATTR_EMULATE_PREPARES => true,
+							PDO::ATTR_ERRMODE                  => PDO::ERRMODE_EXCEPTION,
+							PDO::ATTR_EMULATE_PREPARES         => true,
+							PDO::ATTR_TIMEOUT                  => 10,
 							PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
 							);
 
