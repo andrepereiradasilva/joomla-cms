@@ -93,16 +93,23 @@ class JDatabaseDriverPdomysql extends JDatabaseDriverPdo
 			$options['connectionOptions'] = array();
 		}
 
+		// Set general connection options.
+		$this->options['connectionOptions'] = array(
+							PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+							PDO::ATTR_EMULATE_PREPARES => true,
+							PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true,
+							);
+
 		// Optionally make a persistent connection to database server.
 		if ($options['persistent'] && defined("PDO::ATTR_PERSISTENT"))
 		{
-			array_push($options['connectionOptions'], array(PDO::ATTR_PERSISTENT => true));
+			$options['connectionOptions'][PDO::ATTR_PERSISTENT] = true;
 		}
 
 		// Optionally compress connection to database server.
 		if ($options['compress'] && defined("PDO::MYSQL_ATTR_COMPRESS"))
 		{
-			array_push($options['connectionOptions'], array(PDO::MYSQL_ATTR_COMPRESS => true));
+			$options['connectionOptions'][PDO::MYSQL_ATTR_COMPRESS] = true;
 		}
 
 		// Finalize initialisation.
@@ -161,9 +168,6 @@ class JDatabaseDriverPdomysql extends JDatabaseDriverPdo
 				parent::connect();
 			}
 		}
-
-		$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-		$this->connection->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 	}
 
 	/**
