@@ -88,11 +88,6 @@ class JDatabaseDriverPdomysql extends JDatabaseDriverPdo
 		 */
 		$this->utf8mb4 = ($options['charset'] == 'utf8mb4');
 
-		if (!isset($options['connectionOptions']))
-		{
-			$options['connectionOptions'] = array();
-		}
-
 		// Set general connection options.
 		$this->options['connectionOptions'] = array(
 							PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
