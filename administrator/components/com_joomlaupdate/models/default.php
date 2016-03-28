@@ -37,12 +37,12 @@ class JoomlaupdateModelDefault extends JModelLegacy
 			// "Minor & Patch Release for Current version AND Next Major Release".
 			case 'sts':
 			case 'next':
-				$updateURL = 'http://update.joomla.org/core/sts/list_sts.xml';
+				$updateURL = 'https://update.joomla.org/core/sts/list_sts.xml';
 				break;
 
 			// "Testing"
 			case 'testing':
-				$updateURL = 'http://update.joomla.org/core/test/list_test.xml';
+				$updateURL = 'https://update.joomla.org/core/test/list_test.xml';
 				break;
 
 			// "Custom"
@@ -66,7 +66,18 @@ class JoomlaupdateModelDefault extends JModelLegacy
 			 * case 'nochange':
 			 */
 			default:
-				$updateURL = 'http://update.joomla.org/core/list.xml';
+				$updateURL = 'https://update.joomla.org/core/list.xml';
+		}
+
+		// Try to connect to Joomla! Update CDN Server with HTTPS.
+		// Throws an exception and changes to downloads.joomla.org if connection to update CDN server is not available.
+		if (strpos($updateURL, 'https://update.joomla.org') !== false)
+		{
+			if (!$this->canConnectToServer('https://update.joomla.org/'))
+			{
+				JFactory::getApplication()->enqueueMessage(JText::_('JLIB_UPDATER_ERROR_MANUAL_UPDATE_INFORMATION'), 'warning');
+				return;
+			}
 		}
 
 		$db = $this->getDbo();
@@ -119,8 +130,8 @@ class JoomlaupdateModelDefault extends JModelLegacy
 			$cache_timeout = 3600 * $cache_timeout;
 		}
 
-		$updater = JUpdater::getInstance();
-		$updater->findUpdates(700, $cache_timeout);
+		// Get Joomla! updates.
+		JUpdater::getInstance()->findUpdates(700, $cache_timeout);
 	}
 
 	/**
@@ -778,5 +789,28 @@ ENDDATA;
 
 		// Unset the update filename from the session.
 		JFactory::getApplication()->setUserState('com_joomlaupdate.file', null);
+	}
+
+	/**
+	 * Check if server can connect to a remove server server.
+	 *
+	 * @return  boolean   flase if server cannot connect to Joomla update server, true otherwise.
+	 *
+	 * @since   3.5.0
+	 */
+	public function canConnectToServer($uri = 'https://update.joomla.org/')
+	{
+		// Try to connect to Joomla! Update CDN Server with HTTPS.
+		// Throws an exception and changes to downloads.joomla.org if connection to update CDN server is not available.
+		try
+		{
+			JHttpFactory::getHttp()->get($uri);
+		}
+		catch (RuntimeException $e)
+		{
+			return false;
+		}
+
+		return true;
 	}
 }
