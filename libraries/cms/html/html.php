@@ -373,7 +373,7 @@ abstract class JHtml
 						$path = "/$template/$folder";
 						if (file_exists(JPATH_THEMES . $path . '/' . $file))
 						{
-							$includes[] = JUri::base(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
+							$includes[] = JUri::base(true) . '/templates' . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
 							break;
 						}
 						else
