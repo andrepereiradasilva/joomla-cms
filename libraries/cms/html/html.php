@@ -287,13 +287,16 @@ abstract class JHtml
 	 * @param   boolean  $relative        path to file is relative to /media folder  (and searches in template).
 	 * @param   boolean  $detect_browser  detect browser to include specific browser files.
 	 * @param   boolean  $detect_debug    detect debug to include compressed files if debug is on.
+	 * @param   string   $version         add version to script. empty for no version, null to auto, other for custom.
 	 *
 	 * @return  array    files to be included.
 	 *
 	 * @see     JBrowser
 	 * @since   1.6
+	 *
+	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
 	 */
-	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug)
+	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug, $version = '')
 	{
 		// If http is present in filename
 		if (strpos($file, 'http') === 0 || strpos($file, '//') === 0)
@@ -367,14 +370,10 @@ abstract class JHtml
 					foreach ($files as $file)
 					{
 						// If the file is in the template folder
-						$path = JPATH_THEMES . "/$template/$folder/$file";
-
-						if (file_exists($path))
+						$path = "/$template/$folder";
+						if (file_exists(JPATH_THEMES . $path . '/' . $file))
 						{
-							$md5 = dirname($path) . '/MD5SUM';
-							$includes[] = JUri::base(true) . "/templates/$template/$folder/$file" .
-								(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+							$includes[] = JUri::base(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
 							break;
 						}
 						else
@@ -392,88 +391,61 @@ abstract class JHtml
 									list($element, $file) = explode('/', $file, 2);
 
 									// Try to deal with plugins group in the media folder
-									$path = JPATH_ROOT . "/media/$extension/$element/$folder/$file";
-
-									if (file_exists($path))
+									$path = "/media/$extension/$element/$folder";
+									if (file_exists(JPATH_ROOT . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/media/$extension/$element/$folder/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 										break;
 									}
 
 									// Try to deal with classical file in a a media subfolder called element
-									$path = JPATH_ROOT . "/media/$extension/$folder/$element/$file";
-
-									if (file_exists($path))
+									$path = "/media/$extension/$folder/$element";
+									if (file_exists(JPATH_ROOT . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/media/$extension/$folder/$element/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 										break;
 									}
 
 									// Try to deal with system files in the template folder
-									$path = JPATH_THEMES . "/$template/$folder/system/$element/$file";
-
-									if (file_exists($path))
+									$path = "/$template/$folder/system/$element";
+									if (file_exists(JPATH_THEMES . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/templates/$template/$folder/system/$element/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . "/templates" . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
 										break;
 									}
 
 									// Try to deal with system files in the media folder
-									$path = JPATH_ROOT . "/media/system/$folder/$element/$file";
-
-									if (file_exists($path))
+									$path = "/media/system/$folder/$element";
+									if (file_exists(JPATH_ROOT . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/media/system/$folder/$element/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 										break;
 									}
 								}
 								else
 								{
+							
 									// Try to deals in the extension media folder
-									$path = JPATH_ROOT . "/media/$extension/$folder/$file";
-
-									if (file_exists($path))
+									$path = "/media/$extension/$folder";
+									if (file_exists(JPATH_ROOT . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/media/$extension/$folder/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 										break;
 									}
 
 									// Try to deal with system files in the template folder
-									$path = JPATH_THEMES . "/$template/$folder/system/$file";
-
-									if (file_exists($path))
+									$path = "/$template/$folder/system";
+									if (file_exists(JPATH_THEMES . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/templates/$template/$folder/system/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . '/templates' . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
 										break;
 									}
 
 									// Try to deal with system files in the media folder
-									$path = JPATH_ROOT . "/media/system/$folder/$file";
-
-									if (file_exists($path))
+									$path = "/media/system/$folder";
+									if (file_exists(JPATH_ROOT . $path . '/' . $file))
 									{
-										$md5 = dirname($path) . '/MD5SUM';
-										$includes[] = JUri::root(true) . "/media/system/$folder/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+										$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 										break;
 									}
 								}
@@ -481,14 +453,10 @@ abstract class JHtml
 							// Try to deal with system files in the media folder
 							else
 							{
-								$path = JPATH_ROOT . "/media/system/$folder/$file";
-
-								if (file_exists($path))
+								$path = "/media/system/$folder";
+								if (file_exists(JPATH_ROOT . $path . '/' . $file))
 								{
-									$md5 = dirname($path) . '/MD5SUM';
-									$includes[] = JUri::root(true) . "/media/system/$folder/$file" .
-											(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+									$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 									break;
 								}
 							}
@@ -531,14 +499,10 @@ abstract class JHtml
 					 */
 					foreach ($files as $file)
 					{
-						$path = JPATH_ROOT . "/$file";
-
-						if (file_exists($path))
+						$path = "";
+						if (file_exists(JPATH_ROOT . $path . '/' . $file))
 						{
-							$md5 = dirname($path) . '/MD5SUM';
-							$includes[] = JUri::root(true) . "/$file" .
-								(file_exists($md5) ? ('?' . file_get_contents($md5)) : '');
-
+							$includes[] = JUri::root(true) . $path . '/' . $file . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
 							break;
 						}
 					}
@@ -550,6 +514,30 @@ abstract class JHtml
 	}
 
 	/**
+	 * Include version with MD5SUM file in path.
+	 *
+	 * @param   string   $path   folder name to search into (images, css, js, ...).
+	 *
+	 * @return  string   query string to add.
+	 *
+	 * @see     JBrowser
+	 * @since   3.5.2
+	 *
+	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
+	 */
+	protected static function getMd5SumVersion($path)
+	{
+		$md5 = $path . '/MD5SUM';
+		if (file_exists($md5))
+		{
+			JLog::add('Usage of MD5SUM files is deprecated, use version instead.', JLog::WARNING, 'deprecated');
+			return '?' . file_get_contents($md5);
+		}
+
+		return '';
+	}
+
+	/**
 	 * Write a `<img>` element
 	 *
 	 * @param   string   $file      The relative or absolute URL to use for the src attribute.
@@ -557,17 +545,29 @@ abstract class JHtml
 	 * @param   mixed    $attribs   String or associative array of attribute(s) to use.
 	 * @param   boolean  $relative  Path to file is relative to /media folder (and searches in template).
 	 * @param   mixed    $path_rel  Return html tag without (-1) or with file computing(false). Return computed path only (true).
+	 * @param   string   $version   Add version to image. empty for no version, null to auto, other for custom.
 	 *
 	 * @return  string
 	 *
 	 * @since   1.5
 	 */
-	public static function image($file, $alt, $attribs = null, $relative = false, $path_rel = false)
+	public static function image($file, $alt, $attribs = null, $relative = false, $path_rel = false, $version = '')
 	{
 		if ($path_rel !== -1)
 		{
-			$includes = static::includeRelativeFiles('images', $file, $relative, false, false);
+			$includes = static::includeRelativeFiles('images', $file, $relative, false, false, $version);
 			$file = count($includes) ? $includes[0] : null;
+		}
+
+		// Automatic version
+		if ($version === null)
+		{
+			$version = JFactory::getDocument()->getMediaVersion();
+		}
+
+		if (!empty($version))
+		{
+			$file .= ((strpos($file, '?') === false) ? '?' : '&amp;') . $version;
 		}
 
 		// If only path is required
@@ -615,15 +615,16 @@ abstract class JHtml
 	 *                                       <tr><td>Firefox</td>                    <td>mozilla</td>	<td>5.0</td></tr>
 	 *                                    </table>
 	 * @param   boolean  $detect_debug    detect debug to search for compressed files if debug is on
+	 * @param   string   $version         add version to stylesheet. empty for no version, null to auto, other for custom (see JDocument::addStyleSheetVersion).
 	 *
 	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific css browser files were detected
 	 *
 	 * @see     JBrowser
 	 * @since   1.5
 	 */
-	public static function stylesheet($file, $attribs = array(), $relative = false, $path_only = false, $detect_browser = true, $detect_debug = true)
+	public static function stylesheet($file, $attribs = array(), $relative = false, $path_only = false, $detect_browser = true, $detect_debug = true, $version = '')
 	{
-		$includes = static::includeRelativeFiles('css', $file, $relative, $detect_browser, $detect_debug);
+		$includes = static::includeRelativeFiles('css', $file, $relative, $detect_browser, $detect_debug, $version);
 
 		// If only path is required
 		if ($path_only)
@@ -648,7 +649,15 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addStylesheet($include, 'text/css', null, $attribs);
+				if ($version === '')
+				{
+					$document->addStylesheet($include, 'text/css', null, $attribs);
+				}
+				else
+				{
+					$document->addStyleSheetVersion($include, $version, 'text/css', null, $attribs);
+				}
+				
 			}
 		}
 	}
@@ -662,13 +671,14 @@ abstract class JHtml
 	 * @param   boolean  $path_only       return the path to the file only.
 	 * @param   boolean  $detect_browser  detect browser to include specific browser js files.
 	 * @param   boolean  $detect_debug    detect debug to search for compressed files if debug is on.
+	 * @param   string   $version         add version to script. empty for no version, null to auto, other for custom (see JDocument::addScriptVersion).
 	 *
 	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific js browser files were detected.
 	 *
 	 * @see     JHtml::stylesheet()
 	 * @since   1.5
 	 */
-	public static function script($file, $framework = false, $relative = false, $path_only = false, $detect_browser = true, $detect_debug = true)
+	public static function script($file, $framework = false, $relative = false, $path_only = false, $detect_browser = true, $detect_debug = true, $version = '')
 	{
 		// Include MooTools framework
 		if ($framework)
@@ -676,7 +686,7 @@ abstract class JHtml
 			static::_('behavior.framework');
 		}
 
-		$includes = static::includeRelativeFiles('js', $file, $relative, $detect_browser, $detect_debug);
+		$includes = static::includeRelativeFiles('js', $file, $relative, $detect_browser, $detect_debug, $version);
 
 		// If only path is required
 		if ($path_only)
@@ -701,7 +711,14 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addScript($include);
+				if ($version === '')
+				{
+					$document->addScript($include);
+				}
+				else
+				{
+					$document->addScriptVersion($include, $version);
+				}
 			}
 		}
 	}
