@@ -373,7 +373,7 @@ abstract class JHtml
 						$path = "/$template/$folder/$file";
 						if (file_exists(JPATH_THEMES . $path))
 						{
-							$includes[] = JUri::base(true) . '/templates' . $path . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
+							$includes[] = JUri::base(true) . '/templates' . $path . static::getMd5SumVersion(JPATH_THEMES . $path);
 							break;
 						}
 						else
@@ -394,7 +394,7 @@ abstract class JHtml
 									$path = "/media/$extension/$element/$folder/$file";
 									if (file_exists(JPATH_ROOT . $path))
 									{
-										$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 										break;
 									}
 
@@ -402,7 +402,7 @@ abstract class JHtml
 									$path = "/media/$extension/$folder/$element/$file";
 									if (file_exists(JPATH_ROOT . $path))
 									{
-										$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 										break;
 									}
 
@@ -410,7 +410,7 @@ abstract class JHtml
 									$path = "/$template/$folder/system/$element/$file";
 									if (file_exists(JPATH_THEMES . $path))
 									{
-										$includes[] = JUri::root(true) . "/templates" . $path . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
+										$includes[] = JUri::root(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path);
 										break;
 									}
 
@@ -418,7 +418,7 @@ abstract class JHtml
 									$path = "/media/system/$folder/$element/$file";
 									if (file_exists(JPATH_ROOT . $path))
 									{
-										$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 										break;
 									}
 								}
@@ -429,7 +429,7 @@ abstract class JHtml
 									$path = "/media/$extension/$folder/$file";
 									if (file_exists(JPATH_ROOT . $path))
 									{
-										$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 										break;
 									}
 
@@ -437,7 +437,7 @@ abstract class JHtml
 									$path = "/$template/$folder/system/$file";
 									if (file_exists(JPATH_THEMES . $path))
 									{
-										$includes[] = JUri::root(true) . '/templates' . $path . ($version === '' ? static::getMd5SumVersion(JPATH_THEMES . $path) : '');
+										$includes[] = JUri::root(true) . '/templates' . $path . static::getMd5SumVersion(JPATH_THEMES . $path);
 										break;
 									}
 
@@ -445,7 +445,7 @@ abstract class JHtml
 									$path = "/media/system/$folder/$file";
 									if (file_exists(JPATH_ROOT . $path))
 									{
-										$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 										break;
 									}
 								}
@@ -456,7 +456,7 @@ abstract class JHtml
 								$path = "/media/system/$folder/$file";
 								if (file_exists(JPATH_ROOT . $path))
 								{
-									$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+									$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 									break;
 								}
 							}
@@ -502,7 +502,7 @@ abstract class JHtml
 						$path = "/$file";
 						if (file_exists(JPATH_ROOT . $path))
 						{
-							$includes[] = JUri::root(true) . $path . ($version === '' ? static::getMd5SumVersion(JPATH_ROOT . $path) : '');
+							$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path);
 							break;
 						}
 					}
@@ -525,13 +525,16 @@ abstract class JHtml
 	 *
 	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
 	 */
-	protected static function getMd5SumVersion($path)
+	protected static function getMd5SumVersion($path, $version)
 	{
-		$md5 = dirname($path) . '/MD5SUM';
-		if (file_exists($md5))
+		if ($version === '')
 		{
-			JLog::add('Usage of MD5SUM files is deprecated, use version instead.', JLog::WARNING, 'deprecated');
-			return '?' . file_get_contents($md5);
+			$md5 = dirname($path) . '/MD5SUM';
+			if (file_exists($md5))
+			{
+				JLog::add('Usage of MD5SUM files is deprecated, use version instead.', JLog::WARNING, 'deprecated');
+				return '?' . file_get_contents($md5);
+			}
 		}
 
 		return '';
