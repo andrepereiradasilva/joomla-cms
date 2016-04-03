@@ -38,28 +38,23 @@ else
 	$fullWidth = 0;
 }
 
-$assetOptions = array('relative' => true, 'version' => 'auto');
-
 // Add JavaScript Frameworks
 JHtml::_('bootstrap.framework');
-
-// Add template javascript code
-JHtml::_('script', 'js/template.js', $assetOptions);
+$doc->addScript($this->baseurl . '/templates/' . $this->template . '/js/template.js');
 
 // Add Stylesheets
-JHtml::_('stylesheet', 'css/template.css', $assetOptions);
+$doc->addStyleSheet($this->baseurl . '/templates/' . $this->template . '/css/template.css');
 
 // Check for a custom CSS file
-JHtml::_('stylesheet', 'css/user.css', $assetOptions);
+$userCss = JPATH_SITE . '/templates/' . $this->template . '/css/user.css';
+
+if (file_exists($userCss) && filesize($userCss) > 0)
+{
+	$doc->addStyleSheetVersion('templates/' . $this->template . '/css/user.css');
+}
 
 // Load optional RTL Bootstrap CSS
 JHtml::_('bootstrap.loadCss', false, $this->direction);
-
-// Load Google Font CSS
-if ($this->params->get('googleFont'))
-{
-	JHtml::_('stylesheet', '//fonts.googleapis.com/css?family=' . $this->params->get('googleFontName'));
-}
 
 // Adjusting content width
 if ($this->countModules('position-7') && $this->countModules('position-8'))
@@ -100,6 +95,7 @@ else
 	<jdoc:include type="head" />
 	<?php // Use of Google Font ?>
 	<?php if ($this->params->get('googleFont')) : ?>
+		<link href='//fonts.googleapis.com/css?family=<?php echo $this->params->get('googleFontName'); ?>' rel='stylesheet' type='text/css' />
 		<style type="text/css">
 			h1,h2,h3,h4,h5,h6,.site-title{
 				font-family: '<?php echo str_replace('+', ' ', $this->params->get('googleFontName')); ?>', sans-serif;
