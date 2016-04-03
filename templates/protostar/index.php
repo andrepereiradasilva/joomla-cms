@@ -40,22 +40,22 @@ else
 
 $assetOptions = array('relative' => true, 'version' => 'auto');
 
-// Add JavaScript Frameworks
+// Add JavaScript Frameworks.
 JHtml::_('bootstrap.framework');
 
-// Add template javascript code
+// Add template javascript file.
 JHtml::_('script', 'js/template.js', $assetOptions);
 
-// Add Stylesheets
+// Add template style file.
 JHtml::_('stylesheet', 'css/template.css', $assetOptions);
 
-// Check for a custom CSS file
+// Add the custom style file (if exists).
 JHtml::_('stylesheet', 'css/user.css', $assetOptions);
 
-// Load optional RTL Bootstrap CSS
+// Add rtl bootstrap style (if text direction is rtl).
 JHtml::_('bootstrap.loadCss', false, $this->direction);
 
-// Load Google Font CSS
+// Add Google Font style.
 if ($this->params->get('googleFont'))
 {
 	JHtml::_('stylesheet', '//fonts.googleapis.com/css?family=' . $this->params->get('googleFontName'));
