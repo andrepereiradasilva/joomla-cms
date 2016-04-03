@@ -291,9 +291,9 @@ abstract class JHtml
 	 *
 	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
 	 */
-	protected static function getMd5SumVersion($path, $version = 0)
+	protected static function getMd5SumVersion($path, $version = '')
 	{
-		if ($version === 0)
+		if ($version === '')
 		{
 			$md5 = dirname($path) . '/MD5SUM';
 			if (file_exists($md5))
@@ -321,7 +321,7 @@ abstract class JHtml
 	 * @see     JBrowser
 	 * @since   1.6
 	 */
-	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug, $version = 0)
+	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug, $version = '')
 	{
 		// If http is present in filename
 		if (strpos($file, 'http') === 0 || strpos($file, '//') === 0)
@@ -562,7 +562,7 @@ abstract class JHtml
 			$options['attribs']  = (isset($arguments[2]) ? $arguments[2] : null);
 			$options['relative'] = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['path_rel'] = (isset($arguments[4]) ? $arguments[4] : false);
-			$options['version']  = (isset($arguments[5]) ? $arguments[5] : 0);
+			$options['version']  = (isset($arguments[5]) ? $arguments[5] : '');
 		}
 
 		// Add default values to options array.
@@ -570,7 +570,7 @@ abstract class JHtml
 		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : null);
 		$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
 		$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
-		$options['version']  = (isset($options['version']) ? $options['version'] : 0);
+		$options['version']  = (isset($options['version']) ? $options['version'] : '');
 
 		if ($options['path_rel'] !== -1)
 		{
@@ -579,7 +579,7 @@ abstract class JHtml
 		}
 
 		// Add version.
-		if ($options['version'] !== 0)
+		if ($options['version'] !== '')
 		{
 			$file .= (strpos($file, '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
 			$file .= ($options['version'] === null) ? JFactory::getDocument()->getMediaVersion() : $options['version'];
@@ -637,7 +637,7 @@ abstract class JHtml
 			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
 			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
-			$options['version']        = (isset($arguments[6]) ? $arguments[6] : 0);
+			$options['version']        = (isset($arguments[6]) ? $arguments[6] : '');
 		}
 
 		// Add default values to options array.
@@ -646,7 +646,7 @@ abstract class JHtml
 		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
 		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
 		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-		$options['version']        = (isset($options['version']) ? $options['version'] : 0);
+		$options['version']        = (isset($options['version']) ? $options['version'] : '');
 
 		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
@@ -673,14 +673,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				if ($options['version'] === 0)
-				{
-					$document->addStylesheet($include, 'text/css', null, $options['attribs']);
-				}
-				else
-				{
-					$document->addStyleSheetVersion($include, $options['version'], 'text/css', null, $options['attribs']);
-				}
+				$document->addStyleSheetVersion($include, $options['version'], 'text/css', null, $options['attribs']);
 			}
 		}
 	}
@@ -710,7 +703,7 @@ abstract class JHtml
 			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
 			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
-			$options['version']        = (isset($arguments[6]) ? $arguments[6] : 0);
+			$options['version']        = (isset($arguments[6]) ? $arguments[6] : '');
 			$options['attribs']        = (isset($arguments[7]) ? $arguments[7] : array());
 		}
 
@@ -720,7 +713,7 @@ abstract class JHtml
 		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
 		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
 		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-		$options['version']        = (isset($options['version']) ? $options['version'] : 0);
+		$options['version']        = (isset($options['version']) ? $options['version'] : '');
 		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 
 		// Include MooTools framework
@@ -754,14 +747,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				if ($options['version'] === 0)
-				{
-					$document->addScript($include, 'text/javascript', false, false, $options['attribs']);
-				}
-				else
-				{
-					$document->addScriptVersion($include, $options['version'], 'text/javascript', false, false,  $options['attribs']);
-				}
+				$document->addScriptVersion($include, $options['version'], 'text/javascript', false, false,  $options['attribs']);
 			}
 		}
 	}
