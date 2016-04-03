@@ -55,6 +55,7 @@ JHtml::_('stylesheet', 'user.css', $assetOptions);
 // Load optional RTL Bootstrap CSS
 JHtml::_('bootstrap.loadCss', false, $this->direction);
 
+// Load Google Font CSS
 if ($this->params->get('googleFont'))
 {
 	JHtml::_('stylesheet', '//fonts.googleapis.com/css?family=' . $this->params->get('googleFontName'));
