@@ -564,16 +564,14 @@ abstract class JHtml
 			$options['path_rel'] = (isset($arguments[4]) ? $arguments[4] : false);
 			$options['version']  = (isset($arguments[5]) ? $arguments[5] : 0);
 		}
-		// New function signature. Add default values to options array.
-		else
-		{
-			$options['file']     = (isset($options['file']) ? $options['file'] : null);
-			$options['alt']      = (isset($options['alt']) ? $options['alt'] : null);
-			$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : null);
-			$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
-			$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
-			$options['version']  = (isset($options['version']) ? $options['version'] : 0);
-		}
+
+		// Add default values to options array.
+		$options['file']     = (isset($options['file']) ? $options['file'] : null);
+		$options['alt']      = (isset($options['alt']) ? $options['alt'] : null);
+		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : null);
+		$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
+		$options['version']  = (isset($options['version']) ? $options['version'] : 0);
 
 		if ($options['file'] === null)
 		{
@@ -633,17 +631,15 @@ abstract class JHtml
 			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
 			$options['version']        = (isset($arguments[6]) ? $arguments[6] : 0);
 		}
-		// New function signature. Add default values to options array.
-		else
-		{
-			$options['file']           = (isset($options['file']) ? $options['file'] : null);
-			$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
-			$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
-			$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
-			$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
-			$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-			$options['version']        = (isset($options['version']) ? $options['version'] : 0);
-		}
+
+		// Add default values to options array.
+		$options['file']           = (isset($options['file']) ? $options['file'] : null);
+		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
+		$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
+		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
+		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
+		$options['version']        = (isset($options['version']) ? $options['version'] : 0);
 
 		if ($options['file'] === null)
 		{
@@ -715,18 +711,16 @@ abstract class JHtml
 			$options['version']        = (isset($arguments[6]) ? $arguments[6] : 0);
 			$options['attribs']        = (isset($arguments[7]) ? $arguments[7] : array());
 		}
-		// New function signature. Add default values to options array.
-		else
-		{
-			$options['file']           = (isset($options['file']) ? $options['file'] : null);
-			$options['framework']      = (isset($options['framework']) ? $options['framework'] : false);
-			$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
-			$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
-			$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
-			$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-			$options['version']        = (isset($options['version']) ? $options['version'] : 0);
-			$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
-		}
+
+		// Add default values to options array.
+		$options['file']           = (isset($options['file']) ? $options['file'] : null);
+		$options['framework']      = (isset($options['framework']) ? $options['framework'] : false);
+		$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
+		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
+		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
+		$options['version']        = (isset($options['version']) ? $options['version'] : 0);
+		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 
 		if ($options['file'] === null)
 		{
