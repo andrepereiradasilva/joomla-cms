@@ -617,7 +617,7 @@ abstract class JHtml
 		{
 			foreach(array_keys($options) as $value)
 			{
-				if (!in_array($value, array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version'))))
+				if (!in_array($value, array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version')))
 				{
 					$bcMode = true;
 					break;
