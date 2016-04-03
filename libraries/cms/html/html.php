@@ -545,12 +545,16 @@ abstract class JHtml
 	 *
 	 * @return  string
 	 *
+	 * @since   1.5
 	 */
 	public static function image($options = array())
 	{
 		// For B/C. Convert old function signature.
 		if (!is_array($options))
 		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than one argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
 			$arguments           = func_get_args();
 			$options             = array();
 			$options['file']     = (isset($arguments[0]) ? $arguments[0] : null);
@@ -609,12 +613,16 @@ abstract class JHtml
 	 *
 	 * @return  mixed  nothing if $options[path_only] is false, null, path or array of path if specific css browser files were detected.
 	 *
+	 * @since   1.5
 	 */
 	public static function stylesheet($options = array())
 	{
 		// For B/C. Convert old function signature.
 		if (!is_array($options))
 		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than one argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
 			$arguments                 = func_get_args();
 			$options                   = array();
 			$options['file']           = (isset($arguments[0]) ? $arguments[0] : null);
@@ -685,12 +693,16 @@ abstract class JHtml
 	 *
 	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific js browser files were detected.
 	 *
+	 * @since   1.5
 	 */
 	public static function script($options = array())
 	{
 		// For B/C. Convert old function signature.
 		if (!is_array($options))
 		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than one argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
 			$arguments                 = func_get_args();
 			$options                   = array();
 			$options['file']           = (isset($arguments[0]) ? $arguments[0] : null);
