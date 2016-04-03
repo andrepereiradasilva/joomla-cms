@@ -403,8 +403,16 @@ abstract class JHtml
 						}
 						else
 						{
+							// Try to deal with other files in the template folder (e.g. direct relative path)
+							$path = "/$template/$file";
+							if (file_exists(JPATH_THEMES . $path))
+							{
+								$includes[] = JUri::base(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
+								break;
+							}
+
 							// If the file contains any /: it can be in an media extension subfolder
-							if (strpos($file, '/'))
+							else if (strpos($file, '/'))
 							{
 								// Divide the file extracting the extension as the first part before /
 								list($extension, $file) = explode('/', $file, 2);
@@ -433,14 +441,6 @@ abstract class JHtml
 
 									// Try to deal with system files in the template folder
 									$path = "/$template/$folder/system/$element/$file";
-									if (file_exists(JPATH_THEMES . $path))
-									{
-										$includes[] = JUri::root(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
-										break;
-									}
-
-									// Try to deal with other files in the template folder (e.g. language folder)
-									$path = "/$template/$extension/$element/$file";
 									if (file_exists(JPATH_THEMES . $path))
 									{
 										$includes[] = JUri::root(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
