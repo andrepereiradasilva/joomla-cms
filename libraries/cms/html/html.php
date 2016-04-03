@@ -585,6 +585,13 @@ abstract class JHtml
 			$options['file'] = count($includes) ? $includes[0] : null;
 		}
 
+		// Add version.
+		if ($options['version'] !== 0)
+		{
+			$options['file'] .= (strpos($options['file'], '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
+			$options['file'] .= ($options['version'] === null) ? JFactory::getDocument()->getMediaVersion() : $options['version'];
+		}
+
 		// If only path is required
 		if ($options['path_rel'])
 		{
