@@ -23,16 +23,16 @@ $assetOptions = array('relative' => true, 'version' => 'auto');
 JHtml::_('bootstrap.framework');
 
 // Add template javascript code
-JHtml::_('script', 'template.js', $assetOptions);
+JHtml::_('script', 'js/template.js', $assetOptions);
 
 // Add Stylesheets
-JHtml::_('stylesheet', 'template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
+JHtml::_('stylesheet', 'css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
 
 // Load specific language related CSS
 JHtml::_('stylesheet', 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css', $assetOptions);
 
 // Load custom.css
-JHtml::_('stylesheet', 'custom.css', $assetOptions);
+JHtml::_('stylesheet', 'css/custom.css', $assetOptions);
 
 // Detecting Active Variables
 $option   = $input->get('option', '');

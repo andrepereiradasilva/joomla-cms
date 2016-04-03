@@ -44,13 +44,13 @@ $assetOptions = array('relative' => true, 'version' => 'auto');
 JHtml::_('bootstrap.framework');
 
 // Add template javascript code
-JHtml::_('script', 'template.js', $assetOptions);
+JHtml::_('script', 'js/template.js', $assetOptions);
 
 // Add Stylesheets
-JHtml::_('stylesheet', 'template.css', $assetOptions);
+JHtml::_('stylesheet', 'css/template.css', $assetOptions);
 
 // Check for a custom CSS file
-JHtml::_('stylesheet', 'user.css', $assetOptions);
+JHtml::_('stylesheet', 'css/user.css', $assetOptions);
 
 // Load optional RTL Bootstrap CSS
 JHtml::_('bootstrap.loadCss', false, $this->direction);
