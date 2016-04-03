@@ -22,6 +22,32 @@ $this->direction = $doc->direction;
 $input           = $app->input;
 $user            = JFactory::getUser();
 
+$assetOptions = array('relative' => true, 'version' => 'auto');
+
+// Add JavaScript Frameworks.
+JHtml::_('bootstrap.framework');
+
+// Add template javascript code
+JHtml::_('script', 'js/template.js', $assetOptions);
+
+// Add template style file.
+JHtml::_('stylesheet', 'css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
+
+// Load language related style file (if exists).
+JHtml::_('stylesheet', 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css', $assetOptions);
+
+// Add the custom style file (if exists).
+JHtml::_('stylesheet', 'css/custom.css', $assetOptions);
+
+// Add rtl bootstrap style (if text direction is rtl).
+JHtml::_('bootstrap.loadCss', false, $this->direction);
+
+// Add Debug style (if in debug mode).
+if ($app->get('debug_lang', '0') == '1' || $app->get('debug', '0') == '1')
+{
+	JHtml::_('stylesheet', 'media/cms/css/debug.css', array('version' => 'auto'));
+}
+
 // Detecting Active Variables
 $option   = $input->get('option', '');
 $view     = $input->get('view', '');
@@ -66,20 +92,7 @@ $stickyToolbar = $params->get('stickyToolbar', '1');
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<title><?php echo $this->title; ?> <?php echo htmlspecialchars($this->error->getMessage(), ENT_QUOTES, 'UTF-8'); ?></title>
-	<?php if ($app->get('debug_lang', '0') == '1' || $app->get('debug', '0') == '1') : ?>
-		<!-- Load additional CSS styles for debug mode-->
-		<link rel="stylesheet" href="<?php echo JUri::root(); ?>/media/cms/css/debug.css" type="text/css" />
-	<?php endif; ?>
-	<?php // If Right-to-Left ?>
-	<?php if ($this->direction == 'rtl') : ?>
-		<link rel="stylesheet" href="<?php echo JUri::root(); ?>/media/jui/css/bootstrap-rtl.css" type="text/css" />
-	<?php endif; ?>
-	<?php // Load specific language related CSS ?>
-	<?php $file = 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css'; ?>
-	<?php if (is_file($file)) : ?>
-		<link rel="stylesheet" href="<?php echo $file; ?>" type="text/css" />
-	<?php endif; ?>
-	<link rel="stylesheet" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/template<?php echo ($this->direction == 'rtl' ? '-rtl' : ''); ?>.css" type="text/css" />
+
 	<link href="<?php echo $this->baseurl ?>/templates/<?php echo $this->template; ?>/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
 	<?php // Template color ?>
 	<?php if ($params->get('templateColor')) : ?>
@@ -112,10 +125,6 @@ $stickyToolbar = $params->get('stickyToolbar', '1');
 			}
 		</style>
 	<?php endif; ?>
-	<script src="<?php echo JUri::root(true); ?>/media/jui/js/jquery.js" type="text/javascript"></script>
-	<script src="<?php echo JUri::root(true); ?>/media/jui/js/jquery-noconflict.js" type="text/javascript"></script>
-	<script src="<?php echo JUri::root(true); ?>/media/jui/js/bootstrap.js" type="text/javascript"></script>
-	<script src="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/js/template.js" type="text/javascript"></script>
 	<!--[if lt IE 9]>
 		<script src="<?php echo JUri::root(true); ?>/media/jui/js/html5.js"></script>
 	<![endif]-->

@@ -19,20 +19,23 @@ $user            = JFactory::getUser();
 
 $assetOptions = array('relative' => true, 'version' => 'auto');
 
-// Add JavaScript Frameworks
+// Add JavaScript Frameworks.
 JHtml::_('bootstrap.framework');
 
 // Add template javascript code
 JHtml::_('script', 'js/template.js', $assetOptions);
 
-// Add Stylesheets
+// Add template style file.
 JHtml::_('stylesheet', 'css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
 
-// Load specific language related CSS
+// Load language related style file (if exists).
 JHtml::_('stylesheet', 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css', $assetOptions);
 
-// Load custom.css
+// Add the custom style file (if exists).
 JHtml::_('stylesheet', 'css/custom.css', $assetOptions);
+
+// Add rtl bootstrap style (if text direction is rtl).
+JHtml::_('bootstrap.loadCss', false, $this->direction);
 
 // Detecting Active Variables
 $option   = $input->get('option', '');
