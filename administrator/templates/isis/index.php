@@ -17,29 +17,22 @@ $this->direction = $doc->direction;
 $input           = $app->input;
 $user            = JFactory::getUser();
 
+$assetOptions = array('relative' => true, 'version' => 'auto');
+
 // Add JavaScript Frameworks
 JHtml::_('bootstrap.framework');
 
-$doc->addScriptVersion($this->baseurl . '/templates/' . $this->template . '/js/template.js');
+// Ass template javascript code
+JHtml::_('script', 'template.js', $assetOptions);
 
 // Add Stylesheets
-$doc->addStyleSheetVersion($this->baseurl . '/templates/' . $this->template . '/css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css');
+JHtml::_('stylesheet', 'template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
 
 // Load specific language related CSS
-$languageCss = 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css';
-
-if (file_exists($languageCss) && filesize($languageCss) > 0)
-{
-	$doc->addStyleSheetVersion($languageCss);
-}
+JHtml::_('stylesheet', 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css', $assetOptions);
 
 // Load custom.css
-$customCss = 'templates/' . $this->template . '/css/custom.css';
-
-if (file_exists($customCss) && filesize($customCss) > 0)
-{
-	$doc->addStyleSheetVersion($customCss);
-}
+JHtml::_('stylesheet', 'custom.css', $assetOptions);
 
 // Detecting Active Variables
 $option   = $input->get('option', '');
