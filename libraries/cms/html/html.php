@@ -541,23 +541,23 @@ abstract class JHtml
 	/**
 	 * Write a `<img>` element
 	 *
-	 * @param   array  $options   options to be added to the stylesheet.
+	 * @param   string   $file      The relative or absolute URL to use for the src attribute.
+	 * @param   array    $options   options to be added to the stylesheet.
 	 *
 	 * @return  string
 	 *
 	 * @since   1.5
 	 */
-	public static function image($options = array())
+	public static function image($file, $options = array())
 	{
 		// For B/C. Convert old function signature.
 		if (!is_array($options))
 		{
 			// Log that passing other arguments is deprecated.
-			JLog::add('Passing more than one argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+			JLog::add('Passing more than two arguments to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
 
 			$arguments           = func_get_args();
 			$options             = array();
-			$options['file']     = (isset($arguments[0]) ? $arguments[0] : null);
 			$options['alt']      = (isset($arguments[1]) ? $arguments[1] : null);
 			$options['attribs']  = (isset($arguments[2]) ? $arguments[2] : null);
 			$options['relative'] = (isset($arguments[3]) ? $arguments[3] : false);
@@ -566,39 +566,33 @@ abstract class JHtml
 		}
 
 		// Add default values to options array.
-		$options['file']     = (isset($options['file']) ? $options['file'] : null);
 		$options['alt']      = (isset($options['alt']) ? $options['alt'] : null);
 		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : null);
 		$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
 		$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
 		$options['version']  = (isset($options['version']) ? $options['version'] : 0);
 
-		if ($options['file'] === null)
-		{
-			throw new RuntimeException('A file needs to be added.');
-		}
-
 		if ($options['path_rel'] !== -1)
 		{
-			$includes        = static::includeRelativeFiles('images', $options['file'], $options['relative'], false, false, $options['version']);
-			$options['file'] = count($includes) ? $includes[0] : null;
+			$includes = static::includeRelativeFiles('images', $file, $options['relative'], false, false, $options['version']);
+			$file     = count($includes) ? $includes[0] : null;
 		}
 
 		// Add version.
 		if ($options['version'] !== 0)
 		{
-			$options['file'] .= (strpos($options['file'], '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
-			$options['file'] .= ($options['version'] === null) ? JFactory::getDocument()->getMediaVersion() : $options['version'];
+			$file .= (strpos($file, '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
+			$file .= ($options['version'] === null) ? JFactory::getDocument()->getMediaVersion() : $options['version'];
 		}
 
 		// If only path is required
 		if ($options['path_rel'])
 		{
-			return $options['file'];
+			return $file;
 		}
 		else
 		{
-			return '<img src="' . $options['file'] . '" alt="' . $options['alt'] . '" '
+			return '<img src="' . $file . '" alt="' . $options['alt'] . '" '
 			. trim((is_array($options['attribs']) ? JArrayHelper::toString($options['attribs']) : $options['attribs']) . ' /')
 			. '>';
 		}
@@ -607,23 +601,37 @@ abstract class JHtml
 	/**
 	 * Write a `<link>` element to load a CSS file.
 	 *
-	 * @param   array  $options   options to be added to the stylesheet.
+	 * @param   string   $file      path to file.
+	 * @param   array    $options   options to be added to the stylesheet.
 	 *
 	 * @return  mixed  nothing if $options[path_only] is false, null, path or array of path if specific css browser files were detected.
 	 *
 	 * @since   1.5
 	 */
-	public static function stylesheet($options = array())
+	public static function stylesheet($file, $options = array())
 	{
 		// For B/C. Convert old function signature.
-		if (!is_array($options))
+		$bcMode = false;
+
+		if (is_array($options))
+		{
+			foreach(array_keys($options) as $value)
+			{
+				if (!in_array($value, array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version'))))
+				{
+					$bcMode = true;
+					break;
+				}
+			}
+		}
+
+		if (!is_array($options) || $bcMode)
 		{
 			// Log that passing other arguments is deprecated.
-			JLog::add('Passing more than one argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+			JLog::add('Passing more than two arguments to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
 
 			$arguments                 = func_get_args();
 			$options                   = array();
-			$options['file']           = (isset($arguments[0]) ? $arguments[0] : null);
 			$options['attribs']        = (isset($arguments[1]) ? $arguments[1] : array());
 			$options['relative']       = (isset($arguments[2]) ? $arguments[2] : false);
 			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
@@ -633,7 +641,6 @@ abstract class JHtml
 		}
 
 		// Add default values to options array.
-		$options['file']           = (isset($options['file']) ? $options['file'] : null);
 		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 		$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
 		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
@@ -641,12 +648,7 @@ abstract class JHtml
 		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
 		$options['version']        = (isset($options['version']) ? $options['version'] : 0);
 
-		if ($options['file'] === null)
-		{
-			throw new RuntimeException('A file needs to be added.');
-		}
-
-		$includes = static::includeRelativeFiles('css', $options['file'], $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
+		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
 		// If only path is required
 		if ($options['path_only'])
@@ -686,13 +688,14 @@ abstract class JHtml
 	/**
 	 * Write a `<script>` element to load a JavaScript file.
 	 *
-	 * @param   array  $options   options to be added to the script.
+	 * @param   string   $file      path to file.
+	 * @param   array    $options   options to be added to the script.
 	 *
 	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific js browser files were detected.
 	 *
 	 * @since   1.5
 	 */
-	public static function script($options = array())
+	public static function script($file, $options = array())
 	{
 		// For B/C. Convert old function signature.
 		if (!is_array($options))
@@ -702,7 +705,6 @@ abstract class JHtml
 
 			$arguments                 = func_get_args();
 			$options                   = array();
-			$options['file']           = (isset($arguments[0]) ? $arguments[0] : null);
 			$options['framework']      = (isset($arguments[1]) ? $arguments[1] : false);
 			$options['relative']       = (isset($arguments[2]) ? $arguments[2] : false);
 			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
@@ -713,7 +715,6 @@ abstract class JHtml
 		}
 
 		// Add default values to options array.
-		$options['file']           = (isset($options['file']) ? $options['file'] : null);
 		$options['framework']      = (isset($options['framework']) ? $options['framework'] : false);
 		$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
 		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
@@ -722,18 +723,13 @@ abstract class JHtml
 		$options['version']        = (isset($options['version']) ? $options['version'] : 0);
 		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 
-		if ($options['file'] === null)
-		{
-			throw new RuntimeException('A file needs to be added.');
-		}
-
 		// Include MooTools framework
 		if ($options['framework'])
 		{
 			static::_('behavior.framework');
 		}
 
-		$includes = static::includeRelativeFiles('js', $options['file'], $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
+		$includes = static::includeRelativeFiles('js', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
 		// If only path is required
 		if ($options['path_only'])
