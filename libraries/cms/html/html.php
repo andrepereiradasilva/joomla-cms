@@ -558,15 +558,15 @@ abstract class JHtml
 
 			$arguments           = func_get_args();
 			$options             = array();
-			$options['alt']      = (isset($arguments[1]) ? $arguments[1] : null);
-			$options['attribs']  = (isset($arguments[2]) ? $arguments[2] : null);
+			$options['alt']      = (isset($arguments[1]) ? $arguments[1] : '');
+			$options['attribs']  = (isset($arguments[2]) ? $arguments[2] : array());
 			$options['relative'] = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['path_rel'] = (isset($arguments[4]) ? $arguments[4] : false);
 		}
 
 		// Add default values to options array.
-		$options['alt']      = (isset($options['alt']) ? $options['alt'] : null);
-		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : null);
+		$options['alt']      = (isset($options['alt']) ? $options['alt'] : '');
+		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : array());
 		$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
 		$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
 		$options['version']  = (isset($options['version']) ? $options['version'] : '');
