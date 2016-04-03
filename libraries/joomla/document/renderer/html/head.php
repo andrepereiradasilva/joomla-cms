@@ -198,6 +198,22 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 				$buffer .= ' async="async"';
 			}
 
+			// Adds additional attributes
+			if (isset($strAttr['attribs']))
+			{
+				foreach ($strAttr['attribs'] as $attrib => $attrib_value)
+				{
+					if (is_scalar($attrib_value))
+					{
+						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars($attrib_value) . '"';
+					}
+					else
+					{
+						$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars(json_encode($attrib_value)) . '"';
+					}
+				}
+			}
+
 			$buffer .= '></script>' . $lnEnd;
 		}
 

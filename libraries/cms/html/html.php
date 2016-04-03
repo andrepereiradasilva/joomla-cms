@@ -705,8 +705,6 @@ abstract class JHtml
 			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
 			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
 			$options['version']        = (isset($arguments[6]) ? $arguments[6] : 0);
-
-			// Future use
 			$options['attribs']        = (isset($arguments[7]) ? $arguments[7] : array());
 		}
 		// New function signature. Add default values to options array.
@@ -718,7 +716,6 @@ abstract class JHtml
 			$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
 			$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
 			$options['version']        = (isset($options['version']) ? $options['version'] : 0);
-			// Future use
 			$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 		}
 
@@ -760,11 +757,11 @@ abstract class JHtml
 			{
 				if ($options['version'] === 0)
 				{
-					$document->addScript($include);
+					$document->addScript($include, 'text/javascript', false, false, $options['attribs']);
 				}
 				else
 				{
-					$document->addScriptVersion($include, $options['version']);
+					$document->addScriptVersion($include, $options['version'], 'text/javascript', false, false,  $options['attribs']);
 				}
 			}
 		}
