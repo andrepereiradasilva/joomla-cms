@@ -611,12 +611,13 @@ abstract class JHtml
 	{
 		// For B/C. Convert old function signature.
 		$bcMode = true;
+		$validOptions = array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version');
 
 		if (is_array($options))
 		{
 			foreach(array_keys($options) as $value)
 			{
-				if (in_array($value, array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug')))
+				if (in_array($value, $validOptions))
 				{
 					$bcMode = false;
 					break;
@@ -639,14 +640,12 @@ abstract class JHtml
 		}
 
 		// Add default values to options array.
-		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
-		$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
-		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
-		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
-		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-		$options['version']        = (isset($options['version']) ? $options['version'] : '');
-		$options['type']           = (isset($options['type']) ? $options['type'] : 'text/css');
-		$options['media']          = (isset($options['media']) ? $options['media'] : null);
+		$options['attribs']          = (isset($options['attribs']) ? $options['attribs'] : array());
+		$options['relative']         = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_only']        = (isset($options['path_only']) ? $options['path_only'] : false);
+		$options['detect_browser']   = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
+		$options['detect_debug']     = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
+		$options['version']          = (isset($options['version']) ? $options['version'] : '');
 
 		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
@@ -673,7 +672,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addStyleSheetVersion($include, $options['version'], $options['type'], $options['media'], $options['attribs']);
+				$document->addStyleSheetVersion($include, $options['version'], 'text/css', null, $options['attribs']);
 			}
 		}
 	}
@@ -706,16 +705,13 @@ abstract class JHtml
 		}
 
 		// Add default values to options array.
-		$options['framework']      = (isset($options['framework']) ? $options['framework'] : false);
-		$options['relative']       = (isset($options['relative']) ? $options['relative'] : false);
-		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
-		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
-		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-		$options['version']        = (isset($options['version']) ? $options['version'] : '');
-		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
-		$options['type']           = (isset($options['type']) ? $options['type'] : 'text/javascript');
-		$options['defer']          = (isset($options['defer']) ? $options['defer'] : false);
-		$options['async']          = (isset($options['async']) ? $options['async'] : false);
+		$options['framework']        = (isset($options['framework']) ? $options['framework'] : false);
+		$options['relative']         = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_only']        = (isset($options['path_only']) ? $options['path_only'] : false);
+		$options['detect_browser']   = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
+		$options['detect_debug']     = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
+		$options['version']          = (isset($options['version']) ? $options['version'] : '');
+		$options['attribs']          = (isset($options['attribs']) ? $options['attribs'] : array());
 
 		// Include MooTools framework
 		if ($options['framework'])
@@ -748,7 +744,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addScriptVersion($include, $options['version'], $options['type'], $options['defer'], $options['async'], $options['attribs']);
+				$document->addScriptVersion($include, $options['version'], 'text/javascript', false, false, $options['attribs']);
 			}
 		}
 	}
