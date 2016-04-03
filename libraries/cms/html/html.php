@@ -320,8 +320,6 @@ abstract class JHtml
 	 *
 	 * @see     JBrowser
 	 * @since   1.6
-	 *
-	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
 	 */
 	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug, $version = 0)
 	{
