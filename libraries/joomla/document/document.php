@@ -480,6 +480,7 @@ class JDocument
 	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false, array $attribs = array())
 	{
 		// Add version.
+		if ($version !== '')
 		{
 			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
 			$url .= ($version === null) ? $this->getMediaVersion() : $version;
@@ -550,6 +551,7 @@ class JDocument
 	public function addStyleSheetVersion($url, $version = null, $type = "text/css", $media = null, $attribs = array())
 	{
 		// Add version.
+		if ($version !== '')
 		{
 			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
 			$url .= ($version === null) ? $this->getMediaVersion() : $version;
