@@ -581,7 +581,7 @@ abstract class JHtml
 		if ($options['version'] !== '')
 		{
 			$file .= (strpos($file, '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
-			$file .= ($options['version'] === null || $version === 'auto') ? JFactory::getDocument()->getMediaVersion() : $options['version'];
+			$file .= ($options['version'] === 'auto') ? JFactory::getDocument()->getMediaVersion() : $options['version'];
 		}
 
 		// If only path is required
