@@ -439,6 +439,14 @@ abstract class JHtml
 										break;
 									}
 
+									// Try to deal with other files in the template folder (e.g. language folder)
+									$path = "/$template/$extension/$element/$file";
+									if (file_exists(JPATH_THEMES . $path))
+									{
+										$includes[] = JUri::root(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
+										break;
+									}
+
 									// Try to deal with system files in the media folder
 									$path = "/media/system/$folder/$element/$file";
 									if (file_exists(JPATH_ROOT . $path))
