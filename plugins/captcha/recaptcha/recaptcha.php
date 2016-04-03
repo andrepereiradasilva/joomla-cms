@@ -253,7 +253,7 @@ class PlgCaptchaRecaptcha extends JPlugin
 	{
 		$req = $this->_recaptcha_qsencode($data);
 
-		$http_request  = "POST $path HTTP/1.0\r\n";
+		$http_request  = "POST $path " . JFactory::getApplication()->input->server->get('SERVER_PROTOCOL', 'HTTP/1.1', 'STRING') . "\r\n";
 		$http_request .= "Host: $host\r\n";
 		$http_request .= "Content-Type: application/x-www-form-urlencoded;\r\n";
 		$http_request .= "Content-Length: " . strlen($req) . "\r\n";

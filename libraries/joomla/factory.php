@@ -635,7 +635,7 @@ abstract class JFactory
 		{
 			if (!headers_sent())
 			{
-				header('HTTP/1.1 500 Internal Server Error');
+				header(self::getApplication()->input->server->get('SERVER_PROTOCOL', 'HTTP/1.1', 'STRING') . ' 500 Internal Server Error');
 			}
 
 			jexit('Database Error: ' . $e->getMessage());

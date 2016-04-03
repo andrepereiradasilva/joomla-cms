@@ -199,7 +199,7 @@ class JCacheControllerPage extends JCacheController
 		$app = JFactory::getApplication();
 
 		// Send not modified header and exit gracefully
-		header('HTTP/1.x 304 Not Modified', true);
+		header($app->input->server->get('SERVER_PROTOCOL', 'HTTP/1.1', 'STRING') . ' 304 Not Modified', true);
 		$app->close();
 	}
 

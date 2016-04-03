@@ -93,7 +93,7 @@ class JErrorPage
 		// This isn't an Exception, we can't handle it.
 		if (!headers_sent())
 		{
-			header('HTTP/1.1 500 Internal Server Error');
+			header(JFactory::getApplication()->input->server->get('SERVER_PROTOCOL', 'HTTP/1.1', 'STRING') . ' 500 Internal Server Error');
 		}
 
 		$message = 'Error displaying the error page';

@@ -80,15 +80,15 @@ class JApplicationWeb extends JApplicationBase
 	 * @see    http://tools.ietf.org/pdf/rfc7231.pdf
 	 */
 	private $responseMap = array(
-		300 => 'HTTP/1.1 300 Multiple Choices',
-		301 => 'HTTP/1.1 301 Moved Permanently',
-		302 => 'HTTP/1.1 302 Found',
-		303 => 'HTTP/1.1 303 See other',
-		304 => 'Not Modified',
-		305 => 'HTTP/1.1 305 Use Proxy',
-		306 => 'HTTP/1.1 306 (Unused)',
-		307 => 'HTTP/1.1 307 Temporary Redirect',
-		308 => 'Permanent Redirect'
+		300 => '300 Multiple Choices',
+		301 => '301 Moved Permanently',
+		302 => '302 Found',
+		303 => '303 See other',
+		304 => '304 Not Modified',
+		305 => '305 Use Proxy',
+		306 => '306 (Unused)',
+		307 => '307 Temporary Redirect',
+		308 => '308 Permanent Redirect'
 	);
 
 	/**
@@ -554,7 +554,7 @@ class JApplicationWeb extends JApplicationBase
 				}
 
 				// All other cases use the more efficient HTTP header for redirection.
-				$this->header($this->responseMap[$status]);
+				$this->header($this->input->server->get('SERVER_PROTOCOL', 'HTTP/1.1', 'STRING') . $this->responseMap[$status]);
 				$this->header('Location: ' . $url);
 				$this->header('Content-Type: text/html; charset=' . $this->charSet);
 			}
