@@ -562,7 +562,6 @@ abstract class JHtml
 			$options['attribs']  = (isset($arguments[2]) ? $arguments[2] : null);
 			$options['relative'] = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['path_rel'] = (isset($arguments[4]) ? $arguments[4] : false);
-			$options['version']  = (isset($arguments[5]) ? $arguments[5] : '');
 		}
 
 		// Add default values to options array.
@@ -637,7 +636,6 @@ abstract class JHtml
 			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
 			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
-			$options['version']        = (isset($arguments[6]) ? $arguments[6] : '');
 		}
 
 		// Add default values to options array.
@@ -703,8 +701,6 @@ abstract class JHtml
 			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
 			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
 			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
-			$options['version']        = (isset($arguments[6]) ? $arguments[6] : '');
-			$options['attribs']        = (isset($arguments[7]) ? $arguments[7] : array());
 		}
 
 		// Add default values to options array.
