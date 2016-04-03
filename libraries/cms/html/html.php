@@ -634,6 +634,7 @@ abstract class JHtml
 			$options['version']        = (isset($arguments[6]) ? $arguments[6] : 0);
 		}
 		// New function signature. Add default values to options array.
+		else
 		{
 			$options['file']           = (isset($options['file']) ? $options['file'] : null);
 			$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
@@ -715,6 +716,7 @@ abstract class JHtml
 			$options['attribs']        = (isset($arguments[7]) ? $arguments[7] : array());
 		}
 		// New function signature. Add default values to options array.
+		else
 		{
 			$options['file']           = (isset($options['file']) ? $options['file'] : null);
 			$options['framework']      = (isset($options['framework']) ? $options['framework'] : false);
