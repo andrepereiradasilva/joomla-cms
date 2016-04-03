@@ -545,7 +545,6 @@ abstract class JHtml
 	 *
 	 * @return  string
 	 *
-	 * @since   3.6
 	 */
 	public static function image($options = array())
 	{
@@ -610,7 +609,6 @@ abstract class JHtml
 	 *
 	 * @return  mixed  nothing if $options[path_only] is false, null, path or array of path if specific css browser files were detected.
 	 *
-	 * @since   3.6
 	 */
 	public static function stylesheet($options = array())
 	{
@@ -687,7 +685,6 @@ abstract class JHtml
 	 *
 	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific js browser files were detected.
 	 *
-	 * @since   3.6
 	 */
 	public static function script($options = array())
 	{
