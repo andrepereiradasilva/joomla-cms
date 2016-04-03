@@ -646,6 +646,7 @@ abstract class JHtml
 		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
 		$options['version']        = (isset($options['version']) ? $options['version'] : '');
 		$options['type']           = (isset($options['type']) ? $options['type'] : 'text/css');
+		$options['media']          = (isset($options['media']) ? $options['media'] : null);
 
 		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
@@ -672,7 +673,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addStyleSheetVersion($include, $options['version'], $options['type'], null, $options['attribs']);
+				$document->addStyleSheetVersion($include, $options['version'], $options['type'], $options['media'], $options['attribs']);
 			}
 		}
 	}
@@ -713,6 +714,8 @@ abstract class JHtml
 		$options['version']        = (isset($options['version']) ? $options['version'] : '');
 		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 		$options['type']           = (isset($options['type']) ? $options['type'] : 'text/javascript');
+		$options['defer']          = (isset($options['defer']) ? $options['defer'] : false);
+		$options['async']          = (isset($options['async']) ? $options['async'] : false);
 
 		// Include MooTools framework
 		if ($options['framework'])
@@ -745,7 +748,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addScriptVersion($include, $options['version'], $options['type'], false, false,  $options['attribs']);
+				$document->addScriptVersion($include, $options['version'], $options['type'], $options['defer'], $options['async'], $options['attribs']);
 			}
 		}
 	}
