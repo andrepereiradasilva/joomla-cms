@@ -569,7 +569,7 @@ abstract class JHtml
 		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : null);
 		$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
 		$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
-		$options['version']  = ($options['version'] === null || isset($options['version']) ? $options['version'] : '');
+		$options['version']  = (isset($options['version']) ? $options['version'] : '');
 
 		if ($options['path_rel'] !== -1)
 		{
@@ -581,7 +581,7 @@ abstract class JHtml
 		if ($options['version'] !== '')
 		{
 			$file .= (strpos($file, '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
-			$file .= ($options['version'] === null) ? JFactory::getDocument()->getMediaVersion() : $options['version'];
+			$file .= ($options['version'] === null || $version === 'auto') ? JFactory::getDocument()->getMediaVersion() : $options['version'];
 		}
 
 		// If only path is required
@@ -644,7 +644,7 @@ abstract class JHtml
 		$options['path_only']      = (isset($options['path_only']) ? $options['path_only'] : false);
 		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
 		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
-		$options['version']        = ($options['version'] === null || isset($options['version']) ? $options['version'] : '');
+		$options['version']        = (isset($options['version']) ? $options['version'] : '');
 
 		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
@@ -710,7 +710,7 @@ abstract class JHtml
 		$options['detect_browser'] = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
 		$options['detect_debug']   = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
 		$options['version']        = (isset($options['version']) ? $options['version'] : '');
-		$options['attribs']        = ($options['version'] === null || isset($options['attribs']) ? $options['attribs'] : array());
+		$options['attribs']        = (isset($options['attribs']) ? $options['attribs'] : array());
 
 		// Include MooTools framework
 		if ($options['framework'])

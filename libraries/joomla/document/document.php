@@ -483,7 +483,7 @@ class JDocument
 		if ($version !== '')
 		{
 			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($version === null) ? $this->getMediaVersion() : $version;
+			$url .= ($version === null || $version === 'auto') ? $this->getMediaVersion() : $version;
 		}
 
 		return $this->addScript($url, $type, $defer, $async, $attribs);
@@ -554,7 +554,7 @@ class JDocument
 		if ($version !== '')
 		{
 			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($version === null) ? $this->getMediaVersion() : $version;
+			$url .= ($version === null || $version === 'auto') ? $this->getMediaVersion() : $version;
 		}
 
 		return $this->addStyleSheet($url, $type, $media, $attribs);
