@@ -22,7 +22,7 @@ $assetOptions = array('relative' => true, 'version' => 'auto');
 // Add JavaScript Frameworks
 JHtml::_('bootstrap.framework');
 
-// Ass template javascript code
+// Add template javascript code
 JHtml::_('script', 'template.js', $assetOptions);
 
 // Add Stylesheets
