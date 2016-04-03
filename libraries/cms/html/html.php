@@ -610,15 +610,15 @@ abstract class JHtml
 	public static function stylesheet($file, $options = array())
 	{
 		// For B/C. Convert old function signature.
-		$bcMode = false;
+		$bcMode = true;
 
 		if (is_array($options))
 		{
 			foreach(array_keys($options) as $value)
 			{
-				if (!in_array($value, array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version')))
+				if (in_array($value, array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version')))
 				{
-					$bcMode = true;
+					$bcMode = false;
 					break;
 				}
 			}
