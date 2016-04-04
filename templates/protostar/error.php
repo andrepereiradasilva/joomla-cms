@@ -35,31 +35,8 @@ else
 	$fullWidth = 0;
 }
 
-$assetOptions = array('relative' => true, 'version' => 'auto');
-
-// Add JavaScript Frameworks.
+// Add JavaScript Frameworks
 JHtml::_('bootstrap.framework');
-
-// Add template style file.
-JHtml::_('stylesheet', 'css/template.css', $assetOptions);
-
-// Add the custom style file (if exists).
-JHtml::_('stylesheet', 'css/user.css', $assetOptions);
-
-// Add rtl bootstrap style (if text direction is rtl).
-JHtml::_('bootstrap.loadCss', false, $this->direction);
-
-// Add Google Font style.
-if ($this->params->get('googleFont'))
-{
-	JHtml::_('stylesheet', '//fonts.googleapis.com/css?family=' . $this->params->get('googleFontName'));
-}
-
-// Add Debug style (if in debug mode).
-if ($app->get('debug_lang', '0') == '1' || $app->get('debug', '0') == '1')
-{
-	JHtml::_('stylesheet', 'media/cms/css/debug.css', array('version' => 'auto'));
-}
 
 // Logo file or site title param
 if ($params->get('logoFile'))
@@ -83,11 +60,20 @@ else
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<?php // Use of Google Font ?>
 	<?php if ($params->get('googleFont')) : ?>
+		<link href='//fonts.googleapis.com/css?family=<?php echo $params->get('googleFontName'); ?>' rel='stylesheet' type='text/css' />
 		<style type="text/css">
 			h1,h2,h3,h4,h5,h6,.site-title{
 				font-family: '<?php echo str_replace('+', ' ', $params->get('googleFontName')); ?>', sans-serif;
 			}
 		</style>
+	<?php endif; ?>
+	<link rel="stylesheet" href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/css/template.css" type="text/css" />
+	<?php if ($app->get('debug_lang', '0') == '1' || $app->get('debug', '0') == '1') : ?>
+		<link rel="stylesheet" href="<?php echo $this->baseurl; ?>/media/cms/css/debug.css" type="text/css" />
+	<?php endif; ?>
+	<?php // If Right-to-Left ?>
+	<?php if ($this->direction == 'rtl') : ?>
+		<link rel="stylesheet" href="<?php echo $this->baseurl; ?>/media/jui/css/bootstrap-rtl.css" type="text/css" />
 	<?php endif; ?>
 	<link href="<?php echo $this->baseurl; ?>/templates/<?php echo $this->template; ?>/favicon.ico" rel="shortcut icon" type="image/vnd.microsoft.icon" />
 	<?php // Template color ?>
