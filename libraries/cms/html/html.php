@@ -547,10 +547,15 @@ abstract class JHtml
 	}
 
 	/**
-	 * Write a `<img>` element
+	 * Write a `<img>` element.
 	 *
-	 * @param   string   $file      The relative or absolute URL to use for the src attribute.
-	 * @param   array    $options   options to be added to the stylesheet.
+	 * @param   string   $file      Relative/absolute path or remote URI to use for the src attribute of the `<img>` tag.
+	 * @param   array    $options   Options:
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the img tag.
+	 *                              - relative [true/false]: Path to file is relative to /media folder (and searches in template).
+	 *                              - path_rel [-1/true/false]: Return html tag without (-1) or with file computing(false). Return computed path only (true).
+	 *                              - alt [text]: The alternative text.
+	 *                              - version [empty/auto/custom value]: The version hash to add to the image file.
 	 *
 	 * @return  string
 	 *
@@ -606,10 +611,17 @@ abstract class JHtml
 	}
 
 	/**
-	 * Write a `<link>` element to load a CSS file.
+	 * Write a `<link>` element to load a local/remote CSS file or inline `<style>` element to add inline CSS rules.
 	 *
-	 * @param   string   $file      path to file.
-	 * @param   array    $options   options to be added to the stylesheet.
+	 * @param   string   $file      Relative/absolute path or remote URI to CSS file, or inline CSS.
+	 * @param   array    $options   Options:
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the link tag. Only used in CSS file URI/Path.
+	 *                              - relative [true/false]: Path to file is relative to /media folder (and searches in template). Only used in CSS file Path.
+	 *                              - path_only [true/false]: Return the path to the file only. Only used in CSS file URI/Path.
+	 *                              - detect_browser [true/false]: Detect browser to include specific browser css files. Only used in CSS file Path.
+	 *                              - detect_debug [true/false]: Detect debug to search for compressed files if debug is on. Only used in CSS file Path.
+	 *                              - version [empty/auto/custom value]: Add version to CSS files. Only used in CSS file URI/Path.
+	 *                              - inline [true/false]: If external CSS or inline CSS.
 	 *
 	 * @return  mixed  nothing if $options[path_only] is false, null, path or array of path if specific css browser files were detected.
 	 *
@@ -619,7 +631,7 @@ abstract class JHtml
 	{
 		// For B/C. Convert old function signature.
 		$bcMode = true;
-		$validOptions = array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version');
+		$validOptions = array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version', 'inline');
 
 		if (is_array($options))
 		{
@@ -654,6 +666,14 @@ abstract class JHtml
 		$options['detect_browser']   = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
 		$options['detect_debug']     = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
 		$options['version']          = (isset($options['version']) ? $options['version'] : '');
+		$options['inline']           = (isset($options['inline']) ? $options['inline'] : false);
+
+		if ($options['inline'])
+		{
+			JFactory::getDocument()->addStyleDeclaration($file, 'text/css');
+
+			return;
+		}
 
 		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
 
@@ -686,10 +706,18 @@ abstract class JHtml
 	}
 
 	/**
-	 * Write a `<script>` element to load a JavaScript file.
+	 * Write a `<script>` element to load local/remote JS file or inline `<script>` element to add inline JS script.
 	 *
-	 * @param   string   $file      path to file.
-	 * @param   array    $options   options to be added to the script.
+	 * @param   string   $file      Relative/absolute path or remote URI to JS file, or inline JS.
+	 * @param   array    $options   Options:
+	 *                              - framework [true/false]: Whether or not to load the JS framework.
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the script tag. Only used in JS file URI/Path.
+	 *                              - relative [true/false]: Path to file is relative to /media folder (and searches in template). Only used in JS file Path.
+	 *                              - path_only [true/false]: Return the path to the file only. Only used in JS file URI/Path.
+	 *                              - detect_browser [true/false]: Detect browser to include specific browser JS files. Only used in JS file Path.
+	 *                              - detect_debug [true/false]: Detect debug to search for compressed files if debug is on. Only used in JS file Path.
+	 *                              - version [empty/auto/custom value]: Add version to JS files. Only used in JS file URI/Path.
+	 *                              - inline [true/false]: If external JS or inline JS.
 	 *
 	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific js browser files were detected.
 	 *
@@ -720,11 +748,19 @@ abstract class JHtml
 		$options['detect_debug']     = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
 		$options['version']          = (isset($options['version']) ? $options['version'] : '');
 		$options['attribs']          = (isset($options['attribs']) ? $options['attribs'] : array());
+		$options['inline']           = (isset($options['inline']) ? $options['inline'] : false);
 
 		// Include MooTools framework
 		if ($options['framework'])
 		{
 			static::_('behavior.framework');
+		}
+
+		if ($options['inline'])
+		{
+			JFactory::getDocument()->addScriptDeclaration($file, 'text/javascript');
+
+			return;
 		}
 
 		$includes = static::includeRelativeFiles('js', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
