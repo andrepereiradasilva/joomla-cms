@@ -357,7 +357,7 @@ class JoomlaInstallerScript
 			array('file', 'joomla', '', 0),
 
 			// Packages
-			array('package', 'en-GB', '', 0),
+			array('package', 'pkg_en-GB', '', 0),
 		);
 
 		// Attempt to refresh manifest caches
