@@ -85,7 +85,7 @@ class InstallationModelLanguages extends JModelBase
 		$extQuery->select($db->qn('extension_id'))
 			->from($db->qn('#__extensions'))
 			->where($db->qn('type') . ' = ' . $db->q('package'))
-			->where($db->qn('element') . ' = ' . $db->q('en-GB'))
+			->where($db->qn('element') . ' = ' . $db->q('pkg_en-GB'))
 			->where($db->qn('client_id') . ' = 0');
 
 		$db->setQuery($extQuery);
