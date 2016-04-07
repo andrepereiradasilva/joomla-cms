@@ -55,7 +55,7 @@ class InstallerModelLanguages extends JModelList
 		$extQuery->select($db->quoteName('extension_id'))
 			->from($db->quoteName('#__extensions'))
 			->where($db->quoteName('type') . ' = ' . $db->quote('package'))
-			->where($db->quoteName('element') . ' = ' . $db->quote('en-GB'))
+			->where($db->quoteName('element') . ' = ' . $db->quote('pkg_en-GB'))
 			->where($db->quoteName('client_id') . ' = 0');
 
 		$db->setQuery($extQuery);
