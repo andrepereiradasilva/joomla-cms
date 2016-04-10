@@ -15,6 +15,9 @@ $lang            = JFactory::getLanguage();
 $this->language  = $doc->language;
 $this->direction = $doc->direction;
 
+// Output as HTML5
+$doc->setHtml5(true);
+
 // Add JavaScript Frameworks
 JHtml::_('bootstrap.framework');
 
@@ -44,7 +47,7 @@ if (is_file($file))
 ?>
 
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php echo $this->language; ?>" lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
+<html lang="<?php echo $this->language; ?>" dir="<?php echo $this->direction; ?>">
 <head>
 	<jdoc:include type="head" />
 	<!--[if lt IE 9]>
