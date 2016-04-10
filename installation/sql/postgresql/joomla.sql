@@ -1736,7 +1736,7 @@ COMMENT ON TABLE "#__update_sites_extensions" IS 'Links extensions to update sit
 INSERT INTO "#__update_sites_extensions" ("update_site_id", "extension_id") VALUES
 (1, 700),
 (2, 700),
-(3, 602),
+(3, 650),
 (4, 28);
 
 --
