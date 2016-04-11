@@ -509,11 +509,12 @@ class JDocument
 		// Log that this is deprecated.
 		JLog::add(__METHOD__ . '() is deprecated. Use addScript() with \$options[\'version\'] instead.', JLog::WARNING, 'deprecated');
 
-		// Add version.
-		$options = array(
-						'version' => $version,
-						'attribs' => array('type' => $type, 'defer' => $defer, 'async' => $async),
-						);
+		$options = array();
+		$options['version']          = $version === null ? 'auto' : $version;
+		$options['attribs']          = array();
+		$options['attribs']['type']  = $type !== '' ? $type : 'text/javascript';
+		$options['attribs']['defer'] = $defer ? 'defer' : null;
+		$options['attribs']['async'] = $async ? 'async' : null;
 
 		return $this->addScript($url, $options);
 	}
@@ -610,9 +611,9 @@ class JDocument
 		JLog::add(__METHOD__ . '() is deprecated. Use addStyleSheet() with \$options[\'version\'] instead.', JLog::WARNING, 'deprecated');
 
 		$options = array();
-		$options['version']          = $version;
-		$options['attribs']          = $attribs;
-		$options['attribs']['type']  = $type;
+		$options['version']          = $version === null ? 'auto' : $version;
+		$options['attribs']          = !is_null($attribs) ? $attribs : array();
+		$options['attribs']['type']  = $type !== '' ? $type : 'text/css';
 		$options['attribs']['media'] = $media;
 
 		return $this->addStyleSheet($url, $options);
