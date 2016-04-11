@@ -279,7 +279,11 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 
 		foreach ($attributes as $attrib => $attribValue)
 		{
-			if (is_scalar($attribValue))
+			if (is_null($attribValue))
+			{
+				continue;
+			}
+			else if (is_scalar($attribValue))
 			{
 				// Do not add the js/css type in html5.
 				if ($mimeTypes !== array() && $attrib === 'type' && in_array($attribValue, $mimeTypes))
