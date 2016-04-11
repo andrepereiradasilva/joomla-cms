@@ -443,21 +443,46 @@ class JDocument
 	 * Adds a linked script to the page
 	 *
 	 * @param   string   $url      URL to the linked script
-	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
-	 * @param   boolean  $defer    Adds the defer attribute.
-	 * @param   boolean  $async    Adds the async attribute.
-	 * @param   array    $attribs  Array of attributes
+	 * @param   array    $options   Options:
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the script tag.
+	 *                              - version [empty/auto/custom value]: Add version to JS files.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   11.1
 	 */
-	public function addScript($url, $type = "text/javascript", $defer = false, $async = false, array $attribs = array())
+	public function addScript($url, $options = array())
 	{
-		$this->_scripts[$url]['mime']    = $type;
-		$this->_scripts[$url]['defer']   = $defer;
-		$this->_scripts[$url]['async']   = $async;
-		$this->_scripts[$url]['attribs'] = $attribs;
+		// For B/C. Convert old function signature.
+		if (!is_array($options))
+		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than two argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
+			$arguments                		= func_get_args();
+			$options                   		= array();
+			$options['attribs']        		= array();
+			$options['attribs']['type']     = isset($arguments[1]) ? $arguments[1] : 'text/javascript';
+			$options['attribs']['defer']	= isset($arguments[2]) && $arguments[2] === true ? 'defer' : null;
+			$options['attribs']['async']	= isset($arguments[3]) && $arguments[3] === true ? 'async' : null;
+		}
+
+		// Add default values to options array.
+		$options['version']         = (isset($options['version']) ? $options['version'] : '');
+		$options['attribs']['type'] = (isset($options['attribs']['type']) ? $options['attribs']['type'] : 'text/javascript');
+
+		// Add version.
+		if ($options['version'] !== '')
+		{
+			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
+			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
+		}
+
+		// Add values to the scripts document array.
+		$this->_scripts[$url]['mime']    = $options['attribs']['type']; // For B/C
+		$this->_scripts[$url]['defer']   = null;
+		$this->_scripts[$url]['async']   = null;
+		$this->_scripts[$url]['attribs'] = $options['attribs'];
 
 		return $this;
 	}
@@ -471,22 +496,25 @@ class JDocument
 	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
 	 * @param   boolean  $defer    Adds the defer attribute.
 	 * @param   boolean  $async    Adds the async attribute.
-	 * @param   array    $attribs  Array of attributes
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   3.2
+	 *
+	 * @deprecated   4.0  Use addScript with $options['version'] instead.
 	 */
-	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false, array $attribs = array())
+	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false)
 	{
-		// Add version.
-		if ($version !== '')
-		{
-			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($version === null || $version === 'auto') ? $this->getMediaVersion() : $version;
-		}
+		// Log that this is deprecated.
+		JLog::add(__METHOD__ . '() is deprecated. Use addScript() with \$options[\'version\'] instead.', JLog::WARNING, 'deprecated');
 
-		return $this->addScript($url, $type, $defer, $async, $attribs);
+		// Add version.
+		$options = array(
+						'version' => $version,
+						'attribs' => array('type' => $type, 'defer' => $defer, 'async' => $async),
+						);
+
+		return $this->addScript($url, $options);
 	}
 
 	/**
@@ -517,19 +545,43 @@ class JDocument
 	 * Adds a linked stylesheet to the page
 	 *
 	 * @param   string  $url      URL to the linked style sheet
-	 * @param   string  $type     Mime encoding type
-	 * @param   string  $media    Media type that this stylesheet applies to
-	 * @param   array   $attribs  Array of attributes
+	 * @param   array    $options   Options:
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the link tag.
+	 *                              - version [empty/auto/custom value]: Add version to CSS files.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   11.1
 	 */
-	public function addStyleSheet($url, $type = 'text/css', $media = null, $attribs = array())
+	public function addStyleSheet($url, $options = array())
 	{
-		$this->_styleSheets[$url]['mime'] = $type;
-		$this->_styleSheets[$url]['media'] = $media;
-		$this->_styleSheets[$url]['attribs'] = $attribs;
+		// For B/C. Convert old function signature.
+		if (!is_array($options))
+		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than two argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
+			$arguments                		= func_get_args();
+			$options                   		= array();
+			$options['attribs']        		= $attribs;
+			$options['attribs']['type']     = isset($arguments[1]) ? $arguments[1] : 'text/css';
+			$options['attribs']['media']	= isset($arguments[2]) ? $arguments[2] : null;
+		}
+
+		// Add default values to options array.
+		$options['version']         = (isset($options['version']) ? $options['version'] : '');
+		$options['attribs']['type'] = (isset($options['attribs']['type']) ? $options['attribs']['type'] : 'text/css');
+
+		// Add version.
+		if ($options['version'] !== '')
+		{
+			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
+			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
+		}
+
+		$this->_styleSheets[$url]['mime']    = $options['attribs']['type'];  // For B/C
+		$this->_styleSheets[$url]['media']   = null;
+		$this->_styleSheets[$url]['attribs'] = $options['attribs'];
 
 		return $this;
 	}
@@ -547,17 +599,21 @@ class JDocument
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   3.2
+	 *
+	 * @deprecated   4.0  Use addStyleSheet with $options['version'] instead.
 	 */
 	public function addStyleSheetVersion($url, $version = null, $type = "text/css", $media = null, $attribs = array())
 	{
-		// Add version.
-		if ($version !== '')
-		{
-			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($version === null || $version === 'auto') ? $this->getMediaVersion() : $version;
-		}
+		// Log that this is deprecated.
+		JLog::add(__METHOD__ . '() is deprecated. Use addStyleSheet() with \$options[\'version\'] instead.', JLog::WARNING, 'deprecated');
 
-		return $this->addStyleSheet($url, $type, $media, $attribs);
+		$options = array();
+		$options['version']          = $version;
+		$options['attribs']          = $attribs;
+		$options['attribs']['type']  = $type;
+		$options['attribs']['media'] = $media;
+
+		return $this->addStyleSheet($url, $options);
 	}
 
 	/**
