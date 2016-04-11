@@ -670,7 +670,7 @@ abstract class JHtml
 
 		if ($options['inline'])
 		{
-			JFactory::getDocument()->addStyleDeclaration($file, 'text/css');
+			JFactory::getDocument()->addStyleSheet($file, $options);
 
 			return;
 		}
@@ -758,7 +758,7 @@ abstract class JHtml
 
 		if ($options['inline'])
 		{
-			JFactory::getDocument()->addScriptDeclaration($file, 'text/javascript');
+			JFactory::getDocument()->addScript($file, $options);
 
 			return;
 		}
