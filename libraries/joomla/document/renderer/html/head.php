@@ -1,7 +1,7 @@
 <?php
 /**
- * @package     Joomla.Platform
- * @subpackage  Document
+ * @package     Joomla.Libraries
+ * @subpackage  HTML
  *
  * @copyright   Copyright (C) 2005 - 2016 Open Source Matters, Inc. All rights reserved.
  * @license     GNU General Public License version 2 or later; see LICENSE
@@ -9,394 +9,1016 @@
 
 defined('JPATH_PLATFORM') or die;
 
+jimport('joomla.environment.browser');
+jimport('joomla.filesystem.file');
+jimport('joomla.filesystem.path');
+jimport('joomla.utilities.arrayhelper');
+
 /**
- * Document class, provides an easy interface to parse and display a document
+ * Utility class for all HTML drawing classes
  *
- * @since  11.1
+ * @since  1.5
  */
-class JDocument
+abstract class JHtml
 {
 	/**
-	 * Document title
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $title = '';
-
-	/**
-	 * Document description
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $description = '';
-
-	/**
-	 * Document full URL
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $link = '';
-
-	/**
-	 * Document base URL
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $base = '';
-
-	/**
-	 * Contains the document language setting
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $language = 'en-gb';
-
-	/**
-	 * Contains the document direction setting
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $direction = 'ltr';
-
-	/**
-	 * Document generator
-	 *
-	 * @var    string
-	 */
-	public $_generator = 'Joomla! - Open Source Content Management';
-
-	/**
-	 * Document modified date
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_mdate = '';
-
-	/**
-	 * Tab string
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_tab = "\11";
-
-	/**
-	 * Contains the line end string
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_lineEnd = "\12";
-
-	/**
-	 * Contains the character encoding string
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_charset = 'utf-8';
-
-	/**
-	 * Document mime type
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_mime = '';
-
-	/**
-	 * Document namespace
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_namespace = '';
-
-	/**
-	 * Document profile
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_profile = '';
-
-	/**
-	 * Array of linked scripts
+	 * Option values related to the generation of HTML output. Recognized
+	 * options are:
+	 *     fmtDepth, integer. The current indent depth.
+	 *     fmtEol, string. The end of line string, default is linefeed.
+	 *     fmtIndent, string. The string to use for indentation, default is
+	 *     tab.
 	 *
 	 * @var    array
-	 * @since  11.1
+	 * @since  1.5
 	 */
-	public $_scripts = array();
+	public static $formatOptions = array('format.depth' => 0, 'format.eol' => "\n", 'format.indent' => "\t");
 
 	/**
-	 * Array of scripts placed in the header
+	 * An array to hold included paths
 	 *
 	 * @var    array
-	 * @since  11.1
+	 * @since  1.5
 	 */
-	public $_script = array();
+	protected static $includePaths = array();
 
 	/**
-	 * Array of linked style sheets
+	 * An array to hold method references
 	 *
 	 * @var    array
-	 * @since  11.1
+	 * @since  1.6
 	 */
-	public $_styleSheets = array();
+	protected static $registry = array();
 
 	/**
-	 * Array of included style declarations
+	 * Method to extract a key
 	 *
-	 * @var    array
-	 * @since  11.1
+	 * @param   string  $key  The name of helper method to load, (prefix).(class).function
+	 *                        prefix and class are optional and can be used to load custom html helpers.
+	 *
+	 * @return  array  Contains lowercase key, prefix, file, function.
+	 *
+	 * @since   1.6
 	 */
-	public $_style = array();
-
-	/**
-	 * Array of meta tags
-	 *
-	 * @var    array
-	 * @since  11.1
-	 */
-	public $_metaTags = array();
-
-	/**
-	 * The rendering engine
-	 *
-	 * @var    object
-	 * @since  11.1
-	 */
-	public $_engine = null;
-
-	/**
-	 * The document type
-	 *
-	 * @var    string
-	 * @since  11.1
-	 */
-	public $_type = null;
-
-	/**
-	 * Array of buffered output
-	 *
-	 * @var    mixed (depends on the renderer)
-	 * @since  11.1
-	 */
-	public static $_buffer = null;
-
-	/**
-	 * JDocument instances container.
-	 *
-	 * @var    array
-	 * @since  11.3
-	 */
-	protected static $instances = array();
-
-	/**
-	 * Media version added to assets
-	 *
-	 * @var    string
-	 * @since  3.2
-	 */
-	protected $mediaVersion = null;
-
-	/**
-	 * Class constructor.
-	 *
-	 * @param   array  $options  Associative array of options
-	 *
-	 * @since   11.1
-	 */
-	public function __construct($options = array())
+	protected static function extract($key)
 	{
-		if (array_key_exists('lineend', $options))
-		{
-			$this->setLineEnd($options['lineend']);
-		}
+		$key = preg_replace('#[^A-Z0-9_\.]#i', '', $key);
 
-		if (array_key_exists('charset', $options))
-		{
-			$this->setCharset($options['charset']);
-		}
+		// Check to see whether we need to load a helper file
+		$parts = explode('.', $key);
 
-		if (array_key_exists('language', $options))
-		{
-			$this->setLanguage($options['language']);
-		}
+		$prefix = (count($parts) == 3 ? array_shift($parts) : 'JHtml');
+		$file = (count($parts) == 2 ? array_shift($parts) : '');
+		$func = array_shift($parts);
 
-		if (array_key_exists('direction', $options))
-		{
-			$this->setDirection($options['direction']);
-		}
-
-		if (array_key_exists('tab', $options))
-		{
-			$this->setTab($options['tab']);
-		}
-
-		if (array_key_exists('link', $options))
-		{
-			$this->setLink($options['link']);
-		}
-
-		if (array_key_exists('base', $options))
-		{
-			$this->setBase($options['base']);
-		}
-
-		if (array_key_exists('mediaversion', $options))
-		{
-			$this->setMediaVersion($options['mediaversion']);
-		}
+		return array(strtolower($prefix . '.' . $file . '.' . $func), $prefix, $file, $func);
 	}
 
 	/**
-	 * Returns the global JDocument object, only creating it
-	 * if it doesn't already exist.
+	 * Class loader method
 	 *
-	 * @param   string  $type        The document type to instantiate
-	 * @param   array   $attributes  Array of attributes
+	 * Additional arguments may be supplied and are passed to the sub-class.
+	 * Additional include paths are also able to be specified for third-party use
 	 *
-	 * @return  object  The document object.
+	 * @param   string  $key  The name of helper method to load, (prefix).(class).function
+	 *                        prefix and class are optional and can be used to load custom
+	 *                        html helpers.
 	 *
-	 * @since   11.1
+	 * @return  mixed  Result of JHtml::call($function, $args)
+	 *
+	 * @since   1.5
+	 * @throws  InvalidArgumentException
 	 */
-	public static function getInstance($type = 'html', $attributes = array())
+	public static function _($key)
 	{
-		$signature = serialize(array($type, $attributes));
+		list($key, $prefix, $file, $func) = static::extract($key);
 
-		if (empty(self::$instances[$signature]))
+		if (array_key_exists($key, static::$registry))
 		{
-			$type  = preg_replace('/[^A-Z0-9_\.-]/i', '', $type);
-			$ntype = null;
+			$function = static::$registry[$key];
+			$args = func_get_args();
 
-			// Determine the path and class
-			$class = 'JDocument' . ucfirst($type);
+			// Remove function name from arguments
+			array_shift($args);
 
-			if (!class_exists($class))
+			return static::call($function, $args);
+		}
+
+		$className = $prefix . ucfirst($file);
+
+		if (!class_exists($className))
+		{
+			$path = JPath::find(static::$includePaths, strtolower($file) . '.php');
+
+			if ($path)
 			{
-				// @deprecated 4.0 - JDocument objects should be autoloaded instead
-				$path = __DIR__ . '/' . $type . '/' . $type . '.php';
+				require_once $path;
 
-				if (file_exists($path))
+				if (!class_exists($className))
 				{
-					JLog::add('Non-autoloadable JDocument subclasses are deprecated, support will be removed in 4.0.', JLog::WARNING, 'deprecated');
-					require_once $path;
+					throw new InvalidArgumentException(sprintf('%s not found.', $className), 500);
 				}
-				// Default to the raw format
-				else
-				{
-					$ntype = $type;
-					$class = 'JDocumentRaw';
-				}
-			}
-
-			$instance = new $class($attributes);
-			self::$instances[$signature] = $instance;
-
-			if (!is_null($ntype))
-			{
-				// Set the type to the Document type originally requested
-				$instance->setType($ntype);
-			}
-		}
-
-		return self::$instances[$signature];
-	}
-
-	/**
-	 * Set the document type
-	 *
-	 * @param   string  $type  Type document is to set to
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setType($type)
-	{
-		$this->_type = $type;
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document type
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getType()
-	{
-		return $this->_type;
-	}
-
-	/**
-	 * Get the contents of the document buffer
-	 *
-	 * @return  The contents of the document buffer
-	 *
-	 * @since   11.1
-	 */
-	public function getBuffer()
-	{
-		return self::$_buffer;
-	}
-
-	/**
-	 * Set the contents of the document buffer
-	 *
-	 * @param   string  $content  The content to be set in the buffer.
-	 * @param   array   $options  Array of optional elements.
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setBuffer($content, $options = array())
-	{
-		self::$_buffer = $content;
-
-		return $this;
-	}
-
-	/**
-	 * Gets a meta tag.
-	 *
-	 * @param   string   $name       Value of name or http-equiv tag
-	 * @param   boolean  $httpEquiv  META type "http-equiv" defaults to null
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getMetaData($name, $httpEquiv = false)
-	{
-		if ($name == 'generator')
-		{
-			$result = $this->getGenerator();
-		}
-		elseif ($name == 'description')
-		{
-			$result = $this->getDescription();
-		}
-		else
-		{
-			if ($httpEquiv == true)
-			{
-				$result = @$this->_metaTags['http-equiv'][$name];
 			}
 			else
 			{
-				$result = @$this->_metaTags['standard'][$name];
+				throw new InvalidArgumentException(sprintf('%s %s not found.', $prefix, $file), 500);
+			}
+		}
+
+		$toCall = array($className, $func);
+
+		if (is_callable($toCall))
+		{
+			static::register($key, $toCall);
+			$args = func_get_args();
+
+			// Remove function name from arguments
+			array_shift($args);
+
+			return static::call($toCall, $args);
+		}
+		else
+		{
+			throw new InvalidArgumentException(sprintf('%s::%s not found.', $className, $func), 500);
+		}
+	}
+
+	/**
+	 * Registers a function to be called with a specific key
+	 *
+	 * @param   string  $key       The name of the key
+	 * @param   string  $function  Function or method
+	 *
+	 * @return  boolean  True if the function is callable
+	 *
+	 * @since   1.6
+	 */
+	public static function register($key, $function)
+	{
+		list($key) = static::extract($key);
+
+		if (is_callable($function))
+		{
+			static::$registry[$key] = $function;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Removes a key for a method from registry.
+	 *
+	 * @param   string  $key  The name of the key
+	 *
+	 * @return  boolean  True if a set key is unset
+	 *
+	 * @since   1.6
+	 */
+	public static function unregister($key)
+	{
+		list($key) = static::extract($key);
+
+		if (isset(static::$registry[$key]))
+		{
+			unset(static::$registry[$key]);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Test if the key is registered.
+	 *
+	 * @param   string  $key  The name of the key
+	 *
+	 * @return  boolean  True if the key is registered.
+	 *
+	 * @since   1.6
+	 */
+	public static function isRegistered($key)
+	{
+		list($key) = static::extract($key);
+
+		return isset(static::$registry[$key]);
+	}
+
+	/**
+	 * Function caller method
+	 *
+	 * @param   callable  $function  Function or method to call
+	 * @param   array     $args      Arguments to be passed to function
+	 *
+	 * @return  mixed   Function result or false on error.
+	 *
+	 * @see     http://php.net/manual/en/function.call-user-func-array.php
+	 * @since   1.6
+	 * @throws  InvalidArgumentException
+	 */
+	protected static function call($function, $args)
+	{
+		if (!is_callable($function))
+		{
+			throw new InvalidArgumentException('Function not supported', 500);
+		}
+
+		// PHP 5.3 workaround
+		$temp = array();
+
+		foreach ($args as &$arg)
+		{
+			$temp[] = &$arg;
+		}
+
+		return call_user_func_array($function, $temp);
+	}
+
+	/**
+	 * Write a `<a>` element
+	 *
+	 * @param   string  $url      The relative URL to use for the href attribute
+	 * @param   string  $text     The target attribute to use
+	 * @param   array   $attribs  An associative array of attributes to add
+	 *
+	 * @return  string
+	 *
+	 * @since   1.5
+	 */
+	public static function link($url, $text, $attribs = null)
+	{
+		if (is_array($attribs))
+		{
+			$attribs = JArrayHelper::toString($attribs);
+		}
+
+		return '<a href="' . $url . '" ' . $attribs . '>' . $text . '</a>';
+	}
+
+	/**
+	 * Write a `<iframe>` element
+	 *
+	 * @param   string  $url       The relative URL to use for the src attribute.
+	 * @param   string  $name      The target attribute to use.
+	 * @param   array   $attribs   An associative array of attributes to add.
+	 * @param   string  $noFrames  The message to display if the iframe tag is not supported.
+	 *
+	 * @return  string
+	 *
+	 * @since   1.5
+	 */
+	public static function iframe($url, $name, $attribs = null, $noFrames = '')
+	{
+		if (is_array($attribs))
+		{
+			$attribs = JArrayHelper::toString($attribs);
+		}
+
+		return '<iframe src="' . $url . '" ' . $attribs . ' name="' . $name . '">' . $noFrames . '</iframe>';
+	}
+
+	/**
+	 * Include version with MD5SUM file in path.
+	 *
+	 * @param   string   $path   folder name to search into (images, css, js, ...).
+	 *
+	 * @return  string   query string to add.
+	 *
+	 * @see     JBrowser
+	 * @since   3.6
+	 *
+	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
+	 */
+	protected static function getMd5SumVersion($path, $version = '')
+	{
+		if ($version === '')
+		{
+			$md5 = dirname($path) . '/MD5SUM';
+			if (file_exists($md5))
+			{
+				JLog::add('Usage of MD5SUM files is deprecated, use version instead.', JLog::WARNING, 'deprecated');
+				return '?' . file_get_contents($md5);
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Compute the files to be included
+	 *
+	 * @param   string   $folder          folder name to search into (images, css, js, ...).
+	 * @param   string   $file            path to file.
+	 * @param   boolean  $relative        path to file is relative to /media folder  (and searches in template).
+	 * @param   boolean  $detect_browser  detect browser to include specific browser files.
+	 * @param   boolean  $detect_debug    detect debug to include compressed files if debug is on.
+	 * @param   string   $version         add version to script. 0 for no version, null to auto, other for custom.
+	 *
+	 * @return  array    files to be included.
+	 *
+	 * @see     JBrowser
+	 * @since   1.6
+	 */
+	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug, $version = '')
+	{
+		// If http is present in filename
+		if (strpos($file, 'http') === 0 || strpos($file, '//') === 0)
+		{
+			$includes = array($file);
+		}
+		else
+		{
+			// Extract extension and strip the file
+			$strip = JFile::stripExt($file);
+			$ext   = JFile::getExt($file);
+
+			// Prepare array of files
+			$includes = array();
+
+			// Detect browser and compute potential files
+			if ($detect_browser)
+			{
+				$navigator = JBrowser::getInstance();
+				$browser = $navigator->getBrowser();
+				$major = $navigator->getMajor();
+				$minor = $navigator->getMinor();
+
+				// Try to include files named filename.ext, filename_browser.ext, filename_browser_major.ext, filename_browser_major_minor.ext
+				// where major and minor are the browser version names
+				$potential = array($strip, $strip . '_' . $browser,  $strip . '_' . $browser . '_' . $major,
+					$strip . '_' . $browser . '_' . $major . '_' . $minor);
+			}
+			else
+			{
+				$potential = array($strip);
+			}
+
+			// If relative search in template directory or media directory
+			if ($relative)
+			{
+				// Get the template
+				$template = JFactory::getApplication()->getTemplate();
+
+				// For each potential files
+				foreach ($potential as $strip)
+				{
+					$files = array();
+
+					// Detect debug mode
+					if ($detect_debug && JFactory::getConfig()->get('debug'))
+					{
+						/*
+						 * Detect if we received a file in the format name.min.ext
+						 * If so, strip the .min part out, otherwise append -uncompressed
+						 */
+						if (strrpos($strip, '.min', '-4'))
+						{
+							$position = strrpos($strip, '.min', '-4');
+							$filename = str_replace('.min', '.', $strip, $position);
+							$files[]  = $filename . $ext;
+						}
+						else
+						{
+							$files[] = $strip . '-uncompressed.' . $ext;
+						}
+					}
+
+					$files[] = $strip . '.' . $ext;
+
+					/*
+					 * Loop on 1 or 2 files and break on first found.
+					 * Add the content of the MD5SUM file located in the same folder to url to ensure cache browser refresh
+					 * This MD5SUM file must represent the signature of the folder content
+					 */
+					foreach ($files as $file)
+					{
+						// If the file is in the template folder
+						$path = "/$template/$folder/$file";
+						if (file_exists(JPATH_THEMES . $path))
+						{
+							$includes[] = JUri::base(true) . '/templates' . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
+							break;
+						}
+						else
+						{
+							// Try to deal with other files in the template folder (e.g. direct relative path)
+							$path = "/$template/$file";
+							if (file_exists(JPATH_THEMES . $path))
+							{
+								$includes[] = JUri::base(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
+								break;
+							}
+
+							// If the file contains any /: it can be in an media extension subfolder
+							else if (strpos($file, '/'))
+							{
+								// Divide the file extracting the extension as the first part before /
+								list($extension, $file) = explode('/', $file, 2);
+
+								// If the file yet contains any /: it can be a plugin
+								if (strpos($file, '/'))
+								{
+									// Divide the file extracting the element as the first part before /
+									list($element, $file) = explode('/', $file, 2);
+
+									// Try to deal with plugins group in the media folder
+									$path = "/media/$extension/$element/$folder/$file";
+									if (file_exists(JPATH_ROOT . $path))
+									{
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+										break;
+									}
+
+									// Try to deal with classical file in a a media subfolder called element
+									$path = "/media/$extension/$folder/$element/$file";
+									if (file_exists(JPATH_ROOT . $path))
+									{
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+										break;
+									}
+
+									// Try to deal with system files in the template folder
+									$path = "/$template/$folder/system/$element/$file";
+									if (file_exists(JPATH_THEMES . $path))
+									{
+										$includes[] = JUri::root(true) . "/templates" . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
+										break;
+									}
+
+									// Try to deal with system files in the media folder
+									$path = "/media/system/$folder/$element/$file";
+									if (file_exists(JPATH_ROOT . $path))
+									{
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+										break;
+									}
+								}
+								else
+								{
+							
+									// Try to deals in the extension media folder
+									$path = "/media/$extension/$folder/$file";
+									if (file_exists(JPATH_ROOT . $path))
+									{
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+										break;
+									}
+
+									// Try to deal with system files in the template folder
+									$path = "/$template/$folder/system/$file";
+									if (file_exists(JPATH_THEMES . $path))
+									{
+										$includes[] = JUri::root(true) . '/templates' . $path . static::getMd5SumVersion(JPATH_THEMES . $path, $version);
+										break;
+									}
+
+									// Try to deal with system files in the media folder
+									$path = "/media/system/$folder/$file";
+									if (file_exists(JPATH_ROOT . $path))
+									{
+										$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+										break;
+									}
+								}
+							}
+							// Try to deal with system files in the media folder
+							else
+							{
+								$path = "/media/system/$folder/$file";
+								if (file_exists(JPATH_ROOT . $path))
+								{
+									$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			// If not relative and http is not present in filename
+			else
+			{
+				foreach ($potential as $strip)
+				{
+					$files = array();
+
+					// Detect debug mode
+					if ($detect_debug && JFactory::getConfig()->get('debug'))
+					{
+						/*
+						 * Detect if we received a file in the format name.min.ext
+						 * If so, strip the .min part out, otherwise append -uncompressed
+						 */
+						if (strrpos($strip, '.min', '-4'))
+						{
+							$position = strrpos($strip, '.min', '-4');
+							$filename = str_replace('.min', '.', $strip, $position);
+							$files[]  = $filename . $ext;
+						}
+						else
+						{
+							$files[] = $strip . '-uncompressed.' . $ext;
+						}
+					}
+
+					$files[] = $strip . '.' . $ext;
+
+					/*
+					 * Loop on 1 or 2 files and break on first found.
+					 * Add the content of the MD5SUM file located in the same folder to url to ensure cache browser refresh
+					 * This MD5SUM file must represent the signature of the folder content
+					 */
+					foreach ($files as $file)
+					{
+						$path = "/$file";
+						if (file_exists(JPATH_ROOT . $path))
+						{
+							$includes[] = JUri::root(true) . $path . static::getMd5SumVersion(JPATH_ROOT . $path, $version);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		return $includes;
+	}
+
+	/**
+	 * Write a `<img>` element.
+	 *
+	 * @param   string   $file      Relative/absolute path or remote URI to use for the src attribute of the `<img>` tag.
+	 * @param   array    $options   Options:
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the img tag.
+	 *                              - relative [true/false]: Path to file is relative to /media folder (and searches in template).
+	 *                              - path_rel [-1/true/false]: Return html tag without (-1) or with file computing(false). Return computed path only (true).
+	 *                              - alt [text]: The alternative text.
+	 *                              - version [empty/auto/custom value]: The version hash to add to the image file.
+	 *
+	 * @return  string
+	 *
+	 * @since   1.5
+	 */
+	public static function image($file, $options = array())
+	{
+		// For B/C. Convert old function signature.
+		if (!is_array($options))
+		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than two arguments to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
+			$arguments           = func_get_args();
+			$options             = array();
+			$options['alt']      = (isset($arguments[1]) ? $arguments[1] : '');
+			$options['attribs']  = (isset($arguments[2]) ? $arguments[2] : array());
+			$options['relative'] = (isset($arguments[3]) ? $arguments[3] : false);
+			$options['path_rel'] = (isset($arguments[4]) ? $arguments[4] : false);
+		}
+
+		// Add default values to options array.
+		$options['alt']      = (isset($options['alt']) ? $options['alt'] : '');
+		$options['attribs']  = (isset($options['attribs']) ? $options['attribs'] : array());
+		$options['relative'] = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_rel'] = (isset($options['path_rel']) ? $options['path_rel'] : false);
+		$options['version']  = (isset($options['version']) ? $options['version'] : '');
+
+		if ($options['path_rel'] !== -1)
+		{
+			$includes = static::includeRelativeFiles('images', $file, $options['relative'], false, false, $options['version']);
+			$file     = count($includes) ? $includes[0] : null;
+		}
+
+		// Add version.
+		if ($options['version'] !== '')
+		{
+			$file .= (strpos($file, '?') === false) ? '?' : (($options['path_rel']) ? '&' : '&amp;');
+			$file .= ($options['version'] === 'auto') ? JFactory::getDocument()->getMediaVersion() : $options['version'];
+		}
+
+		// If only path is required
+		if ($options['path_rel'])
+		{
+			return $file;
+		}
+		else
+		{
+			return '<img src="' . $file . '" alt="' . $options['alt'] . '" '
+			. trim((is_array($options['attribs']) ? JArrayHelper::toString($options['attribs']) : $options['attribs']) . ' /')
+			. '>';
+		}
+	}
+
+	/**
+	 * Write a `<link>` element to load a local/remote CSS file or inline `<style>` element to add inline CSS rules.
+	 *
+	 * @param   string   $file      Relative/absolute path or remote URI to CSS file, or inline CSS.
+	 * @param   array    $options   Options:
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the link tag. Only used in CSS file URI/Path.
+	 *                              - relative [true/false]: Path to file is relative to /media folder (and searches in template). Only used in CSS file Path.
+	 *                              - path_only [true/false]: Return the path to the file only. Only used in CSS file URI/Path.
+	 *                              - detect_browser [true/false]: Detect browser to include specific browser css files. Only used in CSS file Path.
+	 *                              - detect_debug [true/false]: Detect debug to search for compressed files if debug is on. Only used in CSS file Path.
+	 *                              - version [empty/auto/custom value]: Add version to CSS files. Only used in CSS file URI/Path.
+	 *                              - inline [true/false]: If external CSS or inline CSS.
+	 *
+	 * @return  mixed  nothing if $options[path_only] is false, null, path or array of path if specific css browser files were detected.
+	 *
+	 * @since   1.5
+	 */
+	public static function stylesheet($file, $options = array())
+	{
+		// For B/C. Convert old function signature.
+		$bcMode = true;
+		$validOptions = array('attribs', 'relative', 'path_only', 'detect_browser', 'detect_debug', 'version', 'inline');
+
+		if (is_array($options))
+		{
+			foreach(array_keys($options) as $value)
+			{
+				if (in_array($value, $validOptions))
+				{
+					$bcMode = false;
+					break;
+				}
+			}
+		}
+
+		if (!is_array($options) || $bcMode)
+		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than two arguments to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
+			$arguments                 = func_get_args();
+			$options                   = array();
+			$options['attribs']        = (isset($arguments[1]) ? $arguments[1] : array());
+			$options['relative']       = (isset($arguments[2]) ? $arguments[2] : false);
+			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
+			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
+			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
+		}
+
+		// Add default values to options array.
+		$options['attribs']          = (isset($options['attribs']) ? $options['attribs'] : array());
+		$options['relative']         = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_only']        = (isset($options['path_only']) ? $options['path_only'] : false);
+		$options['detect_browser']   = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
+		$options['detect_debug']     = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
+		$options['version']          = (isset($options['version']) ? $options['version'] : '');
+		$options['inline']           = (isset($options['inline']) ? $options['inline'] : false);
+
+		if ($options['inline'])
+		{
+			JFactory::getDocument()->addStyleDeclaration($file, 'text/css');
+
+			return;
+		}
+
+		$includes = static::includeRelativeFiles('css', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
+
+		// If only path is required
+		if ($options['path_only'])
+		{
+			if (count($includes) == 0)
+			{
+				return null;
+			}
+			elseif (count($includes) == 1)
+			{
+				return $includes[0];
+			}
+			else
+			{
+				return $includes;
+			}
+		}
+		// If inclusion is required
+		else
+		{
+			$document = JFactory::getDocument();
+
+			foreach ($includes as $include)
+			{
+				$document->addStyleSheet($include, $options);
+			}
+		}
+	}
+
+	/**
+	 * Write a `<script>` element to load local/remote JS file or inline `<script>` element to add inline JS script.
+	 *
+	 * @param   string   $file      Relative/absolute path or remote URI to JS file, or inline JS.
+	 * @param   array    $options   Options:
+	 *                              - framework [true/false]: Whether or not to load the JS framework.
+	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the script tag. Only used in JS file URI/Path.
+	 *                              - relative [true/false]: Path to file is relative to /media folder (and searches in template). Only used in JS file Path.
+	 *                              - path_only [true/false]: Return the path to the file only. Only used in JS file URI/Path.
+	 *                              - detect_browser [true/false]: Detect browser to include specific browser JS files. Only used in JS file Path.
+	 *                              - detect_debug [true/false]: Detect debug to search for compressed files if debug is on. Only used in JS file Path.
+	 *                              - version [empty/auto/custom value]: Add version to JS files. Only used in JS file URI/Path.
+	 *                              - inline [true/false]: If external JS or inline JS.
+	 *
+	 * @return  mixed  nothing if $path_only is false, null, path or array of path if specific js browser files were detected.
+	 *
+	 * @since   1.5
+	 */
+	public static function script($file, $options = array())
+	{
+		// For B/C. Convert old function signature.
+		if (!is_array($options))
+		{
+			// Log that passing other arguments is deprecated.
+			JLog::add('Passing more than one argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
+
+			$arguments                 = func_get_args();
+			$options                   = array();
+			$options['framework']      = (isset($arguments[1]) ? $arguments[1] : false);
+			$options['relative']       = (isset($arguments[2]) ? $arguments[2] : false);
+			$options['path_only']      = (isset($arguments[3]) ? $arguments[3] : false);
+			$options['detect_browser'] = (isset($arguments[4]) ? $arguments[4] : true);
+			$options['detect_debug']   = (isset($arguments[5]) ? $arguments[5] : true);
+		}
+
+		// Add default values to options array.
+		$options['framework']        = (isset($options['framework']) ? $options['framework'] : false);
+		$options['relative']         = (isset($options['relative']) ? $options['relative'] : false);
+		$options['path_only']        = (isset($options['path_only']) ? $options['path_only'] : false);
+		$options['detect_browser']   = (isset($options['detect_browser']) ? $options['detect_browser'] : true);
+		$options['detect_debug']     = (isset($options['detect_debug']) ? $options['detect_debug'] : true);
+		$options['version']          = (isset($options['version']) ? $options['version'] : '');
+		$options['attribs']          = (isset($options['attribs']) ? $options['attribs'] : array());
+		$options['inline']           = (isset($options['inline']) ? $options['inline'] : false);
+
+		// Include MooTools framework
+		if ($options['framework'])
+		{
+			static::_('behavior.framework');
+		}
+
+		if ($options['inline'])
+		{
+			JFactory::getDocument()->addScriptDeclaration($file, 'text/javascript');
+
+			return;
+		}
+
+		$includes = static::includeRelativeFiles('js', $file, $options['relative'], $options['detect_browser'], $options['detect_debug'], $options['version']);
+
+		// If only path is required
+		if ($options['path_only'])
+		{
+			if (count($includes) == 0)
+			{
+				return null;
+			}
+			elseif (count($includes) == 1)
+			{
+				return $includes[0];
+			}
+			else
+			{
+				return $includes;
+			}
+		}
+		// If inclusion is required
+		else
+		{
+			$document = JFactory::getDocument();
+
+			foreach ($includes as $include)
+			{
+				$document->addScript($include, $options);
+			}
+		}
+	}
+
+	/**
+	 * Set format related options.
+	 *
+	 * Updates the formatOptions array with all valid values in the passed array.
+	 *
+	 * @param   array  $options  Option key/value pairs.
+	 *
+	 * @return  void
+	 *
+	 * @see     JHtml::$formatOptions
+	 * @since   1.5
+	 */
+	public static function setFormatOptions($options)
+	{
+		foreach ($options as $key => $val)
+		{
+			if (isset(static::$formatOptions[$key]))
+			{
+				static::$formatOptions[$key] = $val;
+			}
+		}
+	}
+
+	/**
+	 * Returns formated date according to a given format and time zone.
+	 *
+	 * @param   string   $input      String in a format accepted by date(), defaults to "now".
+	 * @param   string   $format     The date format specification string (see {@link PHP_MANUAL#date}).
+	 * @param   mixed    $tz         Time zone to be used for the date.  Special cases: boolean true for user
+	 *                               setting, boolean false for server setting.
+	 * @param   boolean  $gregorian  True to use Gregorian calendar.
+	 *
+	 * @return  string    A date translated by the given format and time zone.
+	 *
+	 * @see     strftime
+	 * @since   1.5
+	 */
+	public static function date($input = 'now', $format = null, $tz = true, $gregorian = false)
+	{
+		// Get some system objects.
+		$config = JFactory::getConfig();
+		$user = JFactory::getUser();
+
+		// UTC date converted to user time zone.
+		if ($tz === true)
+		{
+			// Get a date object based on UTC.
+			$date = JFactory::getDate($input, 'UTC');
+
+			// Set the correct time zone based on the user configuration.
+			$date->setTimeZone(new DateTimeZone($user->getParam('timezone', $config->get('offset'))));
+		}
+		// UTC date converted to server time zone.
+		elseif ($tz === false)
+		{
+			// Get a date object based on UTC.
+			$date = JFactory::getDate($input, 'UTC');
+
+			// Set the correct time zone based on the server configuration.
+			$date->setTimeZone(new DateTimeZone($config->get('offset')));
+		}
+		// No date conversion.
+		elseif ($tz === null)
+		{
+			$date = JFactory::getDate($input);
+		}
+		// UTC date converted to given time zone.
+		else
+		{
+			// Get a date object based on UTC.
+			$date = JFactory::getDate($input, 'UTC');
+
+			// Set the correct time zone based on the server configuration.
+			$date->setTimeZone(new DateTimeZone($tz));
+		}
+
+		// If no format is given use the default locale based format.
+		if (!$format)
+		{
+			$format = JText::_('DATE_FORMAT_LC1');
+		}
+		// $format is an existing language key
+		elseif (JFactory::getLanguage()->hasKey($format))
+		{
+			$format = JText::_($format);
+		}
+
+		if ($gregorian)
+		{
+			return $date->format($format, true);
+		}
+		else
+		{
+			return $date->calendar($format, true);
+		}
+	}
+
+	/**
+	 * Creates a tooltip with an image as button
+	 *
+	 * @param   string  $tooltip  The tip string.
+	 * @param   mixed   $title    The title of the tooltip or an associative array with keys contained in
+	 *                            {'title','image','text','href','alt'} and values corresponding to parameters of the same name.
+	 * @param   string  $image    The image for the tip, if no text is provided.
+	 * @param   string  $text     The text for the tip.
+	 * @param   string  $href     An URL that will be used to create the link.
+	 * @param   string  $alt      The alt attribute for img tag.
+	 * @param   string  $class    CSS class for the tool tip.
+	 *
+	 * @return  string
+	 *
+	 * @since   1.5
+	 */
+	public static function tooltip($tooltip, $title = '', $image = 'tooltip.png', $text = '', $href = '', $alt = 'Tooltip', $class = 'hasTooltip')
+	{
+		if (is_array($title))
+		{
+			foreach (array('image', 'text', 'href', 'alt', 'class') as $param)
+			{
+				if (isset($title[$param]))
+				{
+					$$param = $title[$param];
+				}
+			}
+
+			if (isset($title['title']))
+			{
+				$title = $title['title'];
+			}
+			else
+			{
+				$title = '';
+			}
+		}
+
+		if (!$text)
+		{
+			$alt = htmlspecialchars($alt, ENT_COMPAT, 'UTF-8');
+			$text = static::image($image, $alt, null, true);
+		}
+
+		if ($href)
+		{
+			$tip = '<a href="' . $href . '">' . $text . '</a>';
+		}
+		else
+		{
+			$tip = $text;
+		}
+
+		if ($class == 'hasTip')
+		{
+			// Still using MooTools tooltips!
+			$tooltip = htmlspecialchars($tooltip, ENT_COMPAT, 'UTF-8');
+
+			if ($title)
+			{
+				$title = htmlspecialchars($title, ENT_COMPAT, 'UTF-8');
+				$tooltip = $title . '::' . $tooltip;
+			}
+		}
+		else
+		{
+			$tooltip = self::tooltipText($title, $tooltip, 0);
+		}
+
+		return '<span class="' . $class . '" title="' . $tooltip . '">' . $tip . '</span>';
+	}
+
+	/**
+	 * Converts a double colon seperated string or 2 separate strings to a string ready for bootstrap tooltips
+	 *
+	 * @param   string  $title      The title of the tooltip (or combined '::' separated string).
+	 * @param   string  $content    The content to tooltip.
+	 * @param   int     $translate  If true will pass texts through JText.
+	 * @param   int     $escape     If true will pass texts through htmlspecialchars.
+	 *
+	 * @return  string  The tooltip string
+	 *
+	 * @since   3.1.2
+	 */
+	public static function tooltipText($title = '', $content = '', $translate = 1, $escape = 1)
+	{
+		// Initialise return value.
+		$result = '';
+
+		// Don't process empty strings
+		if ($content != '' || $title != '')
+		{
+			// Split title into title and content if the title contains '::' (old Mootools format).
+			if ($content == '' && !(strpos($title, '::') === false))
+			{
+				list($title, $content) = explode('::', $title, 2);
+			}
+
+			// Pass texts through JText if required.
+			if ($translate)
+			{
+				$title = JText::_($title);
+				$content = JText::_($content);
+			}
+
+			// Use only the content if no title is given.
+			if ($title == '')
+			{
+				$result = $content;
+			}
+			// Use only the title, if title and text are the same.
+			elseif ($title == $content)
+			{
+				$result = '<strong>' . $title . '</strong>';
+			}
+			// Use a formatted string combining the title and content.
+			elseif ($content != '')
+			{
+				$result = '<strong>' . $title . '</strong><br />' . $content;
+			}
+			else
+			{
+				$result = $title;
+			}
+
+			// Escape everything, if required.
+			if ($escape)
+			{
+				$result = htmlspecialchars($result);
 			}
 		}
 
@@ -404,712 +1026,171 @@ class JDocument
 	}
 
 	/**
-	 * Sets or alters a meta tag.
+	 * Displays a calendar control field
 	 *
-	 * @param   string   $name        Value of name or http-equiv tag
-	 * @param   string   $content     Value of the content tag
-	 * @param   boolean  $http_equiv  META type "http-equiv" defaults to null
+	 * @param   string  $value    The date value
+	 * @param   string  $name     The name of the text field
+	 * @param   string  $id       The id of the text field
+	 * @param   string  $format   The date format
+	 * @param   mixed   $attribs  Additional HTML attributes
 	 *
-	 * @return  JDocument instance of $this to allow chaining
+	 * @return  string  HTML markup for a calendar field
 	 *
-	 * @since   11.1
+	 * @since   1.5
 	 */
-	public function setMetaData($name, $content, $http_equiv = false)
+	public static function calendar($value, $name, $id, $format = '%Y-%m-%d', $attribs = null)
 	{
-		if ($name == 'generator')
+		static $done;
+
+		if ($done === null)
 		{
-			$this->setGenerator($content);
+			$done = array();
 		}
-		elseif ($name == 'description')
+
+		$readonly = isset($attribs['readonly']) && $attribs['readonly'] == 'readonly';
+		$disabled = isset($attribs['disabled']) && $attribs['disabled'] == 'disabled';
+
+		if (is_array($attribs))
 		{
-			$this->setDescription($content);
+			$attribs['class'] = isset($attribs['class']) ? $attribs['class'] : 'input-medium';
+			$attribs['class'] = trim($attribs['class'] . ' hasTooltip');
+
+			$attribs = JArrayHelper::toString($attribs);
+		}
+
+		static::_('bootstrap.tooltip');
+
+		// Format value when not nulldate ('0000-00-00 00:00:00'), otherwise blank it as it would result in 1970-01-01.
+		if ($value && $value != JFactory::getDbo()->getNullDate() && strtotime($value) !== false)
+		{
+			$tz = date_default_timezone_get();
+			date_default_timezone_set('UTC');
+			$inputvalue = strftime($format, strtotime($value));
+			date_default_timezone_set($tz);
 		}
 		else
 		{
-			if ($http_equiv == true)
+			$inputvalue = '';
+		}
+
+		// Load the calendar behavior
+		static::_('behavior.calendar');
+
+		// Only display the triggers once for each control.
+		if (!in_array($id, $done))
+		{
+			$document = JFactory::getDocument();
+			$document
+				->addScriptDeclaration(
+				'jQuery(document).ready(function($) {Calendar.setup({
+			// Id of the input field
+			inputField: "' . $id . '",
+			// Format of the input field
+			ifFormat: "' . $format . '",
+			// Trigger for the calendar (button ID)
+			button: "' . $id . '_img",
+			// Alignment (defaults to "Bl")
+			align: "Tl",
+			singleClick: true,
+			firstDay: ' . JFactory::getLanguage()->getFirstDay() . '
+			});});'
+			);
+			$done[] = $id;
+		}
+
+		// Hide button using inline styles for readonly/disabled fields
+		$btn_style = ($readonly || $disabled) ? ' style="display:none;"' : '';
+		$div_class = (!$readonly && !$disabled) ? ' class="input-append"' : '';
+
+		return '<div' . $div_class . '>'
+				. '<input type="text" title="' . ($inputvalue ? static::_('date', $value, null, null) : '')
+				. '" name="' . $name . '" id="' . $id . '" value="' . htmlspecialchars($inputvalue, ENT_COMPAT, 'UTF-8') . '" ' . $attribs . ' />'
+				. '<button type="button" class="btn" id="' . $id . '_img"' . $btn_style . '><span class="icon-calendar"></span></button>'
+			. '</div>';
+	}
+
+	/**
+	 * Add a directory where JHtml should search for helpers. You may
+	 * either pass a string or an array of directories.
+	 *
+	 * @param   string  $path  A path to search.
+	 *
+	 * @return  array  An array with directory elements
+	 *
+	 * @since   1.5
+	 */
+	public static function addIncludePath($path = '')
+	{
+		// Force path to array
+		settype($path, 'array');
+
+		// Loop through the path directories
+		foreach ($path as $dir)
+		{
+			if (!empty($dir) && !in_array($dir, static::$includePaths))
 			{
-				$this->_metaTags['http-equiv'][$name] = $content;
+				array_unshift(static::$includePaths, JPath::clean($dir));
+			}
+		}
+
+		return static::$includePaths;
+	}
+
+	/**
+	 * Internal method to get a JavaScript object notation string from an array
+	 *
+	 * @param   array  $array  The array to convert to JavaScript object notation
+	 *
+	 * @return  string  JavaScript object notation representation of the array
+	 *
+	 * @deprecated 4.0 use json_encode or JRegistry::toString('json')
+	 *
+	 * @since   3.0
+	 */
+	public static function getJSObject(array $array = array())
+	{
+		JLog::add(__METHOD__ . ' is deprecated. Use json_encode instead.', JLog::WARNING, 'deprecated');
+
+		$elements = array();
+
+		foreach ($array as $k => $v)
+		{
+			// Don't encode either of these types
+			if (is_null($v) || is_resource($v))
+			{
+				continue;
+			}
+
+			// Safely encode as a Javascript string
+			$key = json_encode((string) $k);
+
+			if (is_bool($v))
+			{
+				$elements[] = $key . ': ' . ($v ? 'true' : 'false');
+			}
+			elseif (is_numeric($v))
+			{
+				$elements[] = $key . ': ' . ($v + 0);
+			}
+			elseif (is_string($v))
+			{
+				if (strpos($v, '\\') === 0)
+				{
+					// Items such as functions and JSON objects are prefixed with \, strip the prefix and don't encode them
+					$elements[] = $key . ': ' . substr($v, 1);
+				}
+				else
+				{
+					// The safest way to insert a string
+					$elements[] = $key . ': ' . json_encode((string) $v);
+				}
 			}
 			else
 			{
-				$this->_metaTags['standard'][$name] = $content;
+				$elements[] = $key . ': ' . static::getJSObject(is_object($v) ? get_object_vars($v) : $v);
 			}
 		}
 
-		return $this;
-	}
-
-	/**
-	 * Adds a linked script to the page
-	 *
-	 * @param   string   $url      URL to the linked script
-	 * @param   array    $options   Options:
-	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the script tag.
-	 *                              - version [empty/auto/custom value]: Add version to JS files.
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function addScript($url, $options = array())
-	{
-		// For B/C. Convert old function signature.
-		if (!is_array($options))
-		{
-			// Log that passing other arguments is deprecated.
-			JLog::add('Passing more than two argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
-
-			$arguments                		= func_get_args();
-			$options                   		= array();
-			$options['attribs']        		= array();
-			$options['attribs']['type']     = isset($arguments[1]) ? $arguments[1] : 'text/javascript';
-			$options['attribs']['defer']	= isset($arguments[2]) && $arguments[2] === true ? 'defer' : null;
-			$options['attribs']['async']	= isset($arguments[3]) && $arguments[3] === true ? 'async' : null;
-		}
-
-		// Add default values to options array.
-		$options['version']         = (isset($options['version']) ? $options['version'] : '');
-		$options['attribs']['type'] = (isset($options['attribs']['type']) ? $options['attribs']['type'] : 'text/javascript');
-
-		// Add version.
-		if ($options['version'] !== '')
-		{
-			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
-		}
-
-		// Add values to the scripts document array.
-		$this->_scripts[$url]['mime']    = $options['attribs']['type']; // For B/C
-		$this->_scripts[$url]['defer']   = null;
-		$this->_scripts[$url]['async']   = null;
-		$this->_scripts[$url]['attribs'] = $options['attribs'];
-
-		return $this;
-	}
-
-	/**
-	 * Adds a linked script to the page with a version to allow to flush it. Ex: myscript.js54771616b5bceae9df03c6173babf11d
-	 * If not specified Joomla! automatically handles versioning
-	 *
-	 * @param   string   $url      URL to the linked script
-	 * @param   string   $version  Version of the script
-	 * @param   string   $type     Type of script. Defaults to 'text/javascript'
-	 * @param   boolean  $defer    Adds the defer attribute.
-	 * @param   boolean  $async    Adds the async attribute.
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   3.2
-	 *
-	 * @deprecated   4.0  Use addScript with $options['version'] instead.
-	 */
-	public function addScriptVersion($url, $version = null, $type = "text/javascript", $defer = false, $async = false)
-	{
-		// Log that this is deprecated.
-		JLog::add(__METHOD__ . '() is deprecated. Use addScript() with \$options[\'version\'] instead.', JLog::WARNING, 'deprecated');
-
-		// Add version.
-		$options = array(
-						'version' => $version,
-						'attribs' => array('type' => $type, 'defer' => $defer, 'async' => $async),
-						);
-
-		return $this->addScript($url, $options);
-	}
-
-	/**
-	 * Adds a script to the page
-	 *
-	 * @param   string  $content  Script
-	 * @param   string  $type     Scripting mime (defaults to 'text/javascript')
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function addScriptDeclaration($content, $type = 'text/javascript')
-	{
-		if (!isset($this->_script[strtolower($type)]))
-		{
-			$this->_script[strtolower($type)] = $content;
-		}
-		else
-		{
-			$this->_script[strtolower($type)] .= chr(13) . $content;
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Adds a linked stylesheet to the page
-	 *
-	 * @param   string  $url      URL to the linked style sheet
-	 * @param   array    $options   Options:
-	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the link tag.
-	 *                              - version [empty/auto/custom value]: Add version to CSS files.
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function addStyleSheet($url, $options = array())
-	{
-		// For B/C. Convert old function signature.
-		if (!is_array($options))
-		{
-			// Log that passing other arguments is deprecated.
-			JLog::add('Passing more than two argument to ' . __METHOD__ . '() is deprecated. Use an array of options instead.', JLog::WARNING, 'deprecated');
-
-			$arguments                		= func_get_args();
-			$options                   		= array();
-			$options['attribs']        		= $attribs;
-			$options['attribs']['type']     = isset($arguments[1]) ? $arguments[1] : 'text/css';
-			$options['attribs']['media']	= isset($arguments[2]) ? $arguments[2] : null;
-		}
-
-		// Add default values to options array.
-		$options['version']         = (isset($options['version']) ? $options['version'] : '');
-		$options['attribs']['type'] = (isset($options['attribs']['type']) ? $options['attribs']['type'] : 'text/css');
-
-		// Add version.
-		if ($options['version'] !== '')
-		{
-			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
-		}
-
-		$this->_styleSheets[$url]['mime']    = $options['attribs']['type'];  // For B/C
-		$this->_styleSheets[$url]['media']   = null;
-		$this->_styleSheets[$url]['attribs'] = $options['attribs'];
-
-		return $this;
-	}
-
-	/**
-	 * Adds a linked stylesheet version to the page. Ex: template.css?54771616b5bceae9df03c6173babf11d
-	 * If not specified Joomla! automatically handles versioning
-	 *
-	 * @param   string  $url      URL to the linked style sheet
-	 * @param   string  $version  Version of the stylesheet
-	 * @param   string  $type     Mime encoding type
-	 * @param   string  $media    Media type that this stylesheet applies to
-	 * @param   array   $attribs  Array of attributes
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   3.2
-	 *
-	 * @deprecated   4.0  Use addStyleSheet with $options['version'] instead.
-	 */
-	public function addStyleSheetVersion($url, $version = null, $type = "text/css", $media = null, $attribs = array())
-	{
-		// Log that this is deprecated.
-		JLog::add(__METHOD__ . '() is deprecated. Use addStyleSheet() with \$options[\'version\'] instead.', JLog::WARNING, 'deprecated');
-
-		$options = array();
-		$options['version']          = $version;
-		$options['attribs']          = $attribs;
-		$options['attribs']['type']  = $type;
-		$options['attribs']['media'] = $media;
-
-		return $this->addStyleSheet($url, $options);
-	}
-
-	/**
-	 * Adds a stylesheet declaration to the page
-	 *
-	 * @param   string  $content  Style declarations
-	 * @param   string  $type     Type of stylesheet (defaults to 'text/css')
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function addStyleDeclaration($content, $type = 'text/css')
-	{
-		if (!isset($this->_style[strtolower($type)]))
-		{
-			$this->_style[strtolower($type)] = $content;
-		}
-		else
-		{
-			$this->_style[strtolower($type)] .= chr(13) . $content;
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Sets the document charset
-	 *
-	 * @param   string  $type  Charset encoding string
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setCharset($type = 'utf-8')
-	{
-		$this->_charset = $type;
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document charset encoding.
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getCharset()
-	{
-		return $this->_charset;
-	}
-
-	/**
-	 * Sets the global document language declaration. Default is English (en-gb).
-	 *
-	 * @param   string  $lang  The language to be set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setLanguage($lang = "en-gb")
-	{
-		$this->language = strtolower($lang);
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document language.
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getLanguage()
-	{
-		return $this->language;
-	}
-
-	/**
-	 * Sets the global document direction declaration. Default is left-to-right (ltr).
-	 *
-	 * @param   string  $dir  The language direction to be set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setDirection($dir = "ltr")
-	{
-		$this->direction = strtolower($dir);
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document direction declaration.
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getDirection()
-	{
-		return $this->direction;
-	}
-
-	/**
-	 * Sets the title of the document
-	 *
-	 * @param   string  $title  The title to be set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setTitle($title)
-	{
-		$this->title = $title;
-
-		return $this;
-	}
-
-	/**
-	 * Return the title of the document.
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getTitle()
-	{
-		return $this->title;
-	}
-
-	/**
-	 * Set the assets version
-	 *
-	 * @param   string  $mediaVersion  Media version to use
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   3.2
-	 */
-	public function setMediaVersion($mediaVersion)
-	{
-		$this->mediaVersion = strtolower($mediaVersion);
-
-		return $this;
-	}
-
-	/**
-	 * Return the media version
-	 *
-	 * @return  string
-	 *
-	 * @since   3.2
-	 */
-	public function getMediaVersion()
-	{
-		return $this->mediaVersion;
-	}
-
-	/**
-	 * Sets the base URI of the document
-	 *
-	 * @param   string  $base  The base URI to be set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setBase($base)
-	{
-		$this->base = $base;
-
-		return $this;
-	}
-
-	/**
-	 * Return the base URI of the document.
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getBase()
-	{
-		return $this->base;
-	}
-
-	/**
-	 * Sets the description of the document
-	 *
-	 * @param   string  $description  The description to set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setDescription($description)
-	{
-		$this->description = $description;
-
-		return $this;
-	}
-
-	/**
-	 * Return the title of the page.
-	 *
-	 * @return  string
-	 *
-	 * @since    11.1
-	 */
-	public function getDescription()
-	{
-		return $this->description;
-	}
-
-	/**
-	 * Sets the document link
-	 *
-	 * @param   string  $url  A url
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setLink($url)
-	{
-		$this->link = $url;
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document base url
-	 *
-	 * @return string
-	 *
-	 * @since   11.1
-	 */
-	public function getLink()
-	{
-		return $this->link;
-	}
-
-	/**
-	 * Sets the document generator
-	 *
-	 * @param   string  $generator  The generator to be set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setGenerator($generator)
-	{
-		$this->_generator = $generator;
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document generator
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getGenerator()
-	{
-		return $this->_generator;
-	}
-
-	/**
-	 * Sets the document modified date
-	 *
-	 * @param   string  $date  The date to be set
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setModifiedDate($date)
-	{
-		$this->_mdate = $date;
-
-		return $this;
-	}
-
-	/**
-	 * Returns the document modified date
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getModifiedDate()
-	{
-		return $this->_mdate;
-	}
-
-	/**
-	 * Sets the document MIME encoding that is sent to the browser.
-	 *
-	 * This usually will be text/html because most browsers cannot yet
-	 * accept the proper mime settings for XHTML: application/xhtml+xml
-	 * and to a lesser extent application/xml and text/xml. See the W3C note
-	 * ({@link http://www.w3.org/TR/xhtml-media-types/
-	 * http://www.w3.org/TR/xhtml-media-types/}) for more details.
-	 *
-	 * @param   string   $type  The document type to be sent
-	 * @param   boolean  $sync  Should the type be synced with HTML?
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 *
-	 * @link    http://www.w3.org/TR/xhtml-media-types
-	 */
-	public function setMimeEncoding($type = 'text/html', $sync = true)
-	{
-		$this->_mime = strtolower($type);
-
-		// Syncing with meta-data
-		if ($sync)
-		{
-			$this->setMetaData('content-type', $type . '; charset=' . $this->_charset, true);
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Return the document MIME encoding that is sent to the browser.
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function getMimeEncoding()
-	{
-		return $this->_mime;
-	}
-
-	/**
-	 * Sets the line end style to Windows, Mac, Unix or a custom string.
-	 *
-	 * @param   string  $style  "win", "mac", "unix" or custom string.
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setLineEnd($style)
-	{
-		switch ($style)
-		{
-			case 'win':
-				$this->_lineEnd = "\15\12";
-				break;
-			case 'unix':
-				$this->_lineEnd = "\12";
-				break;
-			case 'mac':
-				$this->_lineEnd = "\15";
-				break;
-			default:
-				$this->_lineEnd = $style;
-		}
-
-		return $this;
-	}
-
-	/**
-	 * Returns the lineEnd
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function _getLineEnd()
-	{
-		return $this->_lineEnd;
-	}
-
-	/**
-	 * Sets the string used to indent HTML
-	 *
-	 * @param   string  $string  String used to indent ("\11", "\t", '  ', etc.).
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function setTab($string)
-	{
-		$this->_tab = $string;
-
-		return $this;
-	}
-
-	/**
-	 * Returns a string containing the unit for indenting HTML
-	 *
-	 * @return  string
-	 *
-	 * @since   11.1
-	 */
-	public function _getTab()
-	{
-		return $this->_tab;
-	}
-
-	/**
-	 * Load a renderer
-	 *
-	 * @param   string  $type  The renderer type
-	 *
-	 * @return  JDocumentRenderer
-	 *
-	 * @since   11.1
-	 * @throws  RuntimeException
-	 */
-	public function loadRenderer($type)
-	{
-		// New class name format adds the format type to the class name
-		$class = 'JDocumentRenderer' . ucfirst($this->getType()) . ucfirst($type);
-
-		if (!class_exists($class))
-		{
-			// "Legacy" class name structure
-			$class = 'JDocumentRenderer' . $type;
-
-			if (!class_exists($class))
-			{
-				// @deprecated 4.0 - Non-autoloadable class support is deprecated, only log a message though if a file is found
-				$path = __DIR__ . '/' . $this->getType() . '/renderer/' . $type . '.php';
-
-				if (!file_exists($path))
-				{
-					throw new RuntimeException('Unable to load renderer class', 500);
-				}
-
-				JLog::add('Non-autoloadable JDocumentRenderer subclasses are deprecated, support will be removed in 4.0.', JLog::WARNING, 'deprecated');
-				require_once $path;
-
-				// If the class still doesn't exist after including the path, we've got issues
-				if (!class_exists($class))
-				{
-					throw new RuntimeException('Unable to load renderer class', 500);
-				}
-			}
-		}
-
-		return new $class($this);
-	}
-
-	/**
-	 * Parses the document and prepares the buffers
-	 *
-	 * @param   array  $params  The array of parameters
-	 *
-	 * @return  JDocument instance of $this to allow chaining
-	 *
-	 * @since   11.1
-	 */
-	public function parse($params = array())
-	{
-		return $this;
-	}
-
-	/**
-	 * Outputs the document
-	 *
-	 * @param   boolean  $cache   If true, cache the output
-	 * @param   array    $params  Associative array of attributes
-	 *
-	 * @return  The rendered data
-	 *
-	 * @since   11.1
-	 */
-	public function render($cache = false, $params = array())
-	{
-		$app = JFactory::getApplication();
-
-		if ($mdate = $this->getModifiedDate())
-		{
-			$app->modifiedDate = $mdate;
-		}
-
-		$app->mimeType = $this->_mime;
-		$app->charSet  = $this->_charset;
+		return '{' . implode(',', $elements) . '}';
 	}
 }
