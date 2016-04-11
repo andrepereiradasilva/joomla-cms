@@ -126,7 +126,21 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		$mimeTypes = $document->isHtml5() ? $defaultMimeTypes['css'] : array();
 		foreach ($document->_styleSheets as $uri => $options)
 		{
-			$buffer .= $tab . '<link rel="stylesheet" href="' . $uri . '"' . $this->fetchAttributes($options['attribs'], $mimeTypes) . ' />' . $lnEnd;
+			$buffer .= $tab;
+
+			if (!is_null($options['conditional']))
+			{
+				$buffer .= '<!--[if ' . $options['conditional']. ']>';
+			}
+
+			$buffer .= '<link rel="stylesheet" href="' . $uri . '"' . $this->fetchAttributes($options['attribs'], $mimeTypes) . ' />';
+
+			if (!is_null($options['conditional']))
+			{
+				$buffer .= '<![endif]-->';
+			}
+
+			$buffer .= $lnEnd;
 		}
 
 		// Generate stylesheet declarations
@@ -162,7 +176,21 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		$mimeTypes = $document->isHtml5() ? $defaultMimeTypes['js'] : array();
 		foreach ($document->_scripts as $uri => $options)
 		{
-			$buffer .= $tab . '<script src="' . $uri . '"'. $this->fetchAttributes($options['attribs'], $mimeTypes) . '></script>' . $lnEnd;
+			$buffer .= $tab;
+
+			if (!is_null($options['conditional']))
+			{
+				$buffer .= '<!--[if ' . $options['conditional']. ']>';
+			}
+
+			$buffer .= '<script src="' . $uri . '"'. $this->fetchAttributes($options['attribs'], $mimeTypes) . '></script>';
+
+			if (!is_null($options['conditional']))
+			{
+				$buffer .= '<![endif]-->';
+			}
+
+			$buffer .= $lnEnd;
 		}
 
 		// Generate script declarations
