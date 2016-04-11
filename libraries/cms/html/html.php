@@ -287,7 +287,7 @@ abstract class JHtml
 	 * @return  string   query string to add.
 	 *
 	 * @see     JBrowser
-	 * @since   3.6
+	 * @since   __DEPLOY_VERSION__
 	 *
 	 * @deprecated   4.0  Usage of MD5SUM files is deprecated, use version instead.
 	 */
