@@ -462,7 +462,7 @@ class JDocument
 			$arguments                		= func_get_args();
 			$options                   		= array();
 			$options['attribs']        		= array();
-			$options['attribs']['type']     = isset($arguments[1]) ? $arguments[1] : 'text/javascript';
+			$options['attribs']['type']     = isset($arguments[1]) && !empty($arguments[1]) ? $arguments[1] : 'text/javascript';
 			$options['attribs']['defer']	= isset($arguments[2]) && $arguments[2] === true ? 'defer' : null;
 			$options['attribs']['async']	= isset($arguments[3]) && $arguments[3] === true ? 'async' : null;
 		}
@@ -565,9 +565,9 @@ class JDocument
 
 			$arguments                		= func_get_args();
 			$options                   		= array();
-			$options['attribs']        		= $attribs;
-			$options['attribs']['type']     = isset($arguments[1]) ? $arguments[1] : 'text/css';
-			$options['attribs']['media']	= isset($arguments[2]) ? $arguments[2] : null;
+			$options['attribs']        		= isset($arguments[3]) ? $arguments[3] : array();
+			$options['attribs']['type']     = isset($arguments[1]) && !empty($arguments[1]) ? $arguments[1] : 'text/css';
+			$options['attribs']['media']	= isset($arguments[2]) && !empty($arguments[2]) ? $arguments[2] : null;
 		}
 
 		// Add default values to options array.
@@ -614,7 +614,7 @@ class JDocument
 		$options['version']          = $version === null ? 'auto' : $version;
 		$options['attribs']          = !is_null($attribs) ? $attribs : array();
 		$options['attribs']['type']  = $type !== '' ? $type : 'text/css';
-		$options['attribs']['media'] = $media;
+		$options['attribs']['media'] = !empty($media) ? $media : null;
 
 		return $this->addStyleSheet($url, $options);
 	}
