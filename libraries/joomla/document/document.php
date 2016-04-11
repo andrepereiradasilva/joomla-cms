@@ -479,10 +479,11 @@ class JDocument
 		}
 
 		// Add values to the scripts document array.
-		$this->_scripts[$url]['mime']    = $options['attribs']['type']; // For B/C
-		$this->_scripts[$url]['defer']   = null;
-		$this->_scripts[$url]['async']   = null;
-		$this->_scripts[$url]['attribs'] = $options['attribs'];
+		$this->_scripts[$url]['mime']        = $options['attribs']['type']; // For B/C
+		$this->_scripts[$url]['defer']       = null;
+		$this->_scripts[$url]['async']       = null;
+		$this->_scripts[$url]['conditional'] = isset($options['conditional']) && !empty($options['conditional']) ? $options['conditional'] : null;
+		$this->_scripts[$url]['attribs']     = $options['attribs'];
 
 		return $this;
 	}
@@ -579,9 +580,10 @@ class JDocument
 			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
 		}
 
-		$this->_styleSheets[$url]['mime']    = $options['attribs']['type'];  // For B/C
-		$this->_styleSheets[$url]['media']   = null;
-		$this->_styleSheets[$url]['attribs'] = $options['attribs'];
+		$this->_styleSheets[$url]['mime']        = $options['attribs']['type'];  // For B/C
+		$this->_styleSheets[$url]['media']       = null;
+		$this->_styleSheets[$url]['conditional'] = isset($options['conditional']) && !empty($options['conditional']) ? $options['conditional'] : null;
+		$this->_styleSheets[$url]['attribs']     = $options['attribs'];
 
 		return $this;
 	}
