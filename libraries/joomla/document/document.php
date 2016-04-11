@@ -444,8 +444,10 @@ class JDocument
 	 *
 	 * @param   string   $url      URL to the linked script
 	 * @param   array    $options   Options:
+	 *                              - inline [true/false]: True for inline scripts, false for external scripts.
+	 *                              - version [empty/auto/custom value]: Add version to JS files. Only for external JS.
+	 *                              - conditional [conditional statement]: Add the tag inside a conditional statment.
 	 *                              - attribs [array of html attributes]: Associative array of attribute(s) to add to the script tag.
-	 *                              - version [empty/auto/custom value]: Add version to JS files.
 	 *
 	 * @return  JDocument instance of $this to allow chaining
 	 *
@@ -463,27 +465,53 @@ class JDocument
 			$options                   		= array();
 			$options['attribs']        		= array();
 			$options['attribs']['type']     = isset($arguments[1]) && !empty($arguments[1]) ? $arguments[1] : 'text/javascript';
-			$options['attribs']['defer']	= isset($arguments[2]) && $arguments[2] === true ? 'defer' : null;
-			$options['attribs']['async']	= isset($arguments[3]) && $arguments[3] === true ? 'async' : null;
+			if (isset($arguments[2]) && $arguments[2] === true)
+			{
+				$options['attribs']['defer'] = 'defer';
+			}
+			if (isset($arguments[3]) && $arguments[3] === true)
+			{
+				$options['attribs']['async'] = 'async';
+			}
 		}
 
 		// Add default values to options array.
-		$options['version']         = (isset($options['version']) ? $options['version'] : '');
-		$options['attribs']['type'] = (isset($options['attribs']['type']) ? $options['attribs']['type'] : 'text/javascript');
+		$options['version']         = isset($options['version']) ? $options['version'] : '';
+		$options['inline']          = isset($options['inline']) ? $options['inline'] : false;
+		$options['attribs']         = isset($options['attribs']) ? $options['attribs'] : array();
+		$options['attribs']['type'] = isset($options['attribs']['type']) && !empty($options['attribs']['type']) ? $options['attribs']['type'] : 'text/javascript';
 
-		// Add version.
-		if ($options['version'] !== '')
+		// For inline scripts.
+		if ($options['inline'] == true)
 		{
-			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
-		}
+			$identifier = $options['attribs']['type'];
 
-		// Add values to the scripts document array.
-		$this->_scripts[$url]['mime']        = $options['attribs']['type']; // For B/C
-		$this->_scripts[$url]['defer']       = null;
-		$this->_scripts[$url]['async']       = null;
-		$this->_scripts[$url]['conditional'] = isset($options['conditional']) && !empty($options['conditional']) ? $options['conditional'] : null;
-		$this->_scripts[$url]['attribs']     = $options['attribs'];
+			if (!isset($this->_script[$identifier]))
+			{
+				$this->_script[$identifier] = $url;
+			}
+			else
+			{
+				$this->_script[$identifier] .= chr(13) . $url;
+			}
+		}
+		// For external scripts.
+		else
+		{
+			// Add version.
+			if ($options['version'] !== '')
+			{
+				$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
+				$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
+			}
+
+			// Add values to the scripts document array.
+			$this->_scripts[$url]['mime']        = $options['attribs']['type']; // For B/C
+			$this->_scripts[$url]['defer']       = null;
+			$this->_scripts[$url]['async']       = null;
+			$this->_scripts[$url]['conditional'] = isset($options['conditional']) && !empty($options['conditional']) ? $options['conditional'] : null;
+			$this->_scripts[$url]['attribs']     = $options['attribs'];
+		}
 
 		return $this;
 	}
@@ -512,7 +540,7 @@ class JDocument
 		$options = array();
 		$options['version']          = $version === null ? 'auto' : $version;
 		$options['attribs']          = array();
-		$options['attribs']['type']  = $type !== '' ? $type : 'text/javascript';
+		$options['attribs']['type']  = !empty($type) ? $type : 'text/javascript';
 		$options['attribs']['defer'] = $defer ? 'defer' : null;
 		$options['attribs']['async'] = $async ? 'async' : null;
 
@@ -528,19 +556,20 @@ class JDocument
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   11.1
+	 *
+	 * @deprecated   4.0  Use addScript with $options['inline'] instead.
 	 */
 	public function addScriptDeclaration($content, $type = 'text/javascript')
 	{
-		if (!isset($this->_script[strtolower($type)]))
-		{
-			$this->_script[strtolower($type)] = $content;
-		}
-		else
-		{
-			$this->_script[strtolower($type)] .= chr(13) . $content;
-		}
+		// Log that this is deprecated.
+		JLog::add(__METHOD__ . '() is deprecated. Use addScript() with \$options[\'inline\'] instead.', JLog::WARNING, 'deprecated');
 
-		return $this;
+		$options = array();
+		$options['inline']          = true;
+		$options['attribs']         = array();
+		$options['attribs']['type'] = !empty($type) ? $type : 'text/javascript';
+
+		return $this->addScript($content, $options);
 	}
 
 	/**
@@ -571,20 +600,40 @@ class JDocument
 		}
 
 		// Add default values to options array.
-		$options['version']         = (isset($options['version']) ? $options['version'] : '');
-		$options['attribs']['type'] = (isset($options['attribs']['type']) ? $options['attribs']['type'] : 'text/css');
+		$options['version']         = isset($options['version']) ? $options['version'] : '';
+		$options['inline']          = isset($options['inline']) ? $options['inline'] : false;
+		$options['attribs']         = isset($options['attribs']) ? $options['attribs'] : array();
+		$options['attribs']['type'] = isset($options['attribs']['type']) && !empty($options['attribs']['type']) ? $options['attribs']['type'] : 'text/css';
 
-		// Add version.
-		if ($options['version'] !== '')
+		// For inline styles.
+		if ($options['inline'] == true)
 		{
-			$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
-			$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
-		}
+			$identifier = $options['attribs']['type'];
 
-		$this->_styleSheets[$url]['mime']        = $options['attribs']['type'];  // For B/C
-		$this->_styleSheets[$url]['media']       = null;
-		$this->_styleSheets[$url]['conditional'] = isset($options['conditional']) && !empty($options['conditional']) ? $options['conditional'] : null;
-		$this->_styleSheets[$url]['attribs']     = $options['attribs'];
+			if (!isset($this->_style[$identifier]))
+			{
+				$this->_style[$identifier] = $url;
+			}
+			else
+			{
+				$this->_style[$identifier] .= chr(13) . $url;
+			}
+		}
+		// For external styles.
+		else
+		{
+			// Add version.
+			if ($options['version'] !== '')
+			{
+				$url .= (strpos($url, '?') === false) ? '?' : '&amp;';
+				$url .= ($options['version'] === null || $options['version'] === 'auto') ? $this->getMediaVersion() : $options['version'];
+			}
+
+			$this->_styleSheets[$url]['mime']        = $options['attribs']['type'];  // For B/C
+			$this->_styleSheets[$url]['media']       = null;
+			$this->_styleSheets[$url]['conditional'] = isset($options['conditional']) && !empty($options['conditional']) ? $options['conditional'] : null;
+			$this->_styleSheets[$url]['attribs']     = $options['attribs'];
+		}
 
 		return $this;
 	}
@@ -613,7 +662,7 @@ class JDocument
 		$options = array();
 		$options['version']          = $version === null ? 'auto' : $version;
 		$options['attribs']          = !is_null($attribs) ? $attribs : array();
-		$options['attribs']['type']  = $type !== '' ? $type : 'text/css';
+		$options['attribs']['type']  = !empty($type) ? $type : 'text/css';
 		$options['attribs']['media'] = !empty($media) ? $media : null;
 
 		return $this->addStyleSheet($url, $options);
@@ -628,19 +677,20 @@ class JDocument
 	 * @return  JDocument instance of $this to allow chaining
 	 *
 	 * @since   11.1
+	 *
+	 * @deprecated   4.0  Use addStyleSheet with $options['inline'] instead.
 	 */
 	public function addStyleDeclaration($content, $type = 'text/css')
 	{
-		if (!isset($this->_style[strtolower($type)]))
-		{
-			$this->_style[strtolower($type)] = $content;
-		}
-		else
-		{
-			$this->_style[strtolower($type)] .= chr(13) . $content;
-		}
+		// Log that this is deprecated.
+		JLog::add(__METHOD__ . '() is deprecated. Use addStyleSheet() with \$options[\'inline\'] instead.', JLog::WARNING, 'deprecated');
 
-		return $this;
+		$options = array();
+		$options['inline']          = true;
+		$options['attribs']         = array();
+		$options['attribs']['type'] = !empty($type) ? $type : 'text/css';
+
+		return $this->addStyleSheet($content, $options);
 	}
 
 	/**
