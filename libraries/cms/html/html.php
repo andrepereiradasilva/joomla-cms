@@ -700,7 +700,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addStyleSheetVersion($include, $options['version'], 'text/css', null, $options['attribs']);
+				$document->addStyleSheet($include, $options);
 			}
 		}
 	}
@@ -788,7 +788,7 @@ abstract class JHtml
 
 			foreach ($includes as $include)
 			{
-				$document->addScriptVersion($include, $options['version'], 'text/javascript', false, false, $options['attribs']);
+				$document->addScript($include, $options);
 			}
 		}
 	}
