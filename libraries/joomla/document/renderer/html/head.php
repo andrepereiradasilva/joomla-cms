@@ -63,6 +63,11 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		$tagEnd = ' />';
 		$buffer = '';
 
+		$defaultMimeTypes = array(
+									'css' => array('text/css'),
+									'js' => array('text/javascript', 'application/javascript', 'text/x-javascript', 'application/x-javascript'),
+								);
+
 		// Generate charset when using HTML5 (should happen first)
 		if ($document->isHtml5())
 		{
@@ -112,51 +117,43 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		$buffer .= $tab . '<title>' . htmlspecialchars($document->getTitle(), ENT_COMPAT, 'UTF-8') . '</title>' . $lnEnd;
 
 		// Generate link declarations
-		foreach ($document->_links as $link => $linkAtrr)
+		foreach ($document->_links as $uri => $options)
 		{
-			$buffer .= $tab . '<link href="' . $link . '" ' . $linkAtrr['relType'] . '="' . $linkAtrr['relation'] . '"';
-
-			if (is_array($linkAtrr['attribs']))
-			{
-				if ($temp = ArrayHelper::toString($linkAtrr['attribs']))
-				{
-					$buffer .= ' ' . $temp;
-				}
-			}
-
-			$buffer .= ' />' . $lnEnd;
+			$buffer .= $tab . '<link ' . $options['relType'] . '="' . $options['relation'] . '" href="' . $uri . '"' . $this->fetchAttributes($options['attribs']) . ' />' . $lnEnd;
 		}
 
 		// Generate stylesheet links
-		foreach ($document->_styleSheets as $strSrc => $strAttr)
+		$mimeTypes = $document->isHtml5() ? $defaultMimeTypes['css'] : array();
+		foreach ($document->_styleSheets as $uri => $options)
 		{
-			$buffer .= $tab . '<link rel="stylesheet" href="' . $strSrc . '"';
+			$buffer .= $tab;
 
-			if (!is_null($strAttr['mime']) && (!$document->isHtml5() || $strAttr['mime'] != 'text/css'))
+			if (!is_null($options['conditional']))
 			{
-				$buffer .= ' type="' . $strAttr['mime'] . '"';
+				$buffer .= '<!--[if ' . $options['conditional']. ']>';
 			}
 
-			if (!is_null($strAttr['media']))
+			$buffer .= '<link rel="stylesheet" href="' . $uri . '"' . $this->fetchAttributes($options['attribs'], $mimeTypes) . ' />';
+
+			if (!is_null($options['conditional']))
 			{
-				$buffer .= ' media="' . $strAttr['media'] . '"';
+				$buffer .= '<![endif]-->';
 			}
 
-			if (is_array($strAttr['attribs']))
-			{
-				if ($temp = ArrayHelper::toString($strAttr['attribs']))
-				{
-					$buffer .= ' ' . $temp;
-				}
-			}
-
-			$buffer .= $tagEnd . $lnEnd;
+			$buffer .= $lnEnd;
 		}
 
 		// Generate stylesheet declarations
 		foreach ($document->_style as $type => $content)
 		{
-			$buffer .= $tab . '<style type="' . $type . '">' . $lnEnd;
+			$buffer .= $tab . '<style';
+
+			if (!is_null($type) && !in_array($type, $mimeTypes))
+			{
+				$buffer .= ' type="' . $type . '"';
+			}
+
+			$buffer .= '>' . $lnEnd;
 
 			// This is for full XHTML support.
 			if ($document->_mime != 'text/html')
@@ -176,35 +173,37 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		}
 
 		// Generate script file links
-		foreach ($document->_scripts as $strSrc => $strAttr)
+		$mimeTypes = $document->isHtml5() ? $defaultMimeTypes['js'] : array();
+		foreach ($document->_scripts as $uri => $options)
 		{
-			$buffer .= $tab . '<script src="' . $strSrc . '"';
-			$defaultMimes = array(
-				'text/javascript', 'application/javascript', 'text/x-javascript', 'application/x-javascript'
-			);
+			$buffer .= $tab;
 
-			if (!is_null($strAttr['mime']) && (!$document->isHtml5() || !in_array($strAttr['mime'], $defaultMimes)))
+			if (!is_null($options['conditional']))
 			{
-				$buffer .= ' type="' . $strAttr['mime'] . '"';
+				$buffer .= '<!--[if ' . $options['conditional']. ']>';
 			}
 
-			if ($strAttr['defer'])
+			$buffer .= '<script src="' . $uri . '"'. $this->fetchAttributes($options['attribs'], $mimeTypes) . '></script>';
+
+			if (!is_null($options['conditional']))
 			{
-				$buffer .= ' defer="defer"';
+				$buffer .= '<![endif]-->';
 			}
 
-			if ($strAttr['async'])
-			{
-				$buffer .= ' async="async"';
-			}
-
-			$buffer .= '></script>' . $lnEnd;
+			$buffer .= $lnEnd;
 		}
 
 		// Generate script declarations
 		foreach ($document->_script as $type => $content)
 		{
-			$buffer .= $tab . '<script type="' . $type . '">' . $lnEnd;
+			$buffer .= $tab . '<script';
+
+			if (!is_null($type) && !in_array($type, $mimeTypes))
+			{
+				$buffer .= ' type="' . $type . '"';
+			}
+
+			$buffer .= '>' . $lnEnd;
 
 			// This is for full XHTML support.
 			if ($document->_mime != 'text/html')
@@ -226,7 +225,14 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		// Generate script language declarations.
 		if (count(JText::script()))
 		{
-			$buffer .= $tab . '<script type="text/javascript">' . $lnEnd;
+			$buffer .= $tab . '<script';
+
+			if (!is_null($type) && !in_array($type, $mimeTypes))
+			{
+				$buffer .= ' type="' . $type . '"';
+			}
+
+			$buffer .= '>' . $lnEnd;
 
 			if ($document->_mime != 'text/html')
 			{
@@ -249,6 +255,48 @@ class JDocumentRendererHtmlHead extends JDocumentRenderer
 		foreach (array_unique($document->_custom) as $custom)
 		{
 			$buffer .= $tab . $custom . $lnEnd;
+		}
+
+		return $buffer;
+	}
+
+	/**
+	 * Generates the HTML tag attributes as a string
+	 *
+	 * @param   JDocumentHtml  $document    The document for which the head will be created.
+	 * @param   array          $attributes  The array of attributes.
+	 * @param   array          $mimeTypes   Type default mime types in html5.
+	 *
+	 * @return  string  The attributes HTML.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 *
+	 * @deprecated  4.0  Method code will be moved into the render method
+	 */
+	protected function fetchAttributes(array $attributes = array(), array $mimeTypes = array())
+	{
+		$buffer = '';
+
+		foreach ($attributes as $attrib => $attribValue)
+		{
+			if (is_null($attribValue))
+			{
+				continue;
+			}
+			else if (is_scalar($attribValue))
+			{
+				// Do not add the js/css type in html5.
+				if ($mimeTypes !== array() && $attrib === 'type' && in_array($attribValue, $mimeTypes))
+				{
+					continue;
+				}
+
+				$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars($attribValue) . '"';
+			}
+			else
+			{
+				$buffer .= ' ' . htmlspecialchars($attrib) . '=' . '"' . htmlspecialchars(json_encode($attribValue)) . '"';
+			}
 		}
 
 		return $buffer;
