@@ -15,32 +15,25 @@ $lang            = JFactory::getLanguage();
 $this->language  = $doc->language;
 $this->direction = $doc->direction;
 
-// Add JavaScript Frameworks
+$assetOptions = array('relative' => true, 'version' => 'auto');
+
+// Add JavaScript Frameworks.
 JHtml::_('bootstrap.framework');
 
-$doc->addScript($this->baseurl . '/templates/' . $this->template . '/js/template.js');
+// Add template javascript code
+JHtml::_('script', 'js/template.js', $assetOptions);
 
-// Add Stylesheets
-$doc->addStyleSheet($this->baseurl . '/templates/' . $this->template . '/css/template.css');
+// Add template style file.
+JHtml::_('stylesheet', 'css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
 
-// Load optional RTL Bootstrap CSS
+// Load language related style file (if exists).
+JHtml::_('stylesheet', 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css', $assetOptions);
+
+// Add the custom style file (if exists).
+JHtml::_('stylesheet', 'css/custom.css', $assetOptions);
+
+// Add rtl bootstrap style (if text direction is rtl).
 JHtml::_('bootstrap.loadCss', false, $this->direction);
-
-// Load specific language related CSS
-$file = 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css';
-
-if (is_file($file))
-{
-	$doc->addStyleSheet($file);
-}
-
-// Load custom.css
-$file = 'templates/' . $this->template . '/css/custom.css';
-
-if (is_file($file))
-{
-	$doc->addStyleSheetVersion($file);
-}
 ?>
 
 <!DOCTYPE html>

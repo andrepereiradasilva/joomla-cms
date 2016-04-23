@@ -14,14 +14,25 @@ $doc             = JFactory::getDocument();
 $this->language  = $doc->language;
 $this->direction = $doc->direction;
 
-// Add JavaScript Frameworks
+$assetOptions = array('relative' => true, 'version' => 'auto');
+
+// Add JavaScript Frameworks.
 JHtml::_('bootstrap.framework');
 
-// Add Stylesheets
-$doc->addStyleSheet($this->baseurl . '/templates/' . $this->template . '/css/template.css');
+// Add template style file.
+JHtml::_('stylesheet', 'css/template.css', $assetOptions);
 
-// Load optional rtl Bootstrap css and Bootstrap bugfixes
-JHtmlBootstrap::loadCss($includeMaincss = false, $this->direction);
+// Add the custom style file (if exists).
+JHtml::_('stylesheet', 'css/user.css', $assetOptions);
+
+// Add rtl bootstrap style (if text direction is rtl).
+JHtml::_('bootstrap.loadCss', false, $this->direction);
+
+// Add Google Font style.
+if ($this->params->get('googleFont'))
+{
+	JHtml::_('stylesheet', '//fonts.googleapis.com/css?family=' . $this->params->get('googleFontName'));
+}
 
 ?>
 <!DOCTYPE html>

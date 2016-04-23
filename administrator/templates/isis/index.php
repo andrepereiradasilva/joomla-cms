@@ -17,29 +17,25 @@ $this->direction = $doc->direction;
 $input           = $app->input;
 $user            = JFactory::getUser();
 
-// Add JavaScript Frameworks
+$assetOptions = array('relative' => true, 'version' => 'auto');
+
+// Add JavaScript Frameworks.
 JHtml::_('bootstrap.framework');
 
-$doc->addScriptVersion($this->baseurl . '/templates/' . $this->template . '/js/template.js');
+// Add template javascript code
+JHtml::_('script', 'js/template.js', $assetOptions);
 
-// Add Stylesheets
-$doc->addStyleSheetVersion($this->baseurl . '/templates/' . $this->template . '/css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css');
+// Add template style file.
+JHtml::_('stylesheet', 'css/template' . ($this->direction == 'rtl' ? '-rtl' : '') . '.css', $assetOptions);
 
-// Load specific language related CSS
-$languageCss = 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css';
+// Load language related style file (if exists).
+JHtml::_('stylesheet', 'language/' . $lang->getTag() . '/' . $lang->getTag() . '.css', $assetOptions);
 
-if (file_exists($languageCss) && filesize($languageCss) > 0)
-{
-	$doc->addStyleSheetVersion($languageCss);
-}
+// Add the custom style file (if exists).
+JHtml::_('stylesheet', 'css/custom.css', $assetOptions);
 
-// Load custom.css
-$customCss = 'templates/' . $this->template . '/css/custom.css';
-
-if (file_exists($customCss) && filesize($customCss) > 0)
-{
-	$doc->addStyleSheetVersion($customCss);
-}
+// Add rtl bootstrap style (if text direction is rtl).
+JHtml::_('bootstrap.loadCss', false, $this->direction);
 
 // Detecting Active Variables
 $option   = $input->get('option', '');
