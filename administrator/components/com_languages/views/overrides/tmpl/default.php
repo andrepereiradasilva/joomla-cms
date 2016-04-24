@@ -50,13 +50,13 @@ $listDirn   = $this->escape($this->state->get('list.direction'));
 						<th class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'COM_LANGUAGES_VIEW_OVERRIDES_TEXT', 'text', $listDirn, $listOrder); ?>
 						</th>
-						<th width="20%" class="nowrap hidden-phone">
+						<th width="15%" class="nowrap hidden-phone hidden-tablet">
 							<?php echo JText::_('COM_LANGUAGES_HEADING_LANGUAGE'); ?>
 						</th>
-						<th width="1%" class="nowrap hidden-phone">
+						<th width="1%" class="nowrap hidden-phone hidden-tablet">
 							<?php echo JText::_('COM_LANGUAGES_HEADING_LANG_TAG'); ?>
 						</th>
-						<th width="1%" class="nowrap hidden-phone">
+						<th width="1%" class="nowrap hidden-phone hidden-tablet">
 							<?php echo JText::_('JCLIENT'); ?>
 						</th>
 					</tr>
@@ -86,13 +86,13 @@ $listDirn   = $this->escape($this->state->get('list.direction'));
 						<td class="hidden-phone">
 							<span id="string[<?php	echo $this->escape($key); ?>]"><?php echo $this->escape($text); ?></span>
 						</td>
-						<td class="hidden-phone">
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $languages[$language]['name']; ?>
 						</td>
-						<td class="hidden-phone">
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $language; ?>
 						</td>
-						<td class="hidden-phone">
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $client; ?>
 						</td>
 					</tr>
