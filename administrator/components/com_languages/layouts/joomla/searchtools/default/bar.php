@@ -22,5 +22,15 @@ if ($data['view'] instanceof LanguagesViewInstalled)
 <?php
 }
 
+if ($data['view'] instanceof LanguagesViewOverrides)
+{
+	// We will get the client filter & remove it from the form filters
+	$LanguageClientIdField = $data['view']->filterForm->getField('language_client');
+?>
+	<div class="js-stools-field-filter js-stools-language_client">
+		<?php echo $LanguageClientIdField->input; ?>
+	</div>
+<?php
+}
 // Display the main joomla layout
 echo JLayoutHelper::render('joomla.searchtools.default.bar', $data, null, array('component' => 'none'));

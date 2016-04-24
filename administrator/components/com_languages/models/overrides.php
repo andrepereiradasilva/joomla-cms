@@ -27,9 +27,15 @@ class LanguagesModelOverrides extends JModelList
 	 */
 	public function __construct($config = array())
 	{
-		parent::__construct($config);
+		if (empty($config['filter_fields']))
+		{
+			$config['filter_fields'] = array(
+				'key',
+				'text',
+			);
+		}
 
-		$this->filter_fields = array('key', 'text');
+		parent::__construct($config);
 	}
 
 	/**
@@ -52,10 +58,10 @@ class LanguagesModelOverrides extends JModelList
 			return $this->cache[$store];
 		}
 
-		$client = in_array($this->state->get('filter.client'), array(0, 'site')) ? 'SITE' : 'ADMINISTRATOR';
+		$clientPath = (int) $this->getState('client_id') ? JPATH_ADMINISTRATOR : JPATH_SITE;
 
 		// Parse the override.ini file in order to get the keys and strings.
-		$filename = constant('JPATH_' . $client) . '/language/overrides/' . $this->getState('filter.language') . '.override.ini';
+		$filename = $clientPath . '/language/overrides/' . $this->getState('language') . '.override.ini';
 		$strings = LanguagesHelper::parseFile($filename);
 
 		// Delete the override.ini file if empty.
@@ -65,9 +71,7 @@ class LanguagesModelOverrides extends JModelList
 		}
 
 		// Filter the loaded strings according to the search box.
-		$search = $this->getState('filter.search');
-
-		if ($search != '')
+		if ($search = $this->getState('filter.search'))
 		{
 			$search = preg_quote($search, '~');
 			$matchvals = preg_grep('~' . $search . '~i', $strings);
@@ -76,7 +80,7 @@ class LanguagesModelOverrides extends JModelList
 		}
 
 		// Consider the ordering
-		if ($this->getState('list.ordering') == 'text')
+		if ($this->getState('list.ordering', 'key') == 'text')
 		{
 			if (strtoupper($this->getState('list.direction')) == 'DESC')
 			{
@@ -147,41 +151,41 @@ class LanguagesModelOverrides extends JModelList
 	 *
 	 * @since   2.5
 	 */
-	protected function populateState($ordering = null, $direction = null)
+	protected function populateState($ordering = 'key', $direction = 'asc')
 	{
 		$app = JFactory::getApplication();
 
-		// Use default language of frontend for default filter.
-		$default = JComponentHelper::getParams('com_languages')->get('site') . '0';
+		// Use default language of frontend for default filter and site client.
+		$default = JComponentHelper::getParams('com_languages')->get('site');
 
-		$old_language_client = $app->getUserState('com_languages.overrides.filter.language_client', '');
-		$language_client     = $this->getUserStateFromRequest('com_languages.overrides.filter.language_client', 'filter_language_client', $default, 'cmd');
+		$old_language_client = $app->getUserState($this->context . '.language_client', '');
+		$language_client     = $this->getUserStateFromRequest($this->context . '.language_client', 'language_client', $default . '0', 'cmd');
 
 		if ($old_language_client != $language_client)
 		{
-			$client   = substr($language_client, -1);
+			$clientId = substr($language_client, -1);
 			$language = substr($language_client, 0, -1);
 		}
 		else
 		{
-			$client   = $app->getUserState('com_languages.overrides.filter.client', 0);
-			$language = $app->getUserState('com_languages.overrides.filter.language', 'en-GB');
+			$clientId = $app->getUserState($this->context . '.client_id', 0, 'int');
+			$language = $app->getUserState($this->context . '.language', 'en-GB', 'cmd');
 		}
 
 		// Sets the search filter.
-		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
-		$this->setState('filter.search', $search);
+		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
 
-		$this->setState('filter.language_client', $language . $client);
-		$this->setState('filter.client', $client ? 'administrator' : 'site');
-		$this->setState('filter.language', $language);
+		$this->setState('language_client', $language . $clientId);
+		$this->setState('client_id', $clientId);
+		$this->setState('language', $language);
 
 		// Add filters to the session because they won't be stored there by 'getUserStateFromRequest' if they aren't in the current request.
-		$app->setUserState('com_languages.overrides.filter.client', $client);
-		$app->setUserState('com_languages.overrides.filter.language', $language);
+		$app->setUserState($this->context . '.client_id', $clientId);
+		$app->setUserState($this->context . '.language', $language);
+$app->enqueueMessage('current: ' . $language . $clientId, 'notice');
 
 		// List state information
-		parent::populateState('key', 'asc');
+		parent::populateState($ordering, $direction);
 	}
 
 	/**
@@ -196,35 +200,9 @@ class LanguagesModelOverrides extends JModelList
 	 */
 	public function getLanguages()
 	{
-		// Try to load the data from internal storage.
-		if (!empty($this->cache['languages']))
-		{
-			return $this->cache['languages'];
-		}
+		require_once JPATH_COMPONENT . '/helpers/overrides.php';
 
-		// Get all languages of frontend and backend.
-		$languages       = array();
-		$site_languages  = JLanguage::getKnownLanguages(JPATH_SITE);
-		$admin_languages = JLanguage::getKnownLanguages(JPATH_ADMINISTRATOR);
-
-		// Create a single array of them.
-		foreach ($site_languages as $tag => $language)
-		{
-			$languages[$tag . '0'] = JText::sprintf('COM_LANGUAGES_VIEW_OVERRIDES_LANGUAGES_BOX_ITEM', $language['name'], JText::_('JSITE'));
-		}
-
-		foreach ($admin_languages as $tag => $language)
-		{
-			$languages[$tag . '1'] = JText::sprintf('COM_LANGUAGES_VIEW_OVERRIDES_LANGUAGES_BOX_ITEM', $language['name'], JText::_('JADMINISTRATOR'));
-		}
-
-		// Sort it by language tag and by client after that.
-		ksort($languages);
-
-		// Add the languages to the internal cache.
-		$this->cache['languages'] = $languages;
-
-		return $this->cache['languages'];
+		return OverridesHelper::getLanguages();
 	}
 
 	/**
@@ -249,11 +227,10 @@ class LanguagesModelOverrides extends JModelList
 		jimport('joomla.filesystem.file');
 		require_once JPATH_COMPONENT . '/helpers/languages.php';
 
-		$filterclient = JFactory::getApplication()->getUserState('com_languages.overrides.filter.client');
-		$client = $filterclient == 0 ? 'SITE' : 'ADMINISTRATOR';
+		$clientPath = (int) $this->getState('client_id') ? JPATH_ADMINISTRATOR : JPATH_SITE;
 
 		// Parse the override.ini file in oder to get the keys and strings.
-		$filename = constant('JPATH_' . $client) . '/language/overrides/' . $this->getState('filter.language') . '.override.ini';
+		$filename = $clientPath . '/language/overrides/' . $this->getState('language') . '.override.ini';
 		$strings = LanguagesHelper::parseFile($filename);
 
 		// Unset strings that shall be deleted
@@ -274,8 +251,6 @@ class LanguagesModelOverrides extends JModelList
 		$registry = new Registry;
 		$registry->loadObject($strings);
 		$reg = $registry->toString('INI');
-
-		$filename = constant('JPATH_' . $client) . '/language/overrides/' . $this->getState('filter.language') . '.override.ini';
 
 		if (!JFile::write($filename, $reg))
 		{
