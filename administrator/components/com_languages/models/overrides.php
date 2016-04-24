@@ -182,7 +182,6 @@ class LanguagesModelOverrides extends JModelList
 		// Add filters to the session because they won't be stored there by 'getUserStateFromRequest' if they aren't in the current request.
 		$app->setUserState($this->context . '.client_id', $clientId);
 		$app->setUserState($this->context . '.language', $language);
-$app->enqueueMessage('current: ' . $language . $clientId, 'notice');
 
 		// List state information
 		parent::populateState($ordering, $direction);
