@@ -45,18 +45,15 @@ class JFormFieldLanguageClient extends JFormFieldList
 		{
 			$options[] = JHtml::_('select.option', $languageClientTag, $languageClientText);
 		}
-print_r($options);
 
-		// Get client and lanhuage from the request.
+		// Get client and language from the request to set the default value.
 		$app      = JFactory::getApplication();
 		$clientId = (int) $app->getUserStateFromRequest('com_languages.overrides.client_id', 'client_id', 0, 'int');
 		$language = $app->getUserStateFromRequest('com_languages.overrides.language', 'language', 'en-GB', 'cmd');
 
-		// Get the select box options.
-		$options = JHtml::_('select.options', OverridesHelper::getLanguages(), null, 'text', $language . $clientId);
-print_r($options);
-die();
-		
+		// Set the default value.
+		$this->setValue($language . $clientId);
+
 		// Merge any additional options in the XML definition.
 		return array_merge(parent::getOptions(), $options);
 	}
