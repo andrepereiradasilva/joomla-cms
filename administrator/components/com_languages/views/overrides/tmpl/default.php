@@ -14,10 +14,13 @@ JHtml::_('bootstrap.tooltip');
 
 JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
 
-$client    = (int) $this->state->get('client_id') ? JText::_('JADMINISTRATOR') : JText::_('JSITE');
-$language  = $this->state->get('language');
-$listOrder = $this->escape($this->state->get('list.ordering'));
-$listDirn  = $this->escape($this->state->get('list.direction'));
+$clientId   = (int) $this->state->get('client_id');
+$client     = $clientId ? JText::_('JADMINISTRATOR') : JText::_('JSITE');
+$clientPath = $clientId ? JPATH_ADMINISTRATOR : JPATH_SITE;
+$language   = $this->state->get('language');
+$languages  = JLanguage::getKnownLanguages($clientPath);
+$listOrder  = $this->escape($this->state->get('list.ordering'));
+$listDirn   = $this->escape($this->state->get('list.direction'));
 ?>
 <form action="<?php echo JRoute::_('index.php?option=com_languages&view=overrides'); ?>" method="post" name="adminForm" id="adminForm">
 <?php if (!empty( $this->sidebar)) : ?>
@@ -47,8 +50,11 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<th class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'COM_LANGUAGES_VIEW_OVERRIDES_TEXT', 'text', $listDirn, $listOrder); ?>
 						</th>
+						<th width="20%" class="nowrap hidden-phone">
+							<?php echo JText::_('COM_LANGUAGES_HEADING_LANGUAGE'); ?>
+						</th>
 						<th width="1%" class="nowrap hidden-phone">
-							<?php echo JText::_('COM_LANGUAGES_FIELD_LANG_TAG_LABEL'); ?>
+							<?php echo JText::_('COM_LANGUAGES_HEADING_LANG_TAG'); ?>
 						</th>
 						<th width="1%" class="nowrap hidden-phone">
 							<?php echo JText::_('JCLIENT'); ?>
@@ -57,7 +63,7 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 				</thead>
 				<tfoot>
 					<tr>
-						<td colspan="5">
+						<td colspan="6">
 							<?php echo $this->pagination->getListFooter(); ?>
 						</td>
 					</tr>
@@ -79,6 +85,9 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						</td>
 						<td class="hidden-phone">
 							<span id="string[<?php	echo $this->escape($key); ?>]"><?php echo $this->escape($text); ?></span>
+						</td>
+						<td class="hidden-phone">
+							<?php echo $languages[$language]['name']; ?>
 						</td>
 						<td class="hidden-phone">
 							<?php echo $language; ?>

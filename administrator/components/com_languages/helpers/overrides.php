@@ -17,9 +17,10 @@ defined('_JEXEC') or die;
 class OverridesHelper
 {
 	/**
-	 * Method to get the current languages.
+	 * Method to get the current installed languages.
 	 *
-	 * @return  integer
+	 * @return  array  Array with site and administrator installed languages.
+	 * @since   3.5.2
 	 */
 	public static function getLanguages()
 	{
