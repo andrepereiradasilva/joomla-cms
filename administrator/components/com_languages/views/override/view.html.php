@@ -62,8 +62,8 @@ class LanguagesViewOverride extends JViewLegacy
 		}
 
 		// Check whether the cache has to be refreshed.
-		$client      = (int) $this->state->get('client_id', 0) ? 'administrator' : 'site';
-		$language    = $this->state->get('language', 'en-GB');
+		$client      = (int) $this->state->get('client_id') ? 'administrator' : 'site';
+		$language    = $this->state->get('language');
 		$cached_time = JFactory::getApplication()->getUserState('com_languages.overrides.cachedtime.' . $client . $language, 0);
 
 		if (time() - $cached_time > 60 * 5)

@@ -80,9 +80,12 @@ class LanguagesModelOverrides extends JModelList
 		}
 
 		// Consider the ordering
-		if ($this->getState('list.ordering', 'key') == 'text')
+		$listOrder = $this->getState('list.ordering', 'key');
+		$listDirn  = $this->getState('list.direction', 'ASC');
+
+		if ($listOrder == 'text')
 		{
-			if (strtoupper($this->getState('list.direction')) == 'DESC')
+			if (strtoupper($listDirn) == 'DESC')
 			{
 				arsort($strings);
 			}
@@ -93,7 +96,7 @@ class LanguagesModelOverrides extends JModelList
 		}
 		else
 		{
-			if (strtoupper($this->getState('list.direction')) == 'DESC')
+			if (strtoupper($listDirn) == 'DESC')
 			{
 				krsort($strings);
 			}
@@ -104,9 +107,11 @@ class LanguagesModelOverrides extends JModelList
 		}
 
 		// Consider the pagination.
-		if (!$all && $this->getState('list.limit') && $this->getTotal() > $this->getState('list.limit'))
+		$listLimit = $this->getState('list.limit', 20);
+
+		if (!$all && $listLimit && $this->getTotal() > $listLimit)
 		{
-			$strings = array_slice($strings, $this->getStart(), $this->getState('list.limit'), true);
+			$strings = array_slice($strings, $this->getStart(), $listLimit, true);
 		}
 
 		// Add the items to the internal cache.
@@ -155,27 +160,18 @@ class LanguagesModelOverrides extends JModelList
 	{
 		$app = JFactory::getApplication();
 
-		// Use default language of frontend for default filter and site client.
-		$default = JComponentHelper::getParams('com_languages')->get('site');
-
-		$old_language_client = $app->getUserState($this->context . '.language_client', '');
-		$language_client     = $this->getUserStateFromRequest($this->context . '.language_client', 'language_client', $default . '0', 'cmd');
-
-		if ($old_language_client != $language_client)
-		{
-			$clientId = substr($language_client, -1);
-			$language = substr($language_client, 0, -1);
-		}
-		else
-		{
-			$clientId = $app->getUserState($this->context . '.client_id', 0, 'int');
-			$language = $app->getUserState($this->context . '.language', 'en-GB', 'cmd');
-		}
-
 		// Sets the search filter.
 		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
 
-		$this->setState('language_client', $language . $clientId);
+		// Use default language of frontend for default filter and site client.
+		$default = JComponentHelper::getParams('com_languages')->get('site');
+
+		$language_client = $this->getUserStateFromRequest($this->context . '.language_client', 'language_client', $default . '0', 'cmd');
+
+		$clientId = substr($language_client, -1);
+		$language = substr($language_client, 0, -1);
+
+		$this->setState('language_client', $language_client);
 		$this->setState('client_id', $clientId);
 		$this->setState('language', $language);
 
