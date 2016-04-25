@@ -14,7 +14,7 @@ $data = $displayData;
 // Receive overridable options
 $data['options'] = !empty($data['options']) ? $data['options'] : array();
 
-if ($data['view'] instanceof LanguagesViewInstalled)
+if ($data['view'] instanceof LanguagesViewInstalled || $data['view'] instanceof LanguagesViewOverrides)
 {
 	JFactory::getDocument()->addStyleDeclaration("
 		/* Fixed filter field in search bar */
@@ -34,28 +34,6 @@ if ($data['view'] instanceof LanguagesViewInstalled)
 
 	// Client id filter doesn't have to activate the filter bar
 	unset($data['view']->activeFilters['client_id']);
-}
-
-if ($data['view'] instanceof LanguagesViewOverrides)
-{
-	JFactory::getDocument()->addStyleDeclaration("
-		/* Fixed filter field in search bar */
-		.js-stools .js-stools-language_client {
-			float: left;
-			margin-right: 10px;
-			min-width: 220px;
-		}
-		html[dir=rtl] .js-stools .js-stools-language_client {
-			float: right;
-			margin-left: 10px
-			margin-right: 0;
-		}
-		.js-stools .js-stools-container-bar .js-stools-field-filter .chzn-container {
-			padding: 3px 0;
-		}");
-
-	// Client id filter doesn't have to activate the filter bar
-	unset($data['view']->activeFilters['language_client']);
 }
 
 // Display the main joomla layout

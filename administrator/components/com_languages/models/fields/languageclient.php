@@ -37,22 +37,21 @@ class JFormFieldLanguageClient extends JFormFieldList
 	 */
 	protected function getOptions()
 	{
+		// Get client and language from the request to set the value.
+		$app         = JFactory::getApplication();
+		$clientId    = $app->getUserStateFromRequest('com_languages.overrides.client_id', 'client_id', 0, 'int');
+		$languageTag = $app->getUserStateFromRequest('com_languages.overrides.filter_language', 'filter_language', '', 'cmd');
+
+		// Get installed languages for the client.
+		$clientPath = $clientId ? JPATH_ADMINISTRATOR : JPATH_SITE;
+		$languages  = JLanguage::getKnownLanguages($clientPath);
+
 		$options = array();
 
-		$languages = OverridesHelper::getLanguages();
-
-		foreach ($languages as $languageClientTag => $languageClientText)
+		foreach ($languages as $languageClientTag => $languageClient)
 		{
-			$options[] = JHtml::_('select.option', $languageClientTag, $languageClientText);
+			$options[] = JHtml::_('select.option', $languageClientTag, $languageClient['name']);
 		}
-
-		// Get client and language from the request to set the default value.
-		$app      = JFactory::getApplication();
-		$clientId = (int) $app->getUserStateFromRequest('com_languages.overrides.client_id', 'client_id', 0, 'int');
-		$language = $app->getUserStateFromRequest('com_languages.overrides.language', 'language', 'en-GB', 'cmd');
-
-		// Set the default value.
-		$this->setValue($language . $clientId);
 
 		// Merge any additional options in the XML definition.
 		return array_merge(parent::getOptions(), $options);

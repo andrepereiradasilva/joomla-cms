@@ -10,6 +10,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\Registry\Registry;
+use Joomla\Utilities\ArrayHelper;
 
 /**
  * Languages Overrides Model
@@ -32,6 +33,8 @@ class LanguagesModelOverrides extends JModelList
 			$config['filter_fields'] = array(
 				'key',
 				'text',
+				'language',
+				'language_tag',
 			);
 		}
 
@@ -59,52 +62,66 @@ class LanguagesModelOverrides extends JModelList
 		}
 
 		$clientPath = (int) $this->getState('client_id') ? JPATH_ADMINISTRATOR : JPATH_SITE;
+		$languages  = JLanguage::getKnownLanguages($clientPath);
+		$strings    = array();
 
-		// Parse the override.ini file in order to get the keys and strings.
-		$filename = $clientPath . '/language/overrides/' . $this->getState('language') . '.override.ini';
-		$strings = LanguagesHelper::parseFile($filename);
-
-		// Delete the override.ini file if empty.
-		if (file_exists($filename) && empty($strings))
+		// Search main language directory for subdirectories
+		foreach (glob($clientPath . '/language/overrides/*.override.ini', GLOB_NOSORT) as $filename)
 		{
-			JFile::delete($filename);
+			// Check if language is installed.
+			$fileParts   = pathinfo($filename);
+			$languageTag = str_replace('.override', '', $fileParts['filename']);
+
+			if (!isset($languages[$languageTag]))
+			{
+				continue;
+			}
+
+			// Filter the loaded strings according to the search box.
+			$language = $this->getState('filter.language');
+
+			if (!empty($language) && $language != $languageTag)
+			{
+				continue;
+			}
+
+			// Parse the override.ini file in order to get the keys and strings.
+			$overrideStrings = LanguagesHelper::parseFile($filename);
+
+			// Delete the override.ini file if empty.
+			if (file_exists($filename) && empty($overrideStrings))
+			{
+				JFile::delete($filename);
+			}
+			else
+			{
+				// Create array of override objects.
+				foreach($overrideStrings as $key => $text)
+				{
+					$override               = new stdClass();
+					$override->key          = $key;
+					$override->text         = $text;
+					$override->language     = $languages[$languageTag]['name'];
+					$override->language_tag = $languageTag;
+					$strings[] = $override;
+				}
+			}
 		}
 
 		// Filter the loaded strings according to the search box.
 		if ($search = $this->getState('filter.search'))
 		{
 			$search = preg_quote($search, '~');
-			$matchvals = preg_grep('~' . $search . '~i', $strings);
-			$matchkeys = array_intersect_key($strings, array_flip(preg_grep('~' . $search . '~i',  array_keys($strings))));
-			$strings = array_merge($matchvals, $matchkeys);
+			$matchkeys = preg_grep('~' . $search . '~i', ArrayHelper::getColumn($strings, 'key'));
+			$matchvals = preg_grep('~' . $search . '~i', ArrayHelper::getColumn($strings, 'text'));
+			$strings = array_intersect_key($strings, array_replace($matchkeys, $matchvals));
 		}
 
 		// Consider the ordering
 		$listOrder = $this->getState('list.ordering', 'key');
 		$listDirn  = $this->getState('list.direction', 'ASC');
 
-		if ($listOrder == 'text')
-		{
-			if (strtoupper($listDirn) == 'DESC')
-			{
-				arsort($strings);
-			}
-			else
-			{
-				asort($strings);
-			}
-		}
-		else
-		{
-			if (strtoupper($listDirn) == 'DESC')
-			{
-				krsort($strings);
-			}
-			else
-			{
-				ksort($strings);
-			}
-		}
+		$strings = ArrayHelper::sortObjects($strings, $listOrder, strtolower($listDirn) == 'desc' ? -1 : 1, true, true);
 
 		// Consider the pagination.
 		$listLimit = $this->getState('list.limit', 20);
@@ -160,24 +177,17 @@ class LanguagesModelOverrides extends JModelList
 	{
 		$app = JFactory::getApplication();
 
-		// Sets the search filter.
+		// Sets the filters.
 		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
+		$this->setState('filter.language', $this->getUserStateFromRequest($this->context . '.filter.language', 'filter_language', '', 'cmd'));
 
-		// Use default language of frontend for default filter and site client.
-		$default = JComponentHelper::getParams('com_languages')->get('site');
-
-		$language_client = $this->getUserStateFromRequest($this->context . '.language_client', 'language_client', $default . '0', 'cmd');
-
-		$clientId = substr($language_client, -1);
-		$language = substr($language_client, 0, -1);
-
-		$this->setState('language_client', $language_client);
+		// Special case for the client id.
+		$clientId = (int) $this->getUserStateFromRequest($this->context . '.client_id', 'client_id', 0, 'int');
+		$clientId = (!in_array($clientId, array (0, 1))) ? 0 : $clientId;
 		$this->setState('client_id', $clientId);
-		$this->setState('language', $language);
 
 		// Add filters to the session because they won't be stored there by 'getUserStateFromRequest' if they aren't in the current request.
 		$app->setUserState($this->context . '.client_id', $clientId);
-		$app->setUserState($this->context . '.language', $language);
 
 		// List state information
 		parent::populateState($ordering, $direction);
@@ -224,34 +234,59 @@ class LanguagesModelOverrides extends JModelList
 
 		$clientPath = (int) $this->getState('client_id') ? JPATH_ADMINISTRATOR : JPATH_SITE;
 
-		// Parse the override.ini file in oder to get the keys and strings.
-		$filename = $clientPath . '/language/overrides/' . $this->getState('language') . '.override.ini';
-		$strings = LanguagesHelper::parseFile($filename);
+		$toDelete = array();
 
-		// Unset strings that shall be deleted
+		// Check which strings in which language shall be deleted.
 		foreach ($cids as $key)
 		{
-			if (isset($strings[$key]))
+			preg_match('#\[([a-z]{2,3}\-[A-Z]{2,3})\](.*)#', $key, $matches);
+			$toDelete[$matches[1]][] = $matches[2];
+		}
+
+		// For each language delete the files.
+		foreach ($toDelete as $languageTag => $items)
+		{
+			$filename = $clientPath . '/language/overrides/' . $languageTag . '.override.ini';
+
+			if (!file_exists($filename))
 			{
-				unset($strings[$key]);
+				continue;
+			}
+
+			// Parse the override.ini file in order to get the keys and strings.
+			$strings = LanguagesHelper::parseFile($filename);
+
+			if (!empty($strings))
+			{
+				continue;
+			}
+
+			// Unset strings that shall be deleted.
+			foreach ($items as $key)
+			{
+				if (isset($strings[$key]))
+				{
+					unset($strings[$key]);
+				}
+			}
+
+			foreach ($strings as $key => $string)
+			{
+				$strings[$key] = str_replace('"', '"_QQ_"', $string);
+			}
+
+			// Write override.ini file with the left strings.
+			$registry = new Registry;
+			$registry->loadObject($strings);
+			$reg = $registry->toString('INI');
+			echo $filename;
+
+			if (!JFile::write($filename, $reg))
+			{
+				return false;
 			}
 		}
-
-		foreach ($strings as $key => $string)
-		{
-			$strings[$key] = str_replace('"', '"_QQ_"', $string);
-		}
-
-		// Write override.ini file with the left strings.
-		$registry = new Registry;
-		$registry->loadObject($strings);
-		$reg = $registry->toString('INI');
-
-		if (!JFile::write($filename, $reg))
-		{
-			return false;
-		}
-
+		
 		$this->cleanCache();
 
 		return count($cids);

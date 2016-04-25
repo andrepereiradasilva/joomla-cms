@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
 	<field
-		name="language_client"
-		type="LanguageClient"
-		label="COM_LANGUAGES_VIEW_OVERRIDES_FILTER_LANGUAGUE_LABEL"
-		description="COM_LANGUAGES_VIEW_OVERRIDES_FILTER_LANGUAGUE_DESC"
+		name="client_id"
+		type="list"
+		label=""
 		onchange="this.form.submit();"
 		>
+		<option value="0">JSITE</option>
+		<option value="1">JADMINISTRATOR</option>
 	</field>
 	<fields name="filter">
 		<field
@@ -16,6 +17,15 @@
 			description="COM_LANGUAGES_VIEW_OVERRIDES_FILTER_SEARCH_DESC"
 			hint="JSEARCH_FILTER"
 		/>
+		<field
+			name="language"
+			type="LanguageClient"
+			label="JOPTION_FILTER_LANGUAGE"
+			description="JOPTION_FILTER_LANGUAGE_DESC"
+			onchange="this.form.submit();"
+			>
+			<option value="">JOPTION_SELECT_LANGUAGE</option>
+		</field>
 	</fields>
 	<fields name="list">
 		<field
@@ -29,6 +39,10 @@
 			<option value="key DESC">COM_LANGUAGES_VIEW_OVERRIDES_KEY_DESC</option>
 			<option value="text ASC">COM_LANGUAGES_VIEW_OVERRIDES_TEXT_ASC</option>
 			<option value="text DESC">COM_LANGUAGES_VIEW_OVERRIDES_TEXT_DESC</option>
+			<option value="language ASC">COM_LANGUAGES_HEADING_LANGUAGE_ASC</option>
+			<option value="language DESC">COM_LANGUAGES_HEADING_LANGUAGE_DESC</option>
+			<option value="language_tag ASC">COM_LANGUAGES_HEADING_LANG_TAG_ASC</option>
+			<option value="language_tag DESC">COM_LANGUAGES_HEADING_LANG_TAG_DESC</option>
 		</field>
 		<field
 			name="limit"

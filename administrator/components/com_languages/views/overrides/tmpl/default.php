@@ -12,13 +12,6 @@ defined('_JEXEC') or die;
 JHtml::_('formbehavior.chosen', 'select');
 JHtml::_('bootstrap.tooltip');
 
-JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-
-$clientId   = (int) $this->state->get('client_id');
-$client     = $clientId ? JText::_('JADMINISTRATOR') : JText::_('JSITE');
-$clientPath = $clientId ? JPATH_ADMINISTRATOR : JPATH_SITE;
-$language   = $this->state->get('language');
-$languages  = JLanguage::getKnownLanguages($clientPath);
 $listOrder  = $this->escape($this->state->get('list.ordering'));
 $listDirn   = $this->escape($this->state->get('list.direction'));
 ?>
@@ -31,7 +24,7 @@ $listDirn   = $this->escape($this->state->get('list.direction'));
 <?php else : ?>
 	<div id="j-main-container">
 <?php endif;?>
-		<?php echo JLayoutHelper::render('joomla.searchtools.default', array('view' => $this, 'options' => array('filterButton' => false))); ?>
+		<?php echo JLayoutHelper::render('joomla.searchtools.default', array('view' => $this)); ?>
 		<div class="clearfix"></div>
 		<?php if (empty($this->items)) : ?>
 			<div class="alert alert-no-items">
@@ -51,19 +44,16 @@ $listDirn   = $this->escape($this->state->get('list.direction'));
 							<?php echo JHtml::_('searchtools.sort', 'COM_LANGUAGES_VIEW_OVERRIDES_TEXT', 'text', $listDirn, $listOrder); ?>
 						</th>
 						<th width="15%" class="nowrap hidden-phone hidden-tablet">
-							<?php echo JText::_('COM_LANGUAGES_HEADING_LANGUAGE'); ?>
+							<?php echo JHtml::_('searchtools.sort', 'COM_LANGUAGES_HEADING_LANGUAGE', 'language', $listDirn, $listOrder); ?>
 						</th>
 						<th width="1%" class="nowrap hidden-phone hidden-tablet">
-							<?php echo JText::_('COM_LANGUAGES_HEADING_LANG_TAG'); ?>
-						</th>
-						<th width="1%" class="nowrap hidden-phone hidden-tablet">
-							<?php echo JText::_('JCLIENT'); ?>
+							<?php echo JHtml::_('searchtools.sort', 'COM_LANGUAGES_HEADING_LANG_TAG', 'language_tag', $listDirn, $listOrder); ?>
 						</th>
 					</tr>
 				</thead>
 				<tfoot>
 					<tr>
-						<td colspan="6">
+						<td colspan="5">
 							<?php echo $this->pagination->getListFooter(); ?>
 						</td>
 					</tr>
@@ -71,29 +61,27 @@ $listDirn   = $this->escape($this->state->get('list.direction'));
 				<tbody>
 				<?php $canEdit = JFactory::getUser()->authorise('core.edit', 'com_languages'); ?>
 				<?php $i = 0; ?>
-				<?php foreach ($this->items as $key => $text) : ?>
+				<?php foreach ($this->items as $i => $item) : ?>
+					<?php $itemId = '[' . $item->language_tag . ']' . $item->key; ?>
 					<tr class="row<?php echo $i % 2; ?>" id="overriderrow<?php echo $i; ?>">
 						<td class="center">
-							<?php echo JHtml::_('grid.id', $i, $key); ?>
+							<?php echo JHtml::_('grid.id', $i, $itemId); ?>
 						</td>
 						<td>
 							<?php if ($canEdit) : ?>
-								<a id="key[<?php echo $this->escape($key); ?>]" href="<?php echo JRoute::_('index.php?option=com_languages&task=override.edit&id=' . $key); ?>"><?php echo $this->escape($key); ?></a>
+								<a id="key[<?php echo $this->escape($itemId); ?>]" href="<?php echo JRoute::_('index.php?option=com_languages&task=override.edit&id=' . $itemId); ?>"><?php echo $this->escape($item->key); ?></a>
 							<?php else: ?>
-								<?php echo $this->escape($key); ?>
+								<?php echo $this->escape($item->key); ?>
 							<?php endif; ?>
 						</td>
 						<td class="hidden-phone">
-							<span id="string[<?php	echo $this->escape($key); ?>]"><?php echo $this->escape($text); ?></span>
+							<span id="string[<?php	echo $this->escape($item->key); ?>]"><?php echo $this->escape($item->text); ?></span>
 						</td>
 						<td class="hidden-phone hidden-tablet">
-							<?php echo $languages[$language]['name']; ?>
+							<?php echo $item->language; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
-							<?php echo $language; ?>
-						</td>
-						<td class="hidden-phone hidden-tablet">
-							<?php echo $client; ?>
+							<?php echo $item->language_tag; ?>
 						</td>
 					</tr>
 				<?php $i++; ?>
