@@ -81,8 +81,16 @@ class LanguagesViewOverrides extends JViewLegacy
 	{
 		// Get the results for each action
 		$canDo = JHelperContent::getActions('com_languages');
+		$state = $this->get('State');
 
-		JToolbarHelper::title(JText::_('COM_LANGUAGES_VIEW_OVERRIDES_TITLE'), 'comments-2 langmanager');
+		if ($state->get('client_id') == 1)
+		{
+			JToolbarHelper::title(JText::_('COM_LANGUAGES_VIEW_OVERRIDES_TITLE_ADMIN'), 'comments-2 langmanager');
+		}
+		else
+		{
+			JToolbarHelper::title(JText::_('COM_LANGUAGES_VIEW_OVERRIDES_TITLE_SITE'), 'comments-2 langmanager');
+		}
 
 		if ($canDo->get('core.create'))
 		{
