@@ -9,8 +9,6 @@
 
 defined('JPATH_BASE') or die;
 
-require_once __DIR__ . '/../../helpers/overrides.php';
-
 JFormHelper::loadFieldClass('list');
 
 /**
