@@ -205,9 +205,35 @@ class LanguagesModelOverrides extends JModelList
 	 */
 	public function getLanguages()
 	{
-		require_once JPATH_COMPONENT . '/helpers/overrides.php';
+		// Try to load the data from internal storage.
+		if (!empty($this->cache['languages']))
+		{
+			return $this->cache['languages'];
+		}
 
-		return OverridesHelper::getLanguages();
+		// Get all languages of frontend and backend.
+		$languages       = array();
+		$site_languages  = JLanguage::getKnownLanguages(JPATH_SITE);
+		$admin_languages = JLanguage::getKnownLanguages(JPATH_ADMINISTRATOR);
+
+		// Create a single array of them.
+		foreach ($site_languages as $tag => $language)
+		{
+			$languages[$tag . '0'] = JText::sprintf('COM_LANGUAGES_VIEW_OVERRIDES_LANGUAGES_BOX_ITEM', $language['name'], JText::_('JSITE'));
+		}
+
+		foreach ($admin_languages as $tag => $language)
+		{
+			$languages[$tag . '1'] = JText::sprintf('COM_LANGUAGES_VIEW_OVERRIDES_LANGUAGES_BOX_ITEM', $language['name'], JText::_('JADMINISTRATOR'));
+		}
+
+		// Sort it by language tag and by client after that.
+		ksort($languages);
+
+		// Add the languages to the internal cache.
+		$this->cache['languages'] = $languages;
+
+		return $this->cache['languages'];
 	}
 
 	/**
