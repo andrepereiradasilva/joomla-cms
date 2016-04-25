@@ -78,10 +78,10 @@ $listDirn   = $this->escape($this->state->get('list.direction'));
 							<span id="string[<?php	echo $this->escape($item->key); ?>]"><?php echo $this->escape($item->text); ?></span>
 						</td>
 						<td class="hidden-phone hidden-tablet">
-							<?php echo $item->language; ?>
+							<?php echo $this->escape($item->language); ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
-							<?php echo $item->language_tag; ?>
+							<?php echo $this->escape($item->language_tag); ?>
 						</td>
 					</tr>
 				<?php $i++; ?>
