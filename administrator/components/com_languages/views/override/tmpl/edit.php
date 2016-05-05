@@ -89,7 +89,7 @@ JFactory::getDocument()->addScriptDeclaration('
 					</div>
 				</div>
 
-				<?php if ($this->state->get('filter.client') == 'administrator') : ?>
+				<?php if ((int) $this->state->get('client_id')) : ?>
 				<div class="control-group">
 					<div class="control-label">
 						<?php echo $this->form->getLabel('both'); ?>
