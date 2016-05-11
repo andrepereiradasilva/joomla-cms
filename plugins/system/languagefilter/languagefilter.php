@@ -755,19 +755,21 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	private function setLanguageCookie($lang_code)
 	{
-
-		// Get the cookie lifetime we want.
-		$cookie_expire = 0;
-		if ($this->params->get('lang_cookie', 1) == 1)
+		// Is is set to use a year language cookie in plugin params, set the user language trough cookie.
+		if ((int) $this->params->get('lang_cookie', 0) === 1)
 		{
 			$cookie_expire = time() + 365 * 86400;
-		}
+			$cookie_domain = $this->app->get('cookie_domain', '');
+			$cookie_path   = $this->app->get('cookie_path', '/');
+			$cookie_secure = $this->app->isSSLConnection();
 
-		// Create a cookie.
-		$cookie_domain = $this->app->get('cookie_domain');
-		$cookie_path   = $this->app->get('cookie_path', '/');
-		$cookie_secure = $this->app->isSSLConnection();
-		$this->app->input->cookie->set(JApplicationHelper::getHash('language'), $lang_code, $cookie_expire, $cookie_path, $cookie_domain, $cookie_secure);
+			$this->app->input->cookie->set(JApplicationHelper::getHash('language'), $lang_code, $cookie_expire, $cookie_path, $cookie_domain, $cookie_secure);
+		}
+		// Else set the user language in the session.
+		else
+		{
+			JFactory::getSession()->set('user_language', $lang_code);
+		}
 	}
 
 	/**
@@ -779,7 +781,16 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	private function getLanguageCookie()
 	{
-		$lang_code = $this->app->input->cookie->getString(JApplicationHelper::getHash('language'));
+		// Is is set to use a year language cookie in plugin params, get the user language from cookie.
+		if ((int) $this->params->get('lang_cookie', 0) === 1)
+		{
+			$lang_code = $this->app->input->cookie->get(JApplicationHelper::getHash('language'));
+		}
+		// Else get the user language from the session.
+		else
+		{
+			$lang_code = JFactory::getSession()->get('user_language');
+		}
 
 		// Let's be sure we got a valid language code. Fallback to null.
 		if (!array_key_exists($lang_code, $this->lang_codes))
