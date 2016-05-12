@@ -243,7 +243,7 @@ class PlgUserJoomla extends JPlugin
 				0,
 				$this->app->get('cookie_path', '/'),
 				$this->app->get('cookie_domain', ''),
-				$this->app->isSSLConnection(),
+				$this->app->isHttpsForced(),
 				true
 			);
 		}

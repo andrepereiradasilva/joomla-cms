@@ -86,7 +86,7 @@ class BannersControllerTracks extends JControllerLegacy
 				time() + 365 * 86400,
 				$app->get('cookie_path', '/'),
 				$app->get('cookie_domain', ''),
-				$app->isSSLConnection(),
+				$app->isHttpsForced(),
 				true
 			);
 			$app->input->cookie->set(
@@ -95,7 +95,7 @@ class BannersControllerTracks extends JControllerLegacy
 				time() + 365 * 86400,
 				$app->get('cookie_path', '/'),
 				$app->get('cookie_domain', ''),
-				$app->isSSLConnection(),
+				$app->isHttpsForced(),
 				true
 			);
 

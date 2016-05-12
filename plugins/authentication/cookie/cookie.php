@@ -290,7 +290,7 @@ class PlgAuthenticationCookie extends JPlugin
 			time() + $lifetime,
 			$this->app->get('cookie_path', '/'),
 			$this->app->get('cookie_domain', ''),
-			$this->app->isSSLConnection(),
+			$this->app->isHttpsForced(),
 			true
 		);
 

@@ -83,7 +83,7 @@ class PlgSystemLogout extends JPlugin
 				time() + 86400,
 				$this->app->get('cookie_path', '/'),
 				$this->app->get('cookie_domain', ''),
-				$this->app->isSSLConnection(),
+				$this->app->isHttpsForced(),
 				true
 			);
 		}

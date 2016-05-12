@@ -765,7 +765,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				time() + 365 * 86400,
 				$this->app->get('cookie_path', '/'),
 				$this->app->get('cookie_domain', ''),
-				$this->app->isSSLConnection(),
+				$this->app->isHttpsForced(),
 				true
 			);
 		}
