@@ -755,7 +755,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	private function setLanguageCookie($lang_code)
 	{
-		// If is set to use a year language cookie in plugin params, set the user language trough cookie.
+		// If is set to use language cookie for a year in plugin params, save the user language in a new cookie.
 		if ((int) $this->params->get('lang_cookie', 0) === 1)
 		{
 			// Create a cookie with one year lifetime.
@@ -769,7 +769,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				true
 			);
 		}
-		// Else set the user language in the session.
+		// If not, set the user language in the session (that is already saved in a cookie).
 		else
 		{
 			JFactory::getSession()->set('user_language', $lang_code);
@@ -785,7 +785,7 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	private function getLanguageCookie()
 	{
-		// Is is set to use a year language cookie in plugin params, get the user language from cookie.
+		// Is is set to use a year language cookie in plugin params, get the user language from the cookie.
 		if ((int) $this->params->get('lang_cookie', 0) === 1)
 		{
 			$lang_code = $this->app->input->cookie->get(JApplicationHelper::getHash('language'));
