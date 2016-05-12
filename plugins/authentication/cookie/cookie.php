@@ -68,7 +68,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($cookieArray) != 2)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 			JLog::add('Invalid cookie detected.', JLog::WARNING, 'error');
 
 			return false;
@@ -116,7 +116,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($results) !== 1)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 			$response->status = JAuthentication::STATUS_FAILURE;
 
 			return false;
@@ -379,7 +379,7 @@ class PlgAuthenticationCookie extends JPlugin
 		}
 
 		// Destroy the cookie
-		$this->app->input->cookie->set($cookieName, '', time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+		$this->app->input->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 
 		return true;
 	}
