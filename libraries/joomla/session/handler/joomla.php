@@ -99,10 +99,8 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 		 */
 		if (isset($_COOKIE[$session_name]))
 		{
-			$config        = JFactory::getConfig();
-			$cookie_domain = $config->get('cookie_domain', '');
-			$cookie_path   = $config->get('cookie_path', '/');
-			setcookie($session_name, '', time() - 42000, $cookie_path, $cookie_domain);
+			$config = JFactory::getConfig();
+			$this->input->cookie->set($session_name, '', 1, $config->get('cookie_path', '/'), $config->get('cookie_domain', ''));
 		}
 
 		parent::clear();
