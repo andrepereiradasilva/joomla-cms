@@ -68,7 +68,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($cookieArray) != 2)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, false, time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain'));
+			$this->app->input->cookie->set($cookieName, '', time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 			JLog::add('Invalid cookie detected.', JLog::WARNING, 'error');
 
 			return false;
@@ -116,7 +116,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($results) !== 1)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, false, time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain'));
+			$this->app->input->cookie->set($cookieName, '', time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 			$response->status = JAuthentication::STATUS_FAILURE;
 
 			return false;
@@ -148,7 +148,7 @@ class PlgAuthenticationCookie extends JPlugin
 			}
 
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, false, time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain'));
+			$this->app->input->cookie->set($cookieName, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 
 			// Issue warning by email to user and/or admin?
 			JLog::add(JText::sprintf('PLG_AUTH_COOKIE_ERROR_LOG_LOGIN_FAILED', $results[0]->user_id), JLog::WARNING, 'security');
@@ -285,12 +285,15 @@ class PlgAuthenticationCookie extends JPlugin
 
 		// Overwrite existing cookie with new value
 		$this->app->input->cookie->set(
-			$cookieName, $cookieValue,
+			$cookieName,
+			$cookieValue,
 			time() + $lifetime,
 			$this->app->get('cookie_path', '/'),
-			$this->app->get('cookie_domain'),
-			$this->app->isSSLConnection()
+			$this->app->get('cookie_domain', ''),
+			$this->app->isSSLConnection(),
+			true
 		);
+
 		$query = $this->db->getQuery(true);
 
 		if (!empty($options['remember']))
@@ -376,13 +379,7 @@ class PlgAuthenticationCookie extends JPlugin
 		}
 
 		// Destroy the cookie
-		$this->app->input->cookie->set(
-			$cookieName,
-			false,
-			time() - 42000,
-			$this->app->get('cookie_path', '/'),
-			$this->app->get('cookie_domain')
-		);
+		$this->app->input->cookie->set($cookieName, '', time() - 42000, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
 
 		return true;
 	}

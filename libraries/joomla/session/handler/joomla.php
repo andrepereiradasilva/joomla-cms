@@ -74,7 +74,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			if ($session_clean)
 			{
 				$this->setId($session_clean);
-				$cookie->set($session_name, '', time() - 3600);
+				$cookie->set($session_name, '', 1);
 			}
 		}
 
