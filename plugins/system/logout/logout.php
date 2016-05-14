@@ -103,7 +103,7 @@ class PlgSystemLogout extends JPlugin
 	public static function handleError(&$error)
 	{
 		// Make sure the error is a 403 and we are in the frontend.
-		if ($error->getCode() == 403 and $this->app->isSite())
+		if ($error->getCode() == 403 && $this->app->isSite())
 		{
 			// Redirect to the home page.
 			$this->app->enqueueMessage(JText::_('PLG_SYSTEM_LOGOUT_REDIRECT'), 'error');
