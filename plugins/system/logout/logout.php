@@ -79,7 +79,7 @@ class PlgSystemLogout extends JPlugin
 			// Create the cookie.
 			$this->app->input->cookie->set(
 				JApplicationHelper::getHash('PlgSystemLogout'),
-				'1',
+				true,
 				time() + 86400,
 				$this->app->get('cookie_path', '/'),
 				$this->app->get('cookie_domain', ''),
