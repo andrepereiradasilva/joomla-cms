@@ -688,7 +688,7 @@ class JApplicationCms extends JApplicationWeb
 	}
 
 	/**
-	 * Checks if HTTPS is forced in the current client configuration.
+	 * Checks if HTTPS is forced in the client configuration.
 	 *
 	 * @param   integer  $clientId  An optional client id (defaults to current application client).
 	 *
@@ -698,7 +698,7 @@ class JApplicationCms extends JApplicationWeb
 	 */
 	public function isHttpsForced($clientId = null)
 	{
-		$clientId = $clientId === null ? (int) $clientId : (int) $this->getClientId();
+		$clientId = $clientId !== null ? (int) $clientId : (int) $this->getClientId();
 
 		switch ($clientId)
 		{
