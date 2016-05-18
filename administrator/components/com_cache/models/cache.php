@@ -54,6 +54,8 @@ class CacheModelCache extends JModelList
 				'group',
 				'count',
 				'size',
+				'title',
+				'type',
 				'cliend_id',
 			);
 		}
@@ -73,10 +75,11 @@ class CacheModelCache extends JModelList
 	 *
 	 * @since   1.6
 	 */
-	protected function populateState($ordering = 'group', $direction = 'asc')
+	protected function populateState($ordering = 'title', $direction = 'asc')
 	{
 		// Load the filter state.
 		$this->setState('filter.search', $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search', '', 'string'));
+		$this->setState('filter.type', $this->getUserStateFromRequest($this->context . '.filter.type', 'filter_type', '', 'cmd'));
 
 		// Special case for client id.
 		$clientId = (int) $this->getUserStateFromRequest($this->context . '.client_id', 'client_id', 0, 'int');
@@ -104,6 +107,7 @@ class CacheModelCache extends JModelList
 		// Compile the store id.
 		$id	.= ':' . $this->getState('client_id');
 		$id	.= ':' . $this->getState('filter.search');
+		$id	.= ':' . $this->getState('filter.type');
 
 		return parent::getStoreId($id);
 	}
@@ -117,17 +121,140 @@ class CacheModelCache extends JModelList
 	{
 		if (empty($this->_data))
 		{
-			$cache = $this->getCache();
-			$data  = $cache->getAll();
+			$cache              = $this->getCache();
+			$data               = $cache->getAll();
+			$lang               = JFactory::getLanguage();
+			$clientId           = (int) $this->getState('client_id');
+			$clientPath         = $clientId ? JPATH_ADMINISTRATOR : JPATH_SITE;
+			$fallbackClientPath = $clientId ? JPATH_SITE : JPATH_ADMINISTRATOR;
 
 			if ($data && count($data) > 0)
 			{
+				// Translate
+				foreach ($data as $key => $cacheItem)
+				{
+					switch ($cacheItem->group)
+					{
+						case '_system':
+							$data[$key]->type  = JText::_('COM_CACHE_TYPE_OTHER');
+							$data[$key]->title = JText::_('COM_CACHE_GROUP_TYPE_SYSTEM');
+							break;
+
+						case 'page':
+							$data[$key]->type  = JText::_('COM_CACHE_TYPE_OTHER');
+							$data[$key]->title = JText::_('COM_CACHE_GROUP_TYPE_PAGE');
+							break;
+
+						default:
+							$data[$key]->type = JText::_('COM_CACHE_TYPE_LIBRARY');
+
+							// For components
+							if (preg_match('#^com_#', $cacheItem->group))
+							{
+								$data[$key]->type = JText::_('COM_CACHE_TYPE_COMPONENT');
+								$searchPaths      = array(
+									$clientPath . '/components/' . $cacheItem->group,
+									$clientPath,
+									$fallbackClientPath . '/components/' . $cacheItem->group,
+									$fallbackClientPath,
+								);
+							}
+
+							// For templates
+							else if (preg_match('#^tpl_#', $cacheItem->group))
+							{
+								$data[$key]->type = JText::_('COM_CACHE_TYPE_TEMPLATE');
+								$searchPaths      = array(
+									$clientPath . '/templates/' . $templateParts[1],
+									$clientPath,
+									$fallbackClientPath . '/templates/' . $templateParts[1],
+									$fallbackClientPath,
+								);
+							}
+
+							// For plugins
+							else if (preg_match('#^plg_#', $cacheItem->group))
+							{
+								$data[$key]->type = JText::_('COM_CACHE_TYPE_PLUGIN');
+								$pluginParts      = explode('_', $cacheItem->group);
+								$searchPaths      = array(
+									JPATH_SITE . '/plugins/' . $pluginParts[1] . '/' . $pluginParts[2],
+									JPATH_SITE,
+								);
+							}
+
+							// For modules
+							else if (preg_match('#^mod_#', $cacheItem->group))
+							{
+								$data[$key]->type = JText::_('COM_CACHE_TYPE_MODULE');
+								$searchPaths      = array(
+									$clientPath . '/modules/' . $cacheItem->group,
+									$clientPath,
+									$fallbackClientPath . '/modules/' . $cacheItem->group,
+									$fallbackClientPath,
+								);
+							}
+
+							// For other
+							else
+							{
+								$data[$key]->type = JText::_('COM_CACHE_TYPE_LIBRARY');
+								$searchPaths      = array(
+									$clientPath,
+									$fallbackClientPath,
+								);
+							}
+
+							// Try to load the title from the client language path (/languages/).
+							$lang->load($cacheItem->group . '.sys', $clientPath, null, false, true);
+							$title = JText::_($cacheItem->group);
+
+							// If we still don't have a title try to load from the fallback path.
+							foreach ($searchPaths as $searchPath)
+							{
+								$lang->load($cacheItem->group . '.sys', $searchPath, null, false, true);
+								$title = JText::_($cacheItem->group);
+
+								if ($title != $cacheItem->group)
+								{
+									break;
+								}
+							}
+
+							// If we still don't have a title mark as unknown.
+							if ($title == $cacheItem->group)
+							{
+								$title = JText::sprintf('COM_CACHE_GROUP_TYPE_UNKNOWN', $cacheItem->group);
+							}
+
+							// Add title to object.
+							$data[$key]->title = $title;
+
+							break;
+					}
+				}
+
+				// Process filter by type.
+				if ($type = $this->getState('filter.type'))
+				{
+					foreach ($data as $key => $cacheItem)
+					{
+						if (strtolower($cacheItem->type) != strtolower($type))
+						{
+							unset($data[$key]);
+							continue;
+						}
+					}
+				}
+
 				// Process filter by search term.
 				if ($search = $this->getState('filter.search'))
 				{
 					foreach ($data as $key => $cacheItem)
 					{
-						if (stripos($cacheItem->group, $search) === false)
+						if (stripos($cacheItem->group, $search) === false
+							&& stripos($cacheItem->title, $search) === false
+							&& stripos($cacheItem->type, $search) === false)
 						{
 							unset($data[$key]);
 							continue;
@@ -136,7 +263,7 @@ class CacheModelCache extends JModelList
 				}
 
 				// Process ordering.
-				$listOrder = $this->getState('list.ordering', 'group');
+				$listOrder = $this->getState('list.ordering', 'title');
 				$listDirn  = $this->getState('list.direction', 'ASC');
 
 				$this->_data = ArrayHelper::sortObjects($data, $listOrder, strtolower($listDirn) === 'desc' ? -1 : 1, true, true);

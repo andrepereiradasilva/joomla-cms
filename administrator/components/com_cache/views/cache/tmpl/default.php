@@ -24,7 +24,7 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 	<?php else : ?>
 	<div id="j-main-container">
 	<?php endif; ?>
-		<?php echo JLayoutHelper::render('joomla.searchtools.default', array('view' => $this, 'options' => array('filterButton' => false, 'totalResults' => count($this->data)))); ?>
+		<?php echo JLayoutHelper::render('joomla.searchtools.default', array('view' => $this, 'options' => array('totalResults' => count($this->data)))); ?>
 		<?php if (count($this->data) > 0) : ?>
 		<table class="table table-striped">
 			<thead>
@@ -33,20 +33,26 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<?php echo JHtml::_('grid.checkall'); ?>
 					</th>
 					<th class="title nowrap">
+						<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_TITLE', 'title', $listDirn, $listOrder); ?>
+					</th>
+					<th width="1%" class="nowrap">
+						<?php echo JHtml::_('searchtools.sort', 'COM_CACHE_HEADING_TYPE', 'type', $listDirn, $listOrder); ?>
+					</th>
+					<th width="1%" class="nowrap hidden-phone hidden-tablet">
 						<?php echo JHtml::_('searchtools.sort', 'COM_CACHE_GROUP', 'group', $listDirn, $listOrder); ?>
 					</th>
-					<th width="5%" class="nowrap">
+					<th width="1%" class="nowrap">
 						<?php echo JHtml::_('searchtools.sort', 'COM_CACHE_NUMBER_OF_FILES', 'count', $listDirn, $listOrder); ?>
 					</th>
-					<th width="10%" class="nowrap">
+					<th width="10%" class="nowrap hidden-phone">
 						<?php echo JHtml::_('searchtools.sort', 'COM_CACHE_SIZE', 'size', $listDirn, $listOrder); ?>
 					</th>
 				</tr>
 			</thead>
 			<tfoot>
 				<tr>
-					<td colspan="4">
-					<?php echo $this->pagination->getListFooter(); ?>
+					<td colspan="9">
+						<?php echo $this->pagination->getListFooter(); ?>
 					</td>
 				</tr>
 			</tfoot>
@@ -60,17 +66,24 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						</td>
 						<td>
 							<label for="cb<?php echo $i; ?>">
-								<strong><?php echo $item->group; ?></strong>
+								<?php echo $item->title; ?>
 							</label>
 						</td>
 						<td>
-							<?php echo $item->count; ?>
+							<?php echo $item->type; ?>
 						</td>
-						<td>
-							<?php echo JHtml::_('number.bytes', $item->size*1024); ?>
+						<td class="hidden-phone hidden-tablet">
+							<small><?php echo $item->group; ?></small>
+						</td>
+						<td class="text-right">
+							<span class="text-right"><?php echo $item->count; ?></span>
+						</td>
+						<td class="hidden-phone text-right">
+							<span class="text-right"><?php echo JHtml::_('number.bytes', $item->size * 1024); ?></span>
 						</td>
 					</tr>
-				<?php $i++; endforeach; ?>
+					<?php $i++; ?>
+				<?php endforeach; ?>
 			</tbody>
 		</table>
 		<?php endif; ?>
