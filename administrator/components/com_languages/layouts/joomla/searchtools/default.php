@@ -14,7 +14,7 @@ $data = $displayData;
 // Receive overridable options
 $data['options'] = !empty($data['options']) ? $data['options'] : array();
 
-if ($data['view'] instanceof LanguagesViewInstalled)
+if ($data['view'] instanceof LanguagesViewInstalled || $data['view'] instanceof LanguagesViewOverrides)
 {
 	JFactory::getDocument()->addStyleDeclaration("
 		/* Fixed filter field in search bar */

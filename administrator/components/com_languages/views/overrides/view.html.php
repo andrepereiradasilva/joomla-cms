@@ -51,10 +51,12 @@ class LanguagesViewOverrides extends JViewLegacy
 	 */
 	public function display($tpl = null)
 	{
-		$this->state      = $this->get('State');
-		$this->items      = $this->get('Overrides');
-		$this->languages  = $this->get('Languages');
-		$this->pagination = $this->get('Pagination');
+		$this->state         = $this->get('State');
+		$this->items         = $this->get('Overrides');
+		$this->languages     = $this->get('Languages');
+		$this->pagination    = $this->get('Pagination');
+		$this->filterForm    = $this->get('FilterForm');
+		$this->activeFilters = $this->get('ActiveFilters');
 
 		LanguagesHelper::addSubmenu('overrides');
 
@@ -79,8 +81,16 @@ class LanguagesViewOverrides extends JViewLegacy
 	{
 		// Get the results for each action
 		$canDo = JHelperContent::getActions('com_languages');
+		$state = $this->get('State');
 
-		JToolbarHelper::title(JText::_('COM_LANGUAGES_VIEW_OVERRIDES_TITLE'), 'comments-2 langmanager');
+		if ($state->get('client_id') == 1)
+		{
+			JToolbarHelper::title(JText::_('COM_LANGUAGES_VIEW_OVERRIDES_TITLE_ADMIN'), 'comments-2 langmanager');
+		}
+		else
+		{
+			JToolbarHelper::title(JText::_('COM_LANGUAGES_VIEW_OVERRIDES_TITLE_SITE'), 'comments-2 langmanager');
+		}
 
 		if ($canDo->get('core.create'))
 		{
@@ -109,16 +119,6 @@ class LanguagesViewOverrides extends JViewLegacy
 
 		JToolbarHelper::divider();
 		JToolbarHelper::help('JHELP_EXTENSIONS_LANGUAGE_MANAGER_OVERRIDES');
-
-		JHtmlSidebar::setAction('index.php?option=com_languages&view=overrides');
-
-		JHtmlSidebar::addFilter(
-			// @todo need a label here
-			'',
-			'filter_language_client',
-			JHtml::_('select.options', $this->languages, null, 'text', $this->state->get('filter.language_client')),
-			true
-		);
 
 		$this->sidebar = JHtmlSidebar::render();
 	}
