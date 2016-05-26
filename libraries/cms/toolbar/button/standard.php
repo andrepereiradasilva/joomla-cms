@@ -92,16 +92,16 @@ class JToolbarButtonStandard extends JToolbarButton
 	 */
 	protected function _getCommand($name, $task, $list)
 	{
-		$message = JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
-		$message = addslashes($message);
+		$cmd = "Joomla.submitbutton('" . $task . "');";
 
 		if ($list)
 		{
-			$cmd = "if (document.adminForm.boxchecked.value==0){alert('$message');}else{ Joomla.submitbutton('$task')}";
-		}
-		else
-		{
-			$cmd = "Joomla.submitbutton('$task')";
+			// Load js relevant files/language variables.
+			JHtml::_('behavior.core');
+			JText::script('WARNING');
+
+			$message = "{ warning: [ '" . addslashes(JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST')) . "'] }";
+			$cmd = "if (document.adminForm.boxchecked.value == 0) { Joomla.renderMessages(" . $message . "); } else { " . $cmd . " }";
 		}
 
 		return $cmd;
