@@ -195,16 +195,14 @@ class JTableMenu extends JTableNested
 			}
 		}
 
-		// If we have the alias already exists.
+		// The alias already exists. Send a warning and append date suffix to alias to avoid conflicts.
 		if ($languageVar)
 		{
 			$languageVar .= $this->menutype == $table->menutype ? '_PARENT' : '_ROOT';
 			$link         = JRoute::_('index.php?option=com_menus&task=item.edit&id=' . $table->id);
 			$message      = JText::sprintf($languageVar, $link, $table->title, $table->menutype);
-
 			JFactory::getApplication()->enqueueMessage($message, 'warning');
 
-			// Append date suffix to alias to avoid conflicts.
 			$this->alias .= '-' . JFactory::getDate()->format('Y-m-d-H-i-s');
 		}
 
