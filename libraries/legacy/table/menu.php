@@ -173,8 +173,6 @@ class JTableMenu extends JTableNested
 		$this->alias = JApplicationHelper::stringURLSafe($this->alias, $this->language);
 
 		$itemSearch        = array('alias' => $this->alias, 'parent_id' => $this->parent_id, 'client_id' => (int) $this->client_id);
-		$itemSearchAll     = array_replace($itemSearch, array('language' => '*'));
-		$itemSearchCurrent = array_replace($itemSearch, array('language' => $this->language));
 
 		// Check if the alias already exists.
 		$aliasMessage = '';
@@ -182,6 +180,9 @@ class JTableMenu extends JTableNested
 		// For multilingual site.
 		if (JLanguageMultilang::isEnabled())
 		{
+			$itemSearchAll     = array_replace($itemSearch, array('language' => '*'));
+			$itemSearchCurrent = array_replace($itemSearch, array('language' => $this->language));
+
 			// If not exists a menu item at the same level with the same alias (in any language).
 			if ($table->load($itemSearchAll))
 			{
@@ -192,7 +193,7 @@ class JTableMenu extends JTableNested
 			}
 
 			// If not exists a menu item at the same level with the same alias (in the same language).
-			if ($continue && $table->load($itemSearchCurrent))
+			if (!$aliasMessage && $table->load($itemSearchCurrent))
 			{
 				if ($table->id != $this->id || $this->id == 0)
 				{
