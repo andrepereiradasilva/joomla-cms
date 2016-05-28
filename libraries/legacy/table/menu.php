@@ -97,18 +97,11 @@ class JTableMenu extends JTableNested
 
 			return false;
 		}
+
 		// Set correct component id to ensure proper 404 messages with separator items
 		if ($this->type == "separator")
 		{
 			$this->component_id = 0;
-		}
-
-		// If the alias field is empty, set it to the title.
-		$this->alias = trim($this->alias);
-
-		if ((empty($this->alias)) && ($this->type != 'alias' && $this->type != 'url'))
-		{
-			$this->alias = $this->title;
 		}
 
 		// Check for a path.
@@ -125,14 +118,6 @@ class JTableMenu extends JTableNested
 		if (trim($this->img) == '')
 		{
 			$this->img = ' ';
-		}
-
-		// Make the alias URL safe.
-		$this->alias = JApplicationHelper::stringURLSafe($this->alias, $this->language);
-
-		if (trim(str_replace('-', '', $this->alias)) == '')
-		{
-			$this->alias = JFactory::getDate()->format('Y-m-d-H-i-s');
 		}
 
 		// Cast the home property to an int for checking.
@@ -184,26 +169,55 @@ class JTableMenu extends JTableNested
 		// Verify that the alias is unique
 		$table = JTable::getInstance('Menu', 'JTable', array('dbo' => $this->getDbo()));
 
-		if ($table->load(
-				array(
-				'alias' => $this->alias,
-				'parent_id' => $this->parent_id,
-				'client_id' => (int) $this->client_id,
-				'language' => $this->language
-				)
-			)
-			&& ($table->id != $this->id || $this->id == 0))
+		$this->alias = !trim($this->alias) ? trim($this->title) : trim($this->alias);
+		$this->alias = JApplicationHelper::stringURLSafe($this->alias, $this->language);
+
+		$itemSearch        = array('alias' => $this->alias, 'parent_id' => $this->parent_id, 'client_id' => (int) $this->client_id);
+		$itemSearchAll     = array_replace($itemSearch, array('language' => '*'));
+		$itemSearchCurrent = array_replace($itemSearch, array('language' => $this->language));
+
+		// Check if the alias already exists.
+		$aliasMessage = '';
+
+		// For multilingual site.
+		if (JLanguageMultilang::isEnabled())
 		{
-			if ($this->menutype == $table->menutype)
+			// If not exists a menu item at the same level with the same alias (in any language).
+			if ($table->load($itemSearchAll))
 			{
-				$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS'));
-			}
-			else
-			{
-				$this->setError(JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT'));
+				if ($table->id != $this->id || $this->id == 0)
+				{
+					$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
+				}
 			}
 
-			return false;
+			// If not exists a menu item at the same level with the same alias (in the same language).
+			if ($continue && $table->load($itemSearchCurrent))
+			{
+				if ($table->id != $this->id || $this->id == 0)
+				{
+					$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
+				}
+			}
+		}
+		// For monolingual site.
+		else
+		{
+			// If not exists a menu item at the same level with the same alias (in any language).
+			if ($table->load($itemSearch))
+			{
+				if ($table->id != $this->id || $this->id == 0)
+				{
+					$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
+				}
+			}
+		}
+
+		if ($aliasMessage)
+		{
+			JFactory::getApplication()->enqueueMessage(JText::_($aliasMessage) . '<br />The current date has added as a suffix to the alias to avoid conflicts.', 'warning');
+
+			$this->alias .= '-' . JFactory::getDate()->format('Y-m-d-H-i-s');
 		}
 
 		if ($this->home == '1')
