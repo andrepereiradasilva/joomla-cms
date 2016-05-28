@@ -169,15 +169,12 @@ class JTableMenu extends JTableNested
 		// Verify that the alias is unique
 		$table = JTable::getInstance('Menu', 'JTable', array('dbo' => $this->getDbo()));
 
-		$this->alias = !trim($this->alias) ? trim($this->title) : trim($this->alias);
-		$this->alias = JApplicationHelper::stringURLSafe($this->alias, $this->language);
-
-		$itemSearch        = array('alias' => $this->alias, 'parent_id' => $this->parent_id, 'client_id' => (int) $this->client_id);
-
-		// Check if the alias already exists.
+		$this->alias  = !trim($this->alias) ? trim($this->title) : trim($this->alias);
+		$this->alias  = JApplicationHelper::stringURLSafe($this->alias, $this->language);
+		$itemSearch   = array('alias' => $this->alias, 'parent_id' => $this->parent_id, 'client_id' => (int) $this->client_id);
 		$aliasMessage = '';
 
-		// For multilingual site.
+		// Check if the alias already exists. For multilingual site.
 		if (JLanguageMultilang::isEnabled())
 		{
 			$itemSearchAll     = array_replace($itemSearch, array('language' => '*'));
@@ -194,7 +191,7 @@ class JTableMenu extends JTableNested
 				$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
 			}
 		}
-		// For monolingual site.
+		// Check if the alias already exists. For monolingual site.
 		else
 		{
 			// If not exists a menu item at the same level with the same alias (in any language).
