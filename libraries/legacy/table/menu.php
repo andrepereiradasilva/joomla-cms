@@ -184,33 +184,23 @@ class JTableMenu extends JTableNested
 			$itemSearchCurrent = array_replace($itemSearch, array('language' => $this->language));
 
 			// If not exists a menu item at the same level with the same alias (in any language).
-			if ($table->load($itemSearchAll))
+			if ($table->load($itemSearchAll) && ($table->id != $this->id || $this->id == 0))
 			{
-				if ($table->id != $this->id || $this->id == 0)
-				{
-					$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
-				}
+				$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
 			}
-
 			// If not exists a menu item at the same level with the same alias (in the same language).
-			if (!$aliasMessage && $table->load($itemSearchCurrent))
+			elseif ($table->load($itemSearchCurrent) && ($table->id != $this->id || $this->id == 0))
 			{
-				if ($table->id != $this->id || $this->id == 0)
-				{
-					$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
-				}
+				$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
 			}
 		}
 		// For monolingual site.
 		else
 		{
 			// If not exists a menu item at the same level with the same alias (in any language).
-			if ($table->load($itemSearch))
+			if ($table->load($itemSearch) && ($table->id != $this->id || $this->id == 0))
 			{
-				if ($table->id != $this->id || $this->id == 0)
-				{
-					$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
-				}
+				$aliasMessage = $this->menutype == $table->menutype ? 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS' : 'JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ROOT';
 			}
 		}
 
