@@ -169,8 +169,9 @@ class JTableMenu extends JTableNested
 		// Verify that the alias is unique
 		$table = JTable::getInstance('Menu', 'JTable', array('dbo' => $this->getDbo()));
 
-		$this->alias = !trim($this->alias) ? $this->title : $this->alias;
-		$this->alias = JApplicationHelper::stringURLSafe(trim($this->alias), $this->language);
+		$originalAlias = trim($this->alias);
+		$this->alias   = !$originalAlias ? $this->title : $originalAlias;
+		$this->alias   = JApplicationHelper::stringURLSafe(trim($this->alias), $this->language);
 		
 		// If alias still empty (for instance, new menu item with chinese characters with no unicode alias setting).
 		if (empty($this->alias))
@@ -179,59 +180,42 @@ class JTableMenu extends JTableNested
 		}
 		else
 		{
-			$i             = 2;
-			$continue      = false;
-			$originalAlias = $this->alias;
+			$itemSearch = array('alias' => $this->alias, 'parent_id' => $this->parent_id, 'client_id' => (int) $this->client_id);
+			$errorType  = '';
 
-			while (!$continue)
+			// Check if the alias already exists. For multilingual site.
+			if (JLanguageMultilang::isEnabled())
 			{
-				$itemSearch  = array('alias' => $this->alias, 'parent_id' => $this->parent_id, 'client_id' => (int) $this->client_id);
-				$languageVar = '';
-
-				// Check if the alias already exists. For multilingual site.
-				if (JLanguageMultilang::isEnabled())
+				// If not exists a menu item at the same level with the same alias (in the All or the same language).
+				if (($table->load(array_replace($itemSearch, array('language' => '*'))) && ($table->id != $this->id || $this->id == 0))
+					|| ($table->load(array_replace($itemSearch, array('language' => $this->language))) && ($table->id != $this->id || $this->id == 0))
+					|| ($this->language == '*' && $table->load($itemSearch) && ($table->id != $this->id || $this->id == 0))
+					)
 				{
-					// If not exists a menu item at the same level with the same alias (in the All or the same language).
-					if (($table->load(array_replace($itemSearch, array('language' => '*'))) && ($table->id != $this->id || $this->id == 0))
-						|| ($table->load(array_replace($itemSearch, array('language' => $this->language))) && ($table->id != $this->id || $this->id == 0))
-						|| ($this->language == '*' && $table->load($itemSearch) && ($table->id != $this->id || $this->id == 0))
-						)
-					{
-						$languageVar = 'JLIB_DATABASE_WARNING_MENU_ALIAS_MULTILINGUAL';
-					}
+					$errorType = 'MULTILINGUAL';
 				}
-				// Check if the alias already exists. For monolingual site.
-				else
+			}
+			// Check if the alias already exists. For monolingual site.
+			else
+			{
+				// If not exists a menu item at the same level with the same alias (in any language).
+				if ($table->load($itemSearch) && ($table->id != $this->id || $this->id == 0))
 				{
-					// If not exists a menu item at the same level with the same alias (in any language).
-					if ($table->load($itemSearch) && ($table->id != $this->id || $this->id == 0))
-					{
-						$languageVar = 'JLIB_DATABASE_WARNING_MENU_ALIAS_MONOLINGUAL';
-					}
+					$errorType = 'MONOLINGUAL';
 				}
+			}
 
-				// The alias already exists. Enqueue a warning message and try a new one be adding "-X" (where X is a incremental number) to the alias.
-				if ($languageVar)
-				{
-					$app          = JFactory::getApplication();
-					$link         = JRoute::_('index.php?option=com_menus&task=item.edit&id=' . $table->id);
-					$languageVar .= $this->menutype == $table->menutype ? '_PARENT' : '_ROOT';
-					$message      = JText::sprintf($languageVar, $this->alias, $link, $table->title, $table->menutype);
+			// The alias already exists. Enqueue a warning message and try a new one be adding "-X" (where X is a incremental number) to the alias.
+			if ($errorType)
+			{
+				$link     = JRoute::_('index.php?option=com_menus&task=item.edit&id=' . $table->id);
+				$message .= JText::sprintf('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_ALREADY_USED', $this->alias, $link, $table->title)
+					. '<br /> ' . JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_' . $errorType . '_' . ($this->menutype == $table->menutype ? 'PARENT' : 'ROOT'))
+					. '<br /> ' . JText::_('JLIB_DATABASE_ERROR_MENU_UNIQUE_ALIAS_' . ($originalAlias ? 'CHANGE' : 'CUSTOM'));
 
-					$app->enqueueMessage($message, 'warning');
+				$this->setError($message);
 
-					$this->alias  = $originalAlias . '-' . $i;
-					$i++;
-				}
-				// The alias doesn't exist. Enqueue a warning message if it was changed.
-				else
-				{
-					if ($i != 2)
-					{
-						$app->enqueueMessage(JText::sprintf('JLIB_DATABASE_WARNING_MENU_ALIAS_AVOID_CONFLICTS', $this->alias), 'warning');
-					}
-					$continue = true;
-				}
+				return false;
 			}
 		}
 
