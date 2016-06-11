@@ -34,48 +34,69 @@ function sendPermissions(event) {
 
 	var id = this.id.replace('jform_rules_', '');
 	var lastUnderscoreIndex = id.lastIndexOf('_');
-	var action = id.substring(0, lastUnderscoreIndex);
-	var rule = id.substring(lastUnderscoreIndex + 1);
-	var data = '&comp=' + asset + '&action=' + action + '&rule=' + rule + '&value=' + value + '&title=' + title;
-	var url = 'index.php?option=com_config&task=config.store&format=raw' + data;
+
+	var permission_data = {
+		comp   : asset,
+		action : id.substring(0, lastUnderscoreIndex),
+		rule   : id.substring(lastUnderscoreIndex + 1),
+		value  : value,
+		title  : title
+	};
+
+	// Remove js messages, if they exist.
+	Joomla.removeMessages();
 
 	// doing ajax request
 	jQuery.ajax({
-		type: 'GET',
-		url: url,
-		datatype: 'JSON'
-	}).success(function (response) {
-		var element = event.target;
-		// Parse the response
-		var resp = JSON.parse(response);
-
-		// Parse the data
-		var data = JSON.parse(resp.data);
-
-		// Check if everything is OK
-		if (data.result == true)
-		{
-			icon.removeAttribute('style');
-			icon.setAttribute('class', 'icon-save');
-
-			jQuery(element).parents().next('td').find('span')
-				.removeClass().addClass(data.class)
-				.html(data.text);
-		}
-		else
-		{
-			var msg = { error: [resp.message] };
-			Joomla.renderMessages(msg);
-			icon.removeAttribute('style');
-			icon.setAttribute('class', 'icon-cancel');
-		}
-	}).fail(function() {
-		//set cancel icon on http failure
-		var msg = { error: [Joomla.JText._('JLIB_RULES_REQUEST_FAILURE')] };
-		Joomla.renderMessages(msg);
+		method: "POST",
+		url: permission_url,
+		data: permission_data,
+		datatype: 'json'
+	})
+	.fail(function (jqXHR, textStatus, error) {
+		// Remove the spinning icon.
 		icon.removeAttribute('style');
+
+		Joomla.renderMessages(Joomla.ajaxErrorsMessages(jqXHR, textStatus, error));
+
+		window.scrollTo(0, 0);
+
 		icon.setAttribute('class', 'icon-cancel');
 	})
+	.done(function (response) {
+		// Remove the spinning icon.
+		icon.removeAttribute('style');
+
+		if (response.data)
+		{
+			// Check if everything is OK
+			if (response.data.result == true)
+			{
+				icon.setAttribute('class', 'icon-save');
+
+				jQuery(event.target).parents().next('td').find('span')
+					.removeClass().addClass(response.data.class)
+					.html(response.data.text);
+			}
+		}
+
+		// Render messages, if any. There are only message in case of errors.
+		if (typeof response.messages == 'object' && response.messages !== null)
+		{
+			Joomla.renderMessages(response.messages);
+
+			if (response.data && response.data.result == true)
+			{
+				icon.setAttribute('class', 'icon-save');
+			}
+			else
+			{
+				icon.setAttribute('class', 'icon-cancel');
+			}
+
+			window.scrollTo(0, 0);
+		}
+	});
 }
 
 /**

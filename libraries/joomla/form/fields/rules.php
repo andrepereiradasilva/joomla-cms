@@ -144,6 +144,9 @@ class JFormFieldRules extends JFormField
 		// Add JText for error messages
 		JText::script('JLIB_RULES_REQUEST_FAILURE');
 
+		JFactory::getDocument()->addScriptDeclaration('
+			var permission_url = "' . addslashes(JUri::base()) . 'index.php?option=com_config&task=config.store&format=json&' . JSession::getFormToken() . '=1";');
+
 		// Initialise some field attributes.
 		$section = $this->section;
 		$component = $this->component;
@@ -246,15 +249,9 @@ class JFormFieldRules extends JFormField
 			$html[] = '<span class="acl-action">' . JText::_('JLIB_RULES_SELECT_SETTING') . '</span>';
 			$html[] = '</th>';
 
-			// The calculated setting is not shown for the root group of global configuration.
-			$canCalculateSettings = ($group->parent_id || !empty($component));
-
-			if ($canCalculateSettings)
-			{
-				$html[] = '<th id="aclactionth' . $group->value . '">';
-				$html[] = '<span class="acl-action">' . JText::_('JLIB_RULES_CALCULATED_SETTING') . '</span>';
-				$html[] = '</th>';
-			}
+			$html[] = '<th id="aclactionth' . $group->value . '">';
+			$html[] = '<span class="acl-action">' . JText::_('JLIB_RULES_CALCULATED_SETTING') . '</span>';
+			$html[] = '</th>';
 
 			$html[] = '</tr>';
 			$html[] = '</thead>';
@@ -319,69 +316,60 @@ class JFormFieldRules extends JFormField
 
 				$html[] = '</select>&#160; ';
 
-				// If this asset's rule is allowed, but the inherited rule is deny, we have a conflict.
-				if (($assetRule === true) && ($inheritedRule === false))
-				{
-					$html[] = JText::_('JLIB_RULES_CONFLICT');
-				}
-
 				$html[] = '<span id="icon_' . $this->id . '_' . $action->name . '_' . $group->value . '"' . '></span>';
 				$html[] = '</td>';
 
 				// Build the Calculated Settings column.
 				// The inherited settings column is not displayed for the root group in global configuration.
-				if ($canCalculateSettings)
+				$html[] = '<td headers="aclactionth' . $group->value . '">';
+
+				// If we have a super user we do not need to check anything, super users have all the access
+				if ($isSuperUser)
 				{
-					$html[] = '<td headers="aclactionth' . $group->value . '">';
+					$html[] = '<span class="label label-success"><span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_ALLOWED_ADMIN')
+						. '</span>';
+				}
 
-					// If we have a super user we do not need to check anything, super users have all the access
-					if ($isSuperUser)
+				// This is where we show the current effective settings considering current group, path and cascade.
+				// Check whether this is a component or global. Change the text slightly.
+
+				// We are not a super user
+				if (!$isSuperUser)
+				{
+					// We are explicitly allowed
+					if ($assetRule === true)
 					{
-						$html[] = '<span class="label label-success"><span class="icon-lock icon-white"></span> ' . JText::_('JLIB_RULES_ALLOWED_ADMIN')
-							. '</span>';
-					}
-
-					// This is where we show the current effective settings considering current group, path and cascade.
-					// Check whether this is a component or global. Change the text slightly.
-
-					// We are not a super user
-					if (!$isSuperUser)
-					{
-						// We are explicitly allowed
-						if ($assetRule === true)
+						if ($inheritedRule === false)
 						{
-							if ($inheritedRule === false)
-							{
-								// A parent group has been set to denied, we cannot overrule that
-								$html[] = '<span class="label label-important"><span class="icon-lock icon-white"></span> '
-									. JText::_('JLIB_RULES_NOT_ALLOWED_ADMIN_CONFLICT') . '</span>';
-							}
-							else
-							{
-								$html[] = '<span class="label label-success">' . JText::_('JLIB_RULES_ALLOWED') . '</span>';
-							}
+							// A parent group has been set to denied, we cannot overrule that
+							$html[] = '<span class="label"><span class="icon-lock icon-white"></span>'
+								. JText::_('JLIB_RULES_NOT_ALLOWED_LOCKED') . '</span>';
 						}
-						// We are explicitly denied
-						elseif ($assetRule === false)
+						else
+						{
+							$html[] = '<span class="label label-success">' . JText::_('JLIB_RULES_ALLOWED') . '</span>';
+						}
+					}
+					// We are explicitly denied
+					elseif ($assetRule === false)
+					{
+						$html[] = '<span class="label label-important">' . JText::_('JLIB_RULES_NOT_ALLOWED') . '</span>';
+					}
+					// Nothing is explicitly set, check inheritance
+					else
+					{
+						if ($inheritedRule === null)
 						{
 							$html[] = '<span class="label label-important">' . JText::_('JLIB_RULES_NOT_ALLOWED') . '</span>';
 						}
-						// Nothing is explicitly set, check inheritance
-						else
+						elseif ($inheritedRule === true)
 						{
-							if ($inheritedRule === null)
-							{
-								$html[] = '<span class="label label-important">' . JText::_('JLIB_RULES_NOT_ALLOWED') . '</span>';
-							}
-							elseif ($inheritedRule === true)
-							{
-								$html[] = '<span class="label label-success">' . JText::_('JLIB_RULES_ALLOWED') . '</span>';
-							}
-							elseif ($inheritedRule === false)
-							{
-								$html[] = '<span class="label"><span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_NOT_ALLOWED_LOCKED')
-									. '</span>';
-							}
+							$html[] = '<span class="label label-success">' . JText::_('JLIB_RULES_ALLOWED') . '</span>';
+						}
+						elseif ($inheritedRule === false)
+						{
+							$html[] = '<span class="label"><span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_NOT_ALLOWED_LOCKED')
+								. '</span>';
 						}
 					}
 
