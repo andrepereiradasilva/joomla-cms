@@ -698,25 +698,16 @@ class JApplicationCms extends JApplicationWeb
 	 */
 	public function isHttpsForced($clientId = null)
 	{
-		$clientId = $clientId !== null ? (int) $clientId : (int) $this->getClientId();
+		$clientId = !is_null($clientId) ? (int) $clientId : (int) $this->getClientId();
 
-		switch ($clientId)
+		if ($clientId === 0 && (int) $this->get('force_ssl') === 2)
 		{
-			case 0:
-				if ((int) $this->get('force_ssl') === 2)
-				{
-					return true;
-				}
+			return true;
+		}
 
-				break;
-
-			case 1:
-				if ((int) $this->get('force_ssl') >= 1)
-				{
-					return true;
-				}
-
-				break;
+		if ($clientId === 1 && (int) $this->get('force_ssl') >= 1)
+		{
+			return true;
 		}
 
 		return false;
