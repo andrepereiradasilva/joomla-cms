@@ -826,7 +826,7 @@ class PlgSystemLanguageFilter extends JPlugin
 		// If not, set the user language in the session (that is already saved in a cookie).
 		else
 		{
-			JFactory::getSession()->set('user_language', $lang_code);
+			JFactory::getSession()->set('languagefilter.user_language', $lang_code);
 		}
 	}
 
@@ -847,7 +847,7 @@ class PlgSystemLanguageFilter extends JPlugin
 		// Else get the user language from the session.
 		else
 		{
-			$lang_code = JFactory::getSession()->get('user_language');
+			$lang_code = JFactory::getSession()->get('languagefilter.user_language');
 		}
 
 		// Let's be sure we got a valid language code. Fallback to null.
