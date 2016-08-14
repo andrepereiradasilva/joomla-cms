@@ -20,7 +20,7 @@ class PlgSystemLogout extends JPlugin
 	 * Application object.
 	 *
 	 * @var    JApplicationCms
-	 * @since  3.6
+	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $app;
 
