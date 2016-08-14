@@ -10,13 +10,14 @@
 defined('JPATH_PLATFORM') or die;
 
 use Joomla\Registry\Registry;
+use Joomla\Utilities\ArrayHelper;
 
 /**
  * User class.  Handles all application interaction with a user
  *
  * @since  11.1
  */
-class JUser extends JObject implements Serializable
+class JUser extends JObject
 {
 	/**
 	 * A cached switch for if this user has root access rights.
@@ -612,7 +613,7 @@ class JUser extends JObject implements Serializable
 				return false;
 			}
 
-			$this->password_clear = JArrayHelper::getValue($array, 'password', '', 'string');
+			$this->password_clear = ArrayHelper::getValue($array, 'password', '', 'string');
 
 			$array['password'] = $this->userHelper->hashPassword($array['password']);
 
@@ -640,7 +641,7 @@ class JUser extends JObject implements Serializable
 					return false;
 				}
 
-				$this->password_clear = JArrayHelper::getValue($array, 'password', '', 'string');
+				$this->password_clear = ArrayHelper::getValue($array, 'password', '', 'string');
 
 				// Check if the user is reusing the current password if required to reset their password
 				if ($this->requireReset == 1 && $this->userHelper->verifyPassword($this->password_clear, $this->password))
@@ -895,39 +896,34 @@ class JUser extends JObject implements Serializable
 	}
 
 	/**
-	 * Method to serialize the input.
+	 * Method to allow serialize the object with minimal properties.
 	 *
-	 * @return  string  The serialized input.
+	 * @return  array  The names of the properties to include in serialization.
 	 *
 	 * @since   3.6.0
 	 */
-	public function serialize()
+	public function __sleep()
 	{
-		return serialize(array($this->id));
+		return array('id');
 	}
 
 	/**
-	 * Method to unserialize the user object.
+	 * Method to recover the full object on unserialize.
 	 *
-	 * @param   string  $input  The serialized input.
-	 *
-	 * @return  JUser
+	 * @return  void
 	 *
 	 * @since   3.6.0
 	 */
-	public function unserialize($input)
+	public function __wakeup()
 	{
-		// Get the user id from the serialized data.
-		list($id) = unserialize($input);
-
 		// Initialise some variables
 		$this->userHelper = new JUserWrapperHelper;
 		$this->_params    = new Registry;
 
 		// Load the user if it exists
-		if (!empty($id))
+		if (!empty($this->id))
 		{
-			$this->load($id);
+			$this->load($this->id);
 		}
 		else
 		{

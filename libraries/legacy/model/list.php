@@ -92,7 +92,7 @@ class JModelList extends JModelLegacy
 	{
 		parent::__construct($config);
 
-		// Add the ordering filtering fields white list.
+		// Add the ordering filtering fields whitelist.
 		if (isset($config['filter_fields']))
 		{
 			$this->filter_fields = $config['filter_fields'];
@@ -321,11 +321,14 @@ class JModelList extends JModelLegacy
 
 		$start = $this->getState('list.start');
 		$limit = $this->getState('list.limit');
-		$total = $this->getTotal();
 
-		if ($start > $total - $limit)
+		if ($start > 0)
 		{
-			$start = max(0, (int) (ceil($total / $limit) - 1) * $limit);
+			$total = $this->getTotal();
+			if ($start > $total - $limit)
+			{
+				$start = max(0, (int) (ceil($total / $limit) - 1) * $limit);
+			}
 		}
 
 		// Add the total to the internal cache.
@@ -450,10 +453,10 @@ class JModelList extends JModelLegacy
 		if (!property_exists($data, 'list'))
 		{
 			$data->list = array(
-				'direction' => $this->state->{'list.direction'},
-				'limit'     => $this->state->{'list.limit'},
-				'ordering'  => $this->state->{'list.ordering'},
-				'start'     => $this->state->{'list.start'}
+				'direction' => $this->getState('list.direction'),
+				'limit'     => $this->getState('list.limit'),
+				'ordering'  => $this->getState('list.ordering'),
+				'start'     => $this->getState('list.start'),
 			);
 		}
 
@@ -582,7 +585,7 @@ class JModelList extends JModelLegacy
 				$limit = $app->getUserStateFromRequest('global.list.limit', 'limit', $app->get('list_limit'), 'uint');
 				$this->setState('list.limit', $limit);
 
-				// Check if the ordering field is in the white list, otherwise use the incoming value.
+				// Check if the ordering field is in the whitelist, otherwise use the incoming value.
 				$value = $app->getUserStateFromRequest($this->context . '.ordercol', 'filter_order', $ordering);
 
 				if (!in_array($value, $this->filter_fields))
@@ -704,7 +707,7 @@ class JModelList extends JModelLegacy
 			}
 		}
 
-		if (($cur_state != $new_state) && ($resetPage))
+		if (($cur_state != $new_state) && $new_state !== null && ($resetPage))
 		{
 			$input->set('limitstart', 0);
 		}

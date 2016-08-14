@@ -30,7 +30,7 @@ class InstallerModelLanguages extends JModelList
 	private $updateSiteId = 0;
 
 	/**
-	 * Constructor override, defines a white list of column filters.
+	 * Constructor override, defines a whitelist of column filters.
 	 *
 	 * @param   array  $config  An optional associative array of configuration settings.
 	 *
@@ -301,7 +301,7 @@ class InstallerModelLanguages extends JModelList
 			}
 
 			// Package installed successfully.
-			$app->enqueueMessage(JText::sprintf('COM_INSTALLER_INSTALL_SUCCESS', $language->name));
+			$app->enqueueMessage(JText::sprintf('COM_INSTALLER_INSTALL_LANGUAGE_SUCCESS', $language->name));
 
 			// Cleanup the install files in tmp folder.
 			if (!is_file($package['packagefile']))
