@@ -102,6 +102,7 @@ class PlgSystemLogout extends JPlugin
 	 */
 	public static function handleError(&$error)
 	{
+		// Get the application object.
 		$app = JFactory::getApplication();
 
 		// Make sure the error is a 403 and we are in the frontend.
