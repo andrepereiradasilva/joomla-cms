@@ -24,7 +24,6 @@ class FinderTableLink extends JTable
 	 */
 	protected $_columnAlias = array(
 		'id'           => 'link_id',
-		'published'    => 'state',
 		'publish_up'   => 'publish_start_date',
 		'publish_down' => 'publish_end_date',
 	);
