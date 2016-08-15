@@ -26,8 +26,8 @@ class JTableUpdatesite extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
-		'title'     => 'name',
-		'published' => 'enabled',
+		'title' => 'name',
+		'state' => 'enabled',
 	);
 
 	/**
