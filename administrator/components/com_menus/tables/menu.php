@@ -24,6 +24,7 @@ class MenusTableMenu extends JTableMenu
 	 */
 	protected $_columnAlias = array(
 		'ordering' => 'lft',
+		'state'    => 'published',
 	);
 
 	/**
