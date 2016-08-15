@@ -20,6 +20,17 @@ defined('JPATH_PLATFORM') or die;
 class JTableUpdatesite extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'title'     => 'name',
+		'published' => 'enabled',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.
