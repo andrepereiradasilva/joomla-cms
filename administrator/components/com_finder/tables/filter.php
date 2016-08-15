@@ -27,7 +27,6 @@ class FinderTableFilter extends JTable
 	 */
 	protected $_columnAlias = array(
 		'id'               => 'filter_id',
-		'published'        => 'state',
 		'created_time'     => 'created',
 		'created_user_id'  => 'created_by',
 		'modified_time'    => 'modified',
