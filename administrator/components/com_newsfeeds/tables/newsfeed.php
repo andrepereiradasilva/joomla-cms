@@ -24,6 +24,7 @@ class NewsfeedsTableNewsfeed extends JTable
 	 */
 	protected $_columnAlias = array(
 		'title'            => 'name',
+		'state'            => 'published',
 		'created_time'     => 'created',
 		'created_user_id'  => 'created_by',
 		'modified_time'    => 'modified',
