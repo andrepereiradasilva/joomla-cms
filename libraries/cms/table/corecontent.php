@@ -40,6 +40,7 @@ class JTableCorecontent extends JTable
 		'modified_user_id'    => 'core_modified_user_id',
 		'language'            => 'core_language',
 		'publish_up'          => 'core_publish_up',
+		'publish_down'        => 'core_publish_down',
 		'ordering'            => 'core_ordering',
 		'catid'               => 'core_catid',
 	);
