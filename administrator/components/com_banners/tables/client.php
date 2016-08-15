@@ -25,8 +25,7 @@ class BannersTableClient extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
-		'title'     => 'name',
-		'published' => 'state',
+		'title' => 'name',
 	);
 
 	/**
