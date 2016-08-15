@@ -20,6 +20,18 @@ use Joomla\Utilities\ArrayHelper;
 class JTableExtension extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'        => 'extension_id',
+		'title'     => 'name',
+		'published' => 'state',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.
