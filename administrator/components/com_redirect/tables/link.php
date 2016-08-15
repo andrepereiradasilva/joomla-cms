@@ -23,6 +23,7 @@ class RedirectTableLink extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
+		'state'         => 'published',
 		'created_time'  => 'created_date',
 		'modified_time' => 'modified_date',
 	);
