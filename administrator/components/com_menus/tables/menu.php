@@ -17,6 +17,16 @@ defined('_JEXEC') or die;
 class MenusTableMenu extends JTableMenu
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'ordering' => 'lft',
+	);
+
+	/**
 	 * Method to delete a node and, optionally, its child nodes from the table.
 	 *
 	 * @param   integer  $pk        The primary key of the node to delete.
