@@ -26,7 +26,6 @@ class ContactTableContact extends JTable
 	 */
 	protected $_columnAlias = array(
 		'title'            => 'name',
-		'published'        => 'state',
 		'created_time'     => 'created',
 		'created_user_id'  => 'created_by',
 		'modified_time'    => 'modified',
