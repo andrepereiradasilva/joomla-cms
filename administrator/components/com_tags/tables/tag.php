@@ -26,6 +26,7 @@ class TagsTableTag extends JTableNested
 	 */
 	protected $_columnAlias = array(
 		'ordering' => 'lft',
+		'state'    => 'published',
 	);
 
 	/**
