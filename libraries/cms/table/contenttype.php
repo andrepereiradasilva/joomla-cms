@@ -17,6 +17,18 @@ defined('JPATH_PLATFORM') or die;
 class JTableContenttype extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'    => 'type_id',
+		'title' => 'type_title',
+		'alias' => 'type_alias',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  A database connector object
