@@ -23,8 +23,7 @@ class UsersTableNote extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
-		'title'     => 'subject',
-		'published' => 'state',
+		'title' => 'subject',
 	);
 
 	/**
