@@ -26,6 +26,7 @@ class JTableMenu extends JTableNested
 	 */
 	protected $_columnAlias = array(
 		'ordering' => 'lft',
+		'state'    => 'published',
 	);
 
 	/**
