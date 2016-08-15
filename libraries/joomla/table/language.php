@@ -23,7 +23,8 @@ class JTableLanguage extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
-		'id' => 'lang_id',
+		'id'    => 'lang_id',
+		'state' => 'published',
 	);
 
 	/**
