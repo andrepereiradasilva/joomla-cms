@@ -17,6 +17,16 @@ defined('JPATH_PLATFORM') or die;
 class JTableLanguage extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id' => 'lang_id',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.
