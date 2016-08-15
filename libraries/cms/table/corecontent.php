@@ -20,6 +20,31 @@ use Joomla\Utilities\ArrayHelper;
 class JTableCorecontent extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'                  => 'core_content_id',
+		'title'               => 'core_title',
+		'alias'               => 'core_alias',
+		'state'               => 'core_state',
+		'checked_out_time'    => 'core_checked_out_time',
+		'checked_out_user_id' => 'core_checked_out_user_id',
+		'access'              => 'core_access',
+		'created_time'        => 'core_created_time',
+		'created_user_id'     => 'core_created_user_id',
+		'created_by_alias'    => 'core_created_by_alias',
+		'modified_time'       => 'core_modified_time',
+		'modified_user_id'    => 'core_modified_user_id',
+		'language'            => 'core_language',
+		'publish_up'          => 'core_publish_up',
+		'ordering'            => 'core_ordering',
+		'catid'               => 'core_catid',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  A database connector object
