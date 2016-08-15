@@ -27,7 +27,7 @@ class JTableUser extends JTable
 	 */
 	protected $_columnAlias = array(
 		'title'        => 'name',
-		'published'    => 'block',
+		'state'        => 'block',
 		'created_time' => 'registerDate',
 	);
 
