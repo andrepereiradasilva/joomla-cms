@@ -19,6 +19,16 @@ use Joomla\Utilities\ArrayHelper;
 class FinderTableMap extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'published' => 'state',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  &$db  JDatabaseDriver connector object.
