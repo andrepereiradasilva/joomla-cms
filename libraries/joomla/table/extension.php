@@ -26,9 +26,8 @@ class JTableExtension extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
-		'id'        => 'extension_id',
-		'title'     => 'name',
-		'published' => 'state',
+		'id'    => 'extension_id',
+		'title' => 'name',
 	);
 
 	/**
