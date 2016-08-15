@@ -23,9 +23,10 @@ class MessagesTableMessage extends JTable
 	 * @since  __DEPLOY_VERSION__
 	 */
 	protected $_columnAlias = array(
-		'title'        => 'subject',
-		'published'    => 'state',
-		'created_time' => 'date_time',
+		'id'              => 'message_id',
+		'title'           => 'subject',
+		'created_time'    => 'date_time',
+		'created_user_id' => 'user_id_from',
 	);
 
 	/**
