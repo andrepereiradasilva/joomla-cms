@@ -17,6 +17,19 @@ defined('_JEXEC') or die;
 class MessagesTableMessage extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'              => 'message_id',
+		'title'           => 'subject',
+		'created_time'    => 'date_time',
+		'created_user_id' => 'user_id_from',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  &$db  Database connector object

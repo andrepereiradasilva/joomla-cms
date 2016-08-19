@@ -17,6 +17,18 @@ defined('JPATH_PLATFORM') or die;
 class JTableContenthistory extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'              => 'version_id',
+		'created_time'    => 'save_date',
+		'created_user_id' => 'editor_user_id',
+	);
+
+	/**
 	 * Array of object fields to unset from the data object before calculating SHA1 hash. This allows us to detect a meaningful change
 	 * in the database row using the hash. This can be read from the #__content_types content_history_options column.
 	 *

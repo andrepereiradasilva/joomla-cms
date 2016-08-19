@@ -20,6 +20,20 @@ use Joomla\Utilities\ArrayHelper;
 class BannersTableBanner extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'title'            => 'name',
+		'created_time'     => 'created',
+		'created_user_id'  => 'created_by',
+		'modified_time'    => 'modified',
+		'modified_user_id' => 'modified_by',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  &$db  Database connector object
@@ -33,7 +47,6 @@ class BannersTableBanner extends JTable
 		JTableObserverContenthistory::createObserver($this, array('typeAlias' => 'com_banners.banner'));
 
 		$this->created = JFactory::getDate()->toSql();
-		$this->setColumnAlias('published', 'state');
 	}
 
 	/**

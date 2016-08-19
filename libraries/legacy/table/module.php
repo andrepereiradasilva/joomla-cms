@@ -19,6 +19,16 @@ use Joomla\Registry\Registry;
 class JTableModule extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'state' => 'published',
+	);
+
+	/**
 	 * Constructor.
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.

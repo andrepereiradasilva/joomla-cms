@@ -20,6 +20,18 @@ use Joomla\Utilities\ArrayHelper;
 class JTableUser extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'title'        => 'name',
+		'state'        => 'block',
+		'created_time' => 'registerDate',
+	);
+
+	/**
 	 * Associative array of group ids => group ids for the user
 	 *
 	 * @var    array

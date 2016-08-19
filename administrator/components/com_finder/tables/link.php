@@ -17,6 +17,18 @@ defined('_JEXEC') or die;
 class FinderTableLink extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'           => 'link_id',
+		'publish_up'   => 'publish_start_date',
+		'publish_down' => 'publish_end_date',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  &$db  JDatabaseDriver connector object.

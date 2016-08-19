@@ -17,6 +17,18 @@ defined('_JEXEC') or die;
 class RedirectTableLink extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'state'         => 'published',
+		'created_time'  => 'created_date',
+		'modified_time' => 'modified_date',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database object.

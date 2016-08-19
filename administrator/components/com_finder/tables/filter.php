@@ -20,6 +20,20 @@ use Joomla\Utilities\ArrayHelper;
 class FinderTableFilter extends JTable
 {
 	/**
+	 * Mapping of database columns alias.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $_columnAlias = array(
+		'id'               => 'filter_id',
+		'created_time'     => 'created',
+		'created_user_id'  => 'created_by',
+		'modified_time'    => 'modified',
+		'modified_user_id' => 'modified_by',
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  &$db  JDatabaseDriver connector object.
