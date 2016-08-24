@@ -72,9 +72,10 @@ abstract class ModLanguagesHelper
 			}
 		}
 
-		$levels    = $user->getAuthorisedViewLevels();
-		$sitelangs = JLanguageMultilang::getSiteLangs();
-		$multilang = JLanguageMultilang::isEnabled();
+		$levels             = $user->getAuthorisedViewLevels();
+		$sitelangs          = JLanguageMultilang::getSiteLangs();
+		$multilang          = JLanguageMultilang::isEnabled();
+		$currentInternalUrl = 'index.php?' . http_build_query($this->app->getRouter()->getVars());
 
 		// Filter allowed languages
 		foreach ($languages as $i => &$language)
@@ -126,7 +127,7 @@ abstract class ModLanguagesHelper
 					{
 						if ($language->active)
 						{
-							$language->link = JUri::getInstance()->toString(array('path', 'query'));
+							$language->link = JRoute::_($currentInternalUrl);
 						}
 						else
 						{
@@ -137,7 +138,7 @@ abstract class ModLanguagesHelper
 				}
 				else
 				{
-					$language->link = JRoute::_('&Itemid=' . $homes['*']->id);
+					$language->link = JRoute::_('index.php?Itemid=' . $homes['*']->id);
 				}
 			}
 		}
