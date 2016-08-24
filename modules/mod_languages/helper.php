@@ -75,7 +75,7 @@ abstract class ModLanguagesHelper
 		$levels             = $user->getAuthorisedViewLevels();
 		$sitelangs          = JLanguageMultilang::getSiteLangs();
 		$multilang          = JLanguageMultilang::isEnabled();
-		$currentInternalUrl = 'index.php?' . http_build_query($this->app->getRouter()->getVars());
+		$currentInternalUrl = 'index.php?' . http_build_query($app->getRouter()->getVars());
 
 		// Filter allowed languages
 		foreach ($languages as $i => &$language)
