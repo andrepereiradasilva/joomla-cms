@@ -10,6 +10,7 @@
 defined('JPATH_BASE') or die;
 JHtml::_('bootstrap.tooltip', '.hasTooltip');
 
+
 /**
  * Supports a modal menu item picker.
  *
