@@ -66,11 +66,11 @@ abstract class JHtmlContentAdministrator
 			{
 				foreach ($items as &$item)
 				{
-					$text = strtoupper($item->lang_sef);
-					$url = JRoute::_('index.php?option=com_content&task=article.edit&id=' . (int) $item->id);
+					$text    = $item->lang_sef ? strtoupper($item->lang_sef) : 'XX';
+					$url     = JRoute::_('index.php?option=com_content&task=article.edit&id=' . (int) $item->id);
 					$tooltip = '';
 
-					if ($item->image)
+					if ($item->image && JHtml::_('image', 'mod_languages/' . $item->image . '.gif', null, null, true, true))
 					{
 						$tooltip .= JHtml::_('image', 'mod_languages/' . $item->image . '.gif', $item->language_title, array('title' => $item->language_title), true);
 					}
