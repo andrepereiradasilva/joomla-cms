@@ -144,39 +144,62 @@ class JRouterSite extends JRouter
 	 */
 	public function build($url)
 	{
-		$uri = parent::build($url);
+		// Pre-process: Exclude parameters not used for routing.
 
-		// Get the path data
-		$route = $uri->getPath();
-
-		// Add the suffix to the uri
-		if ($this->_mode == JROUTER_MODE_SEF && $route)
+		// Get url query string parameters.
+		if (substr($url, 0, 1) != '&')
 		{
-			if ($this->app->get('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/'))
-			{
-				if ($format = $uri->getVar('format', 'html'))
-				{
-					$route .= '.' . $format;
-					$uri->delVar('format');
-				}
-			}
-
-			if ($this->app->get('sef_rewrite'))
-			{
-				// Transform the route
-				if ($route == 'index.php')
-				{
-					$route = '';
-				}
-				else
-				{
-					$route = str_replace('index.php/', '', $route);
-				}
-			}
+			parse_str(parse_url($url, PHP_URL_QUERY), $queryStringParameters);
+		}
+		else
+		{
+			parse_str(trim(str_replace('&amp;', '&', $url), '&'), $queryStringParameters);
 		}
 
-		// Add basepath to the uri
-		$uri->setPath(JUri::base(true) . '/' . $route);
+		$queryStringParameters = array_filter($queryStringParameters, 'strlen');
+
+		// Define which query string parameters are excluded from routing
+		$excludeParametersList = array(
+			'global'      => array('link' => '', 'template' => '', 'page' => '', 'print' => '', 'layout' => '', 'tmpl' => '', 'task' => '', 'format' => '', 'type' => '', 'start' => '', 'limitstart' => ''),
+			'com_users'   => array('view' => ''),
+			);
+
+		if (isset($queryStringParameters['option']) && isset($excludeParametersList['option']))
+		{
+			$excludeParameters = array_replace($excludeParametersList['global'], $excludeParametersList[$queryStringParameters['option']]);
+		}
+		else
+		{
+			$excludeParameters = array_replace($excludeParametersList['global']);
+		}
+
+		// Remove those parameters from the Uri string.
+		$parametersToRoute = array_diff_key($queryStringParameters, $excludeParameters);
+		$newQueryString = '';
+		if (count($parametersToRoute) > 0)
+		{
+			ksort($parametersToRoute);
+			$newQueryString = http_build_query($parametersToRoute);
+		}
+
+		if (substr($url, 0, 1) != '&')
+		{
+			$url = preg_replace('%\?(.+?)(#|$)%', '?' . $newQueryString . '$2', $url);
+		}
+		else
+		{
+			$url = preg_replace('%^&(.+?)(#|$)%', '&' . $newQueryString . '$2', $url);
+		}
+
+		// Process: Get routed Uri.
+		$uri = parent::build($url);
+
+		// Post-process: Restore the parameters that have not been used for routing.
+		$parametersToIgnore = array_intersect_key($queryStringParameters, $excludeParameters);
+		foreach ($parametersToIgnore as $parameter => $value)
+		{
+			$uri->setVar($parameter, $value);
+		}
 
 		return $uri;
 	}
