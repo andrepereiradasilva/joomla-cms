@@ -274,6 +274,9 @@ class JApplicationCms extends JApplicationWeb
 
 			// Trigger the onAfterCompress event.
 			$this->triggerEvent('onAfterCompress');
+
+			// Mark afterCompress in the profiler.
+			JDEBUG ? $this->profiler->mark('afterCompress') : null;
 		}
 
 		// Send the application response.
@@ -281,6 +284,9 @@ class JApplicationCms extends JApplicationWeb
 
 		// Trigger the onAfterRespond event.
 		$this->triggerEvent('onAfterRespond');
+
+		// Mark afterRespond in the profiler.
+		JDEBUG ? $this->profiler->mark('afterRespond') : null;
 	}
 
 	/**
