@@ -678,16 +678,11 @@ class PlgSystemLanguageFilter extends JPlugin
 		if ($this->app->isSite() && $this->params->get('alternate_meta', 1) && $doc->getType() == 'html')
 		{
 			$languages             = $this->lang_codes;
-			$homes                 = JLanguageMultilang::getSiteHomePages();
 			$menu                  = $this->app->getMenu();
-			$active                = $menu->getActive();
-			$levels                = JFactory::getUser()->getAuthorisedViewLevels();
-			$remove_default_prefix = $this->params->get('remove_default_prefix', 0);
-			$server                = JUri::getInstance()->toString(array('scheme', 'host', 'port'));
 			$is_home               = false;
 			$currentInternalUrl    = 'index.php?' . http_build_query($this->app->getRouter()->getVars());
 
-			if ($active)
+			if ($active = $menu->getActive())
 			{
 				$active_link  = JRoute::_($active->link . '&Itemid=' . $active->id);
 				$current_link = JRoute::_($currentInternalUrl);
@@ -720,7 +715,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				{
 					// Home page
 					case ($is_home):
-						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $homes[$i]->id);
+						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $menu->getDefault($language->lang_code)->id);
 						break;
 
 					// Current language link
@@ -748,8 +743,10 @@ class PlgSystemLanguageFilter extends JPlugin
 			// If there are at least 2 of them, add the rel="alternate" links to the <head>
 			if (count($languages) > 1)
 			{
+				$server = JUri::getInstance()->toString(array('scheme', 'host', 'port'));
+
 				// Remove the sef from the default language if "Remove URL Language Code" is on
-				if (isset($languages[$this->default_lang]) && $remove_default_prefix)
+				if (isset($languages[$this->default_lang]) && $this->params->get('remove_default_prefix', 0))
 				{
 					$languages[$this->default_lang]->link
 									= preg_replace('|/' . $languages[$this->default_lang]->sef . '/|', '/', $languages[$this->default_lang]->link, 1);
