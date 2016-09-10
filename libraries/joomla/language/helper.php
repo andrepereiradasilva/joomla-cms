@@ -167,7 +167,7 @@ class JLanguageHelper
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getAvailableSiteLanguages($group = null, $ordering = 'ASC', $checkHome = true, $checkAccess = true)
+	public static function getAvailableSiteLanguages($group = null, $ordering = 'ASC', $checkHome = true, $checkAccess = true, $checkPublished = true)
 	{
 		// To avoid doing duplicate database queries.
 		static $querySiteLanguages     = null;
@@ -182,28 +182,32 @@ class JLanguageHelper
 				$db = JFactory::getDbo();
 				$query = $db->getQuery(true)
 					->select($db->qn(
-						array(
-							'l.lang_code',
-							'l.sef',
-							'l.title',
-							'l.title_native',
-							'l.image',
-							'l.sitename',
-							'l.metakey',
-							'l.metadesc',
-							'l.access',
-							'l.ordering',
-							'm.home',
+							array(
+								'l.lang_id',
+								'l.lang_code',
+								'l.sef',
+								'l.title',
+								'l.title_native',
+								'l.image',
+								'l.sitename',
+								'l.metakey',
+								'l.metadesc',
+								'l.access',
+								'l.published',
+								'l.ordering',
 							)
 						)
 					)
+					->select($db->qn('m.id', 'home_id'))
+					->select($db->qn('m.access', 'home_access'))
+					->select($db->qn('m.published', 'home_published'))
 					->from($db->qn('#__languages', 'l'))
 					->join('LEFT', $db->qn('#__extensions', 'e') . ' ON ' . $db->qn('l.lang_code') . ' = ' . $db->qn('e.element'))
 					->join('LEFT', $db->qn('#__menu', 'm') . ' ON ' . $db->qn('l.lang_code') . ' = ' . $db->qn('m.language'))
-					->where($db->qn('l.published') . ' = 1')
 					->where($db->qn('e.type') . ' = ' . $db->q('language'))
 					->where($db->qn('e.client_id') . ' = 0')
-					->where($db->qn('e.enabled') . ' = 1');
+					->where($db->qn('e.enabled') . ' = 1')
+					->where($db->qn('m.home') . ' = 1');
 
 				$querySiteLanguages = $db->setQuery($query)->loadObjectList();
 
@@ -231,20 +235,41 @@ class JLanguageHelper
 					continue;
 				}
 	
-				// Check if the user can view the language and if the language file exists.
+				// Check if the user can view the language.
 				if ($checkAccess && (!$language->access || !in_array($language->access, $levels)))
 				{
 					unset($availableSiteLanguages[$key][$k]);
 					continue;
 				}
 
-				// Check if the language as homepage.
-				if ($checkHome && !$language->home)
+				// Check if the user can view not published languages.
+				if ($checkPublished && (int) $language->published !== 1)
 				{
 					unset($availableSiteLanguages[$key][$k]);
 					continue;
 				}
 
+				// Check if the language as homepage.
+				if ($checkHome && !$language->home_id)
+				{
+					unset($availableSiteLanguages[$key][$k]);
+					continue;
+				}
+
+				// Check if the user can view the the home menu item.
+				if ($checkHome && $checkAccess && (!$language->home_access || !in_array($language->home_access, $levels)))
+				{
+					unset($availableSiteLanguages[$key][$k]);
+					continue;
+				}
+
+				// Check if the user can view not published home menu items.
+				if ($checkHome && $checkPublished && (int) $language->home_published !== 1)
+				{
+					unset($availableSiteLanguages[$key][$k]);
+					continue;
+				}
+	
 				// Check if is the current language.
 				$availableSiteLanguages[$key][$k]->active = $language->lang_code == $currentLanguage->getTag();
 

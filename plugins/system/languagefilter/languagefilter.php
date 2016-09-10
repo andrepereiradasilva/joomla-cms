@@ -677,10 +677,10 @@ class PlgSystemLanguageFilter extends JPlugin
 
 		if ($this->app->isSite() && $this->params->get('alternate_meta', 1) && $doc->getType() == 'html')
 		{
-			$languages             = $this->lang_codes;
-			$menu                  = $this->app->getMenu();
-			$is_home               = false;
-			$currentInternalUrl    = 'index.php?' . http_build_query($this->app->getRouter()->getVars());
+			$languages          = $this->lang_codes;
+			$menu               = $this->app->getMenu();
+			$isHome             = false;
+			$currentInternalUrl = 'index.php?' . http_build_query($this->app->getRouter()->getVars());
 
 			if ($active = $menu->getActive())
 			{
@@ -694,7 +694,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				}
 
 				// Check if we are on the home page
-				$is_home = ($active->home
+				$isHome = ($active->home
 					&& ($active_link == $current_link || $active_link == $current_link . 'index.php' || $active_link . '/' == $current_link));
 			}
 
@@ -714,8 +714,8 @@ class PlgSystemLanguageFilter extends JPlugin
 				switch (true)
 				{
 					// Home page
-					case ($is_home):
-						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $menu->getDefault($language->lang_code)->id);
+					case ($isHome):
+						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $language->home_id);
 						break;
 
 					// Current language link

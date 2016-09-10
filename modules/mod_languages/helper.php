@@ -87,9 +87,7 @@ abstract class ModLanguagesHelper
 				continue;
 			}
 
-			$languageHome = $menu->getDefault($language->lang_code);
-			$itemid       = $languageHome ? $languageHome->id : $defaultHome->id;
-			$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $itemid);
+			$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $language->home_id);
 		}
 
 		return $languages;
