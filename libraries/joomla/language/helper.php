@@ -181,4 +181,92 @@ class JLanguageHelper
 
 		return $languages[$key];
 	}
+
+	/**
+	 * Method to return a list of available site languages.
+	 *
+	 * @param   string  $group  Array group
+	 *
+	 * @return  array  Available site language objects.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getAvailableSiteLanguages($group = null)
+	{
+		// To avoid doing duplicate database queries.
+		static $availableSiteLanguages = null;
+
+		if (!isset($availableSiteLanguages))
+		{
+			$cache = JFactory::getCache('com_languages', '');
+
+			if (!$languages = $cache->get('availablesitelanguages'))
+			{
+				$db = JFactory::getDbo();
+				$query = $db->getQuery(true)
+					->select($db->qn(
+						array(
+							'l.lang_code',
+							'l.sef',
+							'l.title',
+							'l.title_native',
+							'l.image',
+							'l.sitename',
+							'l.metakey',
+							'l.metadesc',
+							'l.access',
+							'm.home',
+							)
+						)
+					)
+					->from($db->qn('#__languages', 'l'))
+					->join('LEFT', $db->qn('#__extensions', 'e') . ' ON ' . $db->qn('l.lang_code') . ' = ' . $db->qn('e.element'))
+					->join('LEFT', $db->qn('#__menu', 'm') . ' ON ' . $db->qn('l.lang_code') . ' = ' . $db->qn('m.language'))
+					->where($db->qn('l.published') . ' = 1')
+					->where($db->qn('e.type') . ' = ' . $db->q('language'))
+					->where($db->qn('e.client_id') . ' = 0')
+					->where($db->qn('e.enabled') . ' = 1')
+					->where($db->qn('m.home') . ' = 1')
+					->where($db->qn('l.access') . ' IN (' . implode(', ', JFactory::getUser()->getAuthorisedViewLevels()) . ')');
+
+				$availableSiteLanguages = $db->setQuery($query)->loadObjectList();
+
+				$currentLanguage = JFactory::getLanguage();
+
+				foreach ($availableSiteLanguages as $key => $language)
+				{
+					$availableSiteLanguages[$key]->active = $language->lang_code == $currentLanguage->getTag();
+
+					// If current language get the rtl from current JLanguage metadata
+					if ($availableSiteLanguages[$key]->active)
+					{
+						$availableSiteLanguages[$key]->rtl = $currentLanguage->isRtl();
+					}
+					// If not loaded language fetch rtl directly for performance
+					else
+					{
+						$languageMetadata = JLanguage::getMetadata($language->lang_code);
+						$availableSiteLanguages[$key]->rtl    = $languageMetadata['rtl'];
+					}
+				}
+
+				$cache->store($availableSiteLanguages, 'availablesitelanguages');
+			}
+		}
+
+		if (is_null($group))
+		{
+			return $availableSiteLanguages;
+		}
+
+		$returnLanguages = array();
+		$currentLanguage = JFactory::getLanguage();
+
+		foreach ($availableSiteLanguages as $language)
+		{
+			$returnLanguages[$language->{$group}] = $language;
+		}
+
+		return $returnLanguages;
+	}
 }
