@@ -173,6 +173,8 @@ class JLanguageHelper
 		static $querySiteLanguages     = null;
 		static $availableSiteLanguages = array();
 
+		!JDEBUG ?: JProfiler::getInstance('Application')->mark('');
+
 		if (is_null($querySiteLanguages))
 		{
 			$cache = JFactory::getCache('com_languages', '');
@@ -214,7 +216,7 @@ class JLanguageHelper
 				$cache->store($querySiteLanguages, 'availablesitelanguages');
 			}
 		}
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('Loaded 1');
 		// Get static cache key
 		$keys = func_get_args();
 		unset($keys[0]);
@@ -225,51 +227,58 @@ class JLanguageHelper
 			$availableSiteLanguages[$key] = $querySiteLanguages;
 			$currentLanguage              = JFactory::getLanguage();
 			$levels                       = JFactory::getUser()->getAuthorisedViewLevels();
+			$defaultLanguageCode          = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
+			$count                        = 0;
 
 			foreach ($availableSiteLanguages[$key] as $k => $language)
 			{
+				$availableSiteLanguages[$key][$k]->available = 1;
+
+				// Check if the current language is the default language.
+				$availableSiteLanguages[$key][$k]->default = $language->lang_code == $defaultLanguageCode;
+				
 				// Check if the language file exists.
 				if (!JLanguage::exists($language->lang_code))
 				{
-					unset($availableSiteLanguages[$key][$k]);
+					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 	
 				// Check if the user can view the language.
 				if ($checkAccess && (!$language->access || !in_array($language->access, $levels)))
 				{
-					unset($availableSiteLanguages[$key][$k]);
+					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the user can view not published languages.
 				if ($checkPublished && (int) $language->published !== 1)
 				{
-					unset($availableSiteLanguages[$key][$k]);
+					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the language as homepage.
 				if ($checkHome && !$language->home_id)
 				{
-					unset($availableSiteLanguages[$key][$k]);
+					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the user can view the the home menu item.
 				if ($checkHome && $checkAccess && (!$language->home_access || !in_array($language->home_access, $levels)))
 				{
-					unset($availableSiteLanguages[$key][$k]);
+					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the user can view not published home menu items.
 				if ($checkHome && $checkPublished && (int) $language->home_published !== 1)
 				{
-					unset($availableSiteLanguages[$key][$k]);
+					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
-	
+
 				// Check if is the current language.
 				$availableSiteLanguages[$key][$k]->active = $language->lang_code == $currentLanguage->getTag();
 
@@ -284,18 +293,36 @@ class JLanguageHelper
 					$languageMetadata                      = JLanguage::getMetadata($language->lang_code);
 					$availableSiteLanguages[$key][$k]->rtl = $languageMetadata['rtl'];
 				}
+
+				$count++;
+			}
+
+			// Fallback to default language if no languages found.
+			if ($count == 0)
+			{
+				foreach ($availableSiteLanguages[$key] as $k => $language)
+				{
+					if (!$availableSiteLanguages[$key][$k]->default)
+					{
+						unset($availableSiteLanguages[$key][$k]);
+					}
+				}
+			}
+			else
+			{
+				foreach ($availableSiteLanguages[$key] as $k => $language)
+				{
+					if (!$availableSiteLanguages[$key][$k]->available)
+					{
+						unset($availableSiteLanguages[$key][$k]);
+					}
+				}
 			}
 
 			// Ordering
 			if (!is_null($ordering))
 			{
 				$availableSiteLanguages[$key] = ArrayHelper::sortObjects($availableSiteLanguages[$key], 'ordering', strtolower($ordering) == 'desc' ? -1 : 1, false, true);
-			}
-
-			// Fallback to default languages if no languages found.
-			if ($availableSiteLanguages[$key] == array())
-			{
-				// @todo fallback to default languages if empty
 			}
 		}
 
@@ -312,7 +339,7 @@ class JLanguageHelper
 
 			$availableSiteLanguages[$key] = $returnLanguages;
 		}
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('Loaded '.$key);
 		return $availableSiteLanguages[$key];
 	}
 }
