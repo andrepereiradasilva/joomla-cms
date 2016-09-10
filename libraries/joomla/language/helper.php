@@ -9,6 +9,8 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Language helper class
  *
@@ -149,33 +151,7 @@ class JLanguageHelper
 			}
 			else
 			{
-				$cache = JFactory::getCache('com_languages', '');
-
-				if (!$languages = $cache->get('languages'))
-				{
-					$db = JFactory::getDbo();
-					$query = $db->getQuery(true)
-						->select('*')
-						->from('#__languages')
-						->where('published=1')
-						->order('ordering ASC');
-					$db->setQuery($query);
-
-					$languages['default'] = $db->loadObjectList();
-					$languages['sef'] = array();
-					$languages['lang_code'] = array();
-
-					if (isset($languages['default'][0]))
-					{
-						foreach ($languages['default'] as $lang)
-						{
-							$languages['sef'][$lang->sef] = $lang;
-							$languages['lang_code'][$lang->lang_code] = $lang;
-						}
-					}
-
-					$cache->store($languages, 'languages');
-				}
+				$languages[$key] = self::getAvailableSiteLanguages($key);
 			}
 		}
 
@@ -191,16 +167,17 @@ class JLanguageHelper
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getAvailableSiteLanguages($group = null)
+	public static function getAvailableSiteLanguages($group = null, $ordering = 'ASC', $checkHome = true, $checkAccess = true)
 	{
 		// To avoid doing duplicate database queries.
-		static $availableSiteLanguages = null;
+		static $querySiteLanguages     = null;
+		static $availableSiteLanguages = array();
 
-		if (!isset($availableSiteLanguages))
+		if (is_null($querySiteLanguages))
 		{
 			$cache = JFactory::getCache('com_languages', '');
 
-			if (!$languages = $cache->get('availablesitelanguages'))
+			if (!$querySiteLanguages = $cache->get('availablesitelanguages'))
 			{
 				$db = JFactory::getDbo();
 				$query = $db->getQuery(true)
@@ -215,6 +192,7 @@ class JLanguageHelper
 							'l.metakey',
 							'l.metadesc',
 							'l.access',
+							'l.ordering',
 							'm.home',
 							)
 						)
@@ -225,48 +203,91 @@ class JLanguageHelper
 					->where($db->qn('l.published') . ' = 1')
 					->where($db->qn('e.type') . ' = ' . $db->q('language'))
 					->where($db->qn('e.client_id') . ' = 0')
-					->where($db->qn('e.enabled') . ' = 1')
-					->where($db->qn('m.home') . ' = 1')
-					->where($db->qn('l.access') . ' IN (' . implode(', ', JFactory::getUser()->getAuthorisedViewLevels()) . ')');
+					->where($db->qn('e.enabled') . ' = 1');
 
-				$availableSiteLanguages = $db->setQuery($query)->loadObjectList();
+				$querySiteLanguages = $db->setQuery($query)->loadObjectList();
 
-				$currentLanguage = JFactory::getLanguage();
-
-				foreach ($availableSiteLanguages as $key => $language)
-				{
-					$availableSiteLanguages[$key]->active = $language->lang_code == $currentLanguage->getTag();
-
-					// If current language get the rtl from current JLanguage metadata
-					if ($availableSiteLanguages[$key]->active)
-					{
-						$availableSiteLanguages[$key]->rtl = $currentLanguage->isRtl();
-					}
-					// If not loaded language fetch rtl directly for performance
-					else
-					{
-						$languageMetadata = JLanguage::getMetadata($language->lang_code);
-						$availableSiteLanguages[$key]->rtl    = $languageMetadata['rtl'];
-					}
-				}
-
-				$cache->store($availableSiteLanguages, 'availablesitelanguages');
+				$cache->store($querySiteLanguages, 'availablesitelanguages');
 			}
 		}
 
-		if (is_null($group))
+		// Get static cache key
+		$keys = func_get_args();
+		unset($keys[0]);
+		$key = md5(serialize($keys));
+
+		if (!isset($availableSiteLanguages[$key]))
 		{
-			return $availableSiteLanguages;
+			$availableSiteLanguages[$key] = $querySiteLanguages;
+			$currentLanguage              = JFactory::getLanguage();
+			$levels                       = JFactory::getUser()->getAuthorisedViewLevels();
+
+			foreach ($availableSiteLanguages[$key] as $k => $language)
+			{
+				// Check if the language file exists.
+				if (!JLanguage::exists($language->lang_code))
+				{
+					unset($availableSiteLanguages[$key][$k]);
+					continue;
+				}
+	
+				// Check if the user can view the language and if the language file exists.
+				if ($checkAccess && (!$language->access || !in_array($language->access, $levels)))
+				{
+					unset($availableSiteLanguages[$key][$k]);
+					continue;
+				}
+
+				// Check if the language as homepage.
+				if ($checkHome && !$language->home)
+				{
+					unset($availableSiteLanguages[$key][$k]);
+					continue;
+				}
+
+				// Check if is the current language.
+				$availableSiteLanguages[$key][$k]->active = $language->lang_code == $currentLanguage->getTag();
+
+				// If current language get the rtl from current JLanguage metadata
+				if ($availableSiteLanguages[$key][$k]->active)
+				{
+					$availableSiteLanguages[$key][$k]->rtl = $currentLanguage->isRtl();
+				}
+				// If not loaded language fetch rtl directly for performance
+				else
+				{
+					$languageMetadata                      = JLanguage::getMetadata($language->lang_code);
+					$availableSiteLanguages[$key][$k]->rtl = $languageMetadata['rtl'];
+				}
+			}
+
+			// Ordering
+			if (!is_null($ordering))
+			{
+				$availableSiteLanguages[$key] = ArrayHelper::sortObjects($availableSiteLanguages[$key], 'ordering', strtolower($ordering) == 'desc' ? -1 : 1, false, true);
+			}
+
+			// Fallback to default languages if no languages found.
+			if ($availableSiteLanguages[$key] == array())
+			{
+				// @todo fallback to default languages if empty
+			}
 		}
 
-		$returnLanguages = array();
-		$currentLanguage = JFactory::getLanguage();
-
-		foreach ($availableSiteLanguages as $language)
+		// Grouping
+		if (!is_null($group) && $group !== 'default')
 		{
-			$returnLanguages[$language->{$group}] = $language;
+			$returnLanguages = array();
+			$currentLanguage = JFactory::getLanguage();
+
+			foreach ($availableSiteLanguages[$key] as $language)
+			{
+				$returnLanguages[$language->{$group}] = $language;
+			}
+
+			$availableSiteLanguages[$key] = $returnLanguages;
 		}
 
-		return $returnLanguages;
+		return $availableSiteLanguages[$key];
 	}
 }
