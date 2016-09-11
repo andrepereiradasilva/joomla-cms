@@ -14,7 +14,9 @@ JLoader::register('ModLanguagesHelper', __DIR__ . '/helper.php');
 
 $headerText      = $params->get('header_text');
 $footerText      = $params->get('footer_text');
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('');
 $list            = ModLanguagesHelper::getList($params);
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('<strong style="color:green">LOADED</strong> ModLanguagesHelper::getList');
 $moduleclass_sfx = htmlspecialchars($params->get('moduleclass_sfx'), ENT_COMPAT, 'UTF-8');
 
 require JModuleHelper::getLayoutPath('mod_languages', $params->get('layout', 'default'));

@@ -66,7 +66,10 @@ abstract class JEvent extends JObject
 		 */
 		if (method_exists($this, $event))
 		{
-			return call_user_func_array(array($this, $event), $args);
+			!JDEBUG || $this->_name != 'languagefilter' ?: JProfiler::getInstance('Application')->mark('');
+			$x=call_user_func_array(array($this, $event), $args);
+			!JDEBUG || $this->_name != 'languagefilter' ?: JProfiler::getInstance('Application')->mark('<strong style="color:green">LOADED</strong> '.$this->_name. '::' . $event);
+			return $x;
 		}
 	}
 }
