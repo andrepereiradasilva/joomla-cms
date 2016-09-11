@@ -181,23 +181,7 @@ class JLanguageHelper
 			{
 				$db = JFactory::getDbo();
 				$query = $db->getQuery(true)
-					->select($db->qn(
-							array(
-								'l.lang_id',
-								'l.lang_code',
-								'l.sef',
-								'l.title',
-								'l.title_native',
-								'l.image',
-								'l.sitename',
-								'l.metakey',
-								'l.metadesc',
-								'l.access',
-								'l.published',
-								'l.ordering',
-							)
-						)
-					)
+					->select('l.*')
 					->select($db->qn('m.id', 'home_id'))
 					->select($db->qn('m.access', 'home_access'))
 					->select($db->qn('m.published', 'home_published'))
@@ -272,7 +256,7 @@ class JLanguageHelper
 					continue;
 				}
 
-				// Sicne it passed all checks language is available.
+				// Since it passed all checks language is available.
 				$availableSiteLanguages[$key][$k]->available = 1;
 
 				// Check if is the current language.
