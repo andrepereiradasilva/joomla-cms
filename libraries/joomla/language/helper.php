@@ -173,8 +173,6 @@ class JLanguageHelper
 		static $querySiteLanguages     = null;
 		static $availableSiteLanguages = array();
 
-		!JDEBUG ?: JProfiler::getInstance('Application')->mark('');
-
 		if (is_null($querySiteLanguages))
 		{
 			$cache = JFactory::getCache('com_languages', '');
@@ -216,7 +214,7 @@ class JLanguageHelper
 				$cache->store($querySiteLanguages, 'availablesitelanguages');
 			}
 		}
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('Loaded 1');
+
 		// Get static cache key
 		$keys = func_get_args();
 		unset($keys[0]);
@@ -232,55 +230,53 @@ class JLanguageHelper
 
 			foreach ($availableSiteLanguages[$key] as $k => $language)
 			{
-				$availableSiteLanguages[$key][$k]->available = 1;
+				$availableSiteLanguages[$key][$k]->available = 0;
+				$availableSiteLanguages[$key][$k]->active    = 0;
 
 				// Check if the current language is the default language.
-				$availableSiteLanguages[$key][$k]->default = $language->lang_code == $defaultLanguageCode;
+				$availableSiteLanguages[$key][$k]->default = $language->lang_code === $defaultLanguageCode;
 				
 				// Check if the language file exists.
 				if (!JLanguage::exists($language->lang_code))
 				{
-					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 	
 				// Check if the user can view the language.
 				if ($checkAccess && (!$language->access || !in_array($language->access, $levels)))
 				{
-					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the user can view not published languages.
 				if ($checkPublished && (int) $language->published !== 1)
 				{
-					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the language as homepage.
 				if ($checkHome && !$language->home_id)
 				{
-					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the user can view the the home menu item.
 				if ($checkHome && $checkAccess && (!$language->home_access || !in_array($language->home_access, $levels)))
 				{
-					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
 				// Check if the user can view not published home menu items.
 				if ($checkHome && $checkPublished && (int) $language->home_published !== 1)
 				{
-					$availableSiteLanguages[$key][$k]->available = 0;
 					continue;
 				}
 
+				// Sicne it passed all checks language is available.
+				$availableSiteLanguages[$key][$k]->available = 1;
+
 				// Check if is the current language.
-				$availableSiteLanguages[$key][$k]->active = $language->lang_code == $currentLanguage->getTag();
+				$availableSiteLanguages[$key][$k]->active = $language->lang_code === $currentLanguage->getTag();
 
 				// If current language get the rtl from current JLanguage metadata
 				if ($availableSiteLanguages[$key][$k]->active)
@@ -339,7 +335,7 @@ class JLanguageHelper
 
 			$availableSiteLanguages[$key] = $returnLanguages;
 		}
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('Loaded '.$key);
+
 		return $availableSiteLanguages[$key];
 	}
 }
