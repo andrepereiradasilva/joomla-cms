@@ -673,74 +673,72 @@ class PlgSystemLanguageFilter extends JPlugin
 	 */
 	public function onAfterDispatch()
 	{
-		$doc = JFactory::getDocument();
+		$doc = $this->app->getDocument();
 
 		if ($this->app->isSite() && $this->params->get('alternate_meta', 1) && $doc->getType() == 'html')
 		{
 			$languages          = $this->lang_codes;
 			$menu               = $this->app->getMenu();
-			$isHome             = false;
 			$currentInternalUrl = 'index.php?' . http_build_query($this->app->getRouter()->getVars());
+			$active             = $menu->getActive();
+			$isHome             = $active->home && JRoute::_($active->link . '&Itemid=' . $active->id) == JRoute::_($currentInternalUrl);
 
-			if ($active = $menu->getActive())
+			// If in a menu item, check if we are on home item and, if not, get the menu associations.
+			if (!$isHome && $active)
 			{
-				$active_link  = JRoute::_($active->link . '&Itemid=' . $active->id);
-				$current_link = JRoute::_($currentInternalUrl);
+				$menuItemAssociations = MenusHelper::getAssociations($active->id);
+			}
 
-				// Load menu associations
-				if ($active_link == $current_link)
+			// If not in home, load component associations.
+			if (!$isHome)
+			{
+				$option     = strtolower($this->app->input->get('option', '', 'string'));
+				$helperFile = JPATH_ROOT . '/components/' . $option . '/helpers/association.php';
+
+				if (file_exists($helperFile))
 				{
-					$associations = MenusHelper::getAssociations($active->id);
+					$componentClass = ucfirst(str_replace('com_', '', $option)) . 'HelperAssociation';
+					JLoader::register($componentClass, JPath::clean($helperFile));
+
+					if (class_exists($componentClass) && is_callable(array($componentClass, 'getAssociations')))
+					{
+						$componentAssociations = call_user_func(array($componentClass, 'getAssociations'));
+					}
 				}
-
-				// Check if we are on the home page
-				$isHome = ($active->home
-					&& ($active_link == $current_link || $active_link == $current_link . 'index.php' || $active_link . '/' == $current_link));
 			}
 
-			// Load component associations.
-			$option = $this->app->input->get('option');
-			$cName = JString::ucfirst(JString::str_ireplace('com_', '', $option)) . 'HelperAssociation';
-			JLoader::register($cName, JPath::clean(JPATH_COMPONENT_SITE . '/helpers/association.php'));
-
-			if (class_exists($cName) && is_callable(array($cName, 'getAssociations')))
-			{
-				$cassociations = call_user_func(array($cName, 'getAssociations'));
-			}
-
-			// For each language...
-			foreach ($languages as $i => &$language)
+			// Fetch the association link for each available site content languages.
+			foreach ($languages as $i => $language)
 			{
 				switch (true)
 				{
 					// Home page
 					case ($isHome):
-						$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $language->home_id);
+						$language->link = JRoute::_('index.php?Itemid=' . $language->home_id . '&lang=' . $language->sef);
 						break;
 
 					// Current language link
-					case ($i == $this->current_lang):
+					case ($language->active):
 						$language->link = JRoute::_($currentInternalUrl);
 						break;
 
 					// Component association
-					case (isset($cassociations[$i])):
-						$language->link = JRoute::_($cassociations[$i] . '&lang=' . $language->sef);
+					case (isset($componentAssociations[$i])):
+						$language->link = JRoute::_($componentAssociations[$i] . '&lang=' . $language->sef);
 						break;
 
 					// Menu items association
-					// Heads up! "$item = $menu" here below is an assignment, *NOT* comparison
-					case (isset($associations[$i]) && ($item = $menu->getItem($associations[$i]))):
-						$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
+					case (isset($menuItemAssociations[$i])):
+						$language->link = JRoute::_($menuItemAssociations[$i] . '&lang=' . $language->sef);
 						break;
 
-					// Too bad...
+					// No association, no meta tag. Discard the language.
 					default:
 						unset($languages[$i]);
 				}
 			}
 
-			// If there are at least 2 of them, add the rel="alternate" links to the <head>
+			// If there are at least 2 associations, add the rel="alternate" links to the <head>
 			if (count($languages) > 1)
 			{
 				$server = JUri::getInstance()->toString(array('scheme', 'host', 'port'));
@@ -749,7 +747,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				if (isset($languages[$this->default_lang]) && $this->params->get('remove_default_prefix', 0))
 				{
 					$languages[$this->default_lang]->link
-									= preg_replace('|/' . $languages[$this->default_lang]->sef . '/|', '/', $languages[$this->default_lang]->link, 1);
+									= preg_replace('#^/' . $languages[$this->default_lang]->sef . '/#', '/', $languages[$this->default_lang]->link, 1);
 				}
 
 				foreach ($languages as $i => &$language)
@@ -760,13 +758,13 @@ class PlgSystemLanguageFilter extends JPlugin
 				// Add x-default language tag
 				if ($this->params->get('xdefault', 1))
 				{
-					$xdefault_language = $this->params->get('xdefault_language', $this->default_lang);
-					$xdefault_language = ( $xdefault_language == 'default' ) ? $this->default_lang : $xdefault_language;
+					$xdefaultLanguageCode = $this->params->get('xdefault_language', $this->default_lang);
+					$xdefaultLanguageCode = $xdefaultLanguageCode === 'default' ? $this->default_lang : $xdefaultLanguageCode;
 
-					if (isset($languages[$xdefault_language]))
+					if (isset($languages[$xdefaultLanguageCode]))
 					{
 						// Use a custom tag because addHeadLink is limited to one URI per tag
-						$doc->addCustomTag('<link href="' . $server . $languages[$xdefault_language]->link . '" rel="alternate" hreflang="x-default" />');
+						$doc->addCustomTag('<link href="' . $server . $languages[$xdefaultLanguageCode]->link . '" rel="alternate" hreflang="x-default" />');
 					}
 				}
 			}
