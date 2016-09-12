@@ -307,7 +307,6 @@ class JLanguageHelper
 		if (!is_null($group) && $group !== 'default')
 		{
 			$returnLanguages = array();
-			$currentLanguage = JFactory::getLanguage();
 
 			foreach ($availableSiteLanguages[$key] as $language)
 			{
