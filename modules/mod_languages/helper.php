@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+JLoader::register('MenusHelper', JPATH_ADMINISTRATOR . '/components/com_menus/helpers/menus.php');
+
 /**
  * Helper for mod_languages
  *
