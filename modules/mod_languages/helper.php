@@ -31,21 +31,23 @@ abstract class ModLanguagesHelper
 		// Fetch the association links for each available site content languages.
 		$languages           = JLanguageAssociations::getCurrentUriAssociations();
 		$currentLanguage     = JFactory::getLanguage();
+		$currentLanguageCode = $currentLanguage->getTag();
 
 		// Fetch the association link for each available site content languages.
 		foreach ($languages as $i => $language)
 		{
+			$language->active = $language->lang_code === $currentLanguageCode;
+
 			// If current language get the rtl from current JLanguage metadata
 			if ($language->active)
 			{
 				$language->rtl = $currentLanguage->isRtl();
+				continue;
 			}
-			// If not loaded language fetch rtl directly for performance
-			else
-			{
-				$languageMetadata = JLanguage::getMetadata($language->lang_code);
-				$language->rtl    = $languageMetadata['rtl'];
-			}
+
+			// If not loaded language fetch from metadata.
+			$languageMetadata = JLanguage::getMetadata($language->lang_code);
+			$language->rtl    = $languageMetadata['rtl'];
 		}
 
 		return $languages;
