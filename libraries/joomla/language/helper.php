@@ -216,7 +216,6 @@ class JLanguageHelper
 			$availableSiteLanguages[$key] = $queryContentLanguages;
 			$app                          = JFactory::getApplication();
 			$menu                         = $app->getMenu('site');
-			$currentLanguage              = $app->getLanguage();
 			$levels                       = JFactory::getUser()->getAuthorisedViewLevels();
 			$defaultLanguageCode          = JComponentHelper::getParams('com_languages')->get('site', JFactory::getConfig()->get('language', 'en-GB'));
 			$count                        = 0;
@@ -224,11 +223,10 @@ class JLanguageHelper
 			foreach ($availableSiteLanguages[$key] as $k => $language)
 			{
 				$availableSiteLanguages[$key][$k]->available = 0;
-				$availableSiteLanguages[$key][$k]->active    = 0;
 
 				// Check if the current language is the default language.
 				$availableSiteLanguages[$key][$k]->default = $language->lang_code === $defaultLanguageCode;
-				
+
 				// Check if the language file exists.
 				if (!JLanguage::exists($language->lang_code))
 				{
@@ -272,24 +270,6 @@ class JLanguageHelper
 
 				// Since it passed all checks language is available.
 				$availableSiteLanguages[$key][$k]->available = 1;
-
-				// Check if is the current language.
-				if ($app->isSite())
-				{
-					$availableSiteLanguages[$key][$k]->active = $language->lang_code === $currentLanguage->getTag();
-
-					// If current language get the rtl from current JLanguage metadata
-					if ($availableSiteLanguages[$key][$k]->active)
-					{
-						$availableSiteLanguages[$key][$k]->rtl = $currentLanguage->isRtl();
-					}
-					// If not loaded language fetch rtl directly for performance
-					else
-					{
-						$languageMetadata                      = JLanguage::getMetadata($language->lang_code);
-						$availableSiteLanguages[$key][$k]->rtl = $languageMetadata['rtl'];
-					}
-				}
 
 				$count++;
 			}
