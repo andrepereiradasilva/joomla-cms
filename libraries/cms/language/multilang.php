@@ -9,6 +9,8 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Utitlity class for multilang
  *
@@ -122,5 +124,154 @@ class JLanguageMultilang
 		}
 
 		return $multilangSiteHomePages;
+	}
+
+
+	/**
+	 * Method to return a list of available site languages.
+	 *
+	 * @param   string  $group  Array group
+	 *
+	 * @return  array  Available site language objects.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getAvailableSiteLanguages($group = null, $ordering = 'ASC', $checkHome = true, $checkAccess = true, $checkPublished = true)
+	{
+		// To avoid doing duplicate database queries.
+		static $queryContentLanguages  = null;
+		static $availableSiteLanguages = array();
+
+		if (is_null($queryContentLanguages))
+		{
+			$cache = JFactory::getCache('com_languages', '');
+
+			if (!$queryContentLanguages = $cache->get('contentlanguages'))
+			{
+				$db = JFactory::getDbo();
+
+				// Get all content languages.
+				$query = $db->getQuery(true)
+					->select('*')
+					->from($db->qn('#__languages'));
+
+				$queryContentLanguages = $db->setQuery($query)->loadObjectList();
+
+				$cache->store($queryContentLanguages, 'contentlanguages');
+			}
+		}
+
+		// Get static cache key
+		$keys = func_get_args();
+		unset($keys[0]);
+		$key = md5(serialize($keys));
+
+		if (!isset($availableSiteLanguages[$key]))
+		{
+			$availableSiteLanguages[$key] = $queryContentLanguages;
+		    $querySiteLanguages           = self::getSiteLangs();
+			$app                          = JFactory::getApplication();
+			$menu                         = $app->getMenu('site');
+			$levels                       = JFactory::getUser()->getAuthorisedViewLevels();
+			$defaultLanguageCode          = JComponentHelper::getParams('com_languages')->get('site', JFactory::getConfig()->get('language', 'en-GB'));
+			$count                        = 0;
+
+			foreach ($availableSiteLanguages[$key] as $k => $language)
+			{
+				$availableSiteLanguages[$key][$k]->available = 0;
+
+				// Check if the current language is the default language.
+				$availableSiteLanguages[$key][$k]->default = $language->lang_code === $defaultLanguageCode;
+
+				// Check if the language file exists.
+				if (!JLanguage::exists($language->lang_code))
+				{
+					continue;
+				}
+
+				// Check if the language is installed and enabled.
+				if (!isset($querySiteLanguages[$language->lang_code]))
+				{
+					continue;
+				}
+
+				// Check if the user can view the language.
+				if ($checkAccess && (!$language->access || !in_array($language->access, $levels)))
+				{
+					continue;
+				}
+
+				// Check if the user can view not published languages.
+				if ($checkPublished && (int) $language->published !== 1)
+				{
+					continue;
+				}
+
+				$homeMenuItem = $menu->getDefault($language->lang_code);
+
+				// Check if the language as homepage.
+				if ($checkHome && !$homeMenuItem->id)
+				{
+					continue;
+				}
+
+				// Since it passed all checks language is available.
+				$availableSiteLanguages[$key][$k]->home_id = $homeMenuItem->id;
+
+				// Check if the user can view the the home menu item.
+				if ($checkHome && $checkAccess && (!$homeMenuItem->access || !in_array($homeMenuItem->access, $levels)))
+				{
+					continue;
+				}
+
+				// Since it passed all checks language is available.
+				$availableSiteLanguages[$key][$k]->available = 1;
+
+				$count++;
+			}
+
+			// Fallback to default language if no languages found.
+			if ($count == 0)
+			{
+				foreach ($availableSiteLanguages[$key] as $k => $language)
+				{
+					if (!$availableSiteLanguages[$key][$k]->default)
+					{
+						unset($availableSiteLanguages[$key][$k]);
+					}
+				}
+			}
+			else
+			{
+				foreach ($availableSiteLanguages[$key] as $k => $language)
+				{
+					if (!$availableSiteLanguages[$key][$k]->available)
+					{
+						unset($availableSiteLanguages[$key][$k]);
+					}
+				}
+			}
+
+			// Ordering
+			if (!is_null($ordering))
+			{
+				$availableSiteLanguages[$key] = ArrayHelper::sortObjects($availableSiteLanguages[$key], 'ordering', strtolower($ordering) == 'desc' ? -1 : 1, false, true);
+			}
+		}
+
+		// Grouping
+		if (!is_null($group) && $group !== 'default')
+		{
+			$returnLanguages = array();
+
+			foreach ($availableSiteLanguages[$key] as $language)
+			{
+				$returnLanguages[$language->{$group}] = $language;
+			}
+
+			$availableSiteLanguages[$key] = $returnLanguages;
+		}
+
+		return $availableSiteLanguages[$key];
 	}
 }
