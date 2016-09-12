@@ -181,4 +181,190 @@ class JLanguageHelper
 
 		return $languages[$key];
 	}
+
+	/**
+	 * Method to return a list of languages.
+	 *
+	 * @param   string  $client  Application client id
+	 *
+	 * @return  array of language objects.
+	 *
+	 * @since  3.7.0
+	 */
+	public static function getCmsLanguages($client = null)
+	{
+		
+		// To avoid doing duplicate database queries.
+		static $languages = null;
+
+		if (!isset($languages) || ($client !== null && !isset($languages[$client])))
+		{
+			if (!isset($languages))
+			{
+				$languages = array();
+			}
+
+			// TO DO: installation languages.
+			$clients = ($client === null) ? array(0, 1) : array($client);
+	
+			foreach ($clients as $clientId)
+			{
+				if (isset($languages[$clientId]))
+				{
+					continue;
+				}
+
+				// Get all installed languages from the extensions.
+				$db = JFactory::getDbo();
+				$query = $db->getQuery(true)
+					->select($db->quoteName(array('extension_id', 'client_id')))
+					->select($db->quoteName('name', 'extension_name'))
+					->select($db->quoteName('element', 'lang_code'))
+					->select($db->quoteName('enabled', 'extension_enabled'))
+					->from($db->quoteName('#__extensions'))
+					->where($db->quoteName('type') . ' = ' . $db->quote('language'))
+					->where($db->quoteName('client_id') . ' = ' . $clientId);
+
+				$db->setQuery($query);
+
+				$languages[$clientId] = $db->loadObjectList('lang_code');
+
+				// Get all installed languages from the folders.
+				$clientPath         = $clientId ? JPATH_ADMINISTRATOR : JPATH_BASE;
+				$installedLanguages = JLanguage::getKnownLanguages($clientPath);
+
+				foreach($installedLanguages as $langCode => $installedLanguage)
+				{
+					if (!isset($languages[$clientId][$langCode]))
+					{
+						$languages[$clientId][$langCode]            = new stdClass();
+						$languages[$clientId][$langCode]->client_id = $clientId;
+						$languages[$clientId][$langCode]->lang_code = $langCode;
+					}
+					$languages[$clientId][$langCode]->name       = $installedLanguage['name'];
+					$languages[$clientId][$langCode]->rtl        = $installedLanguage['rtl'];
+					$languages[$clientId][$langCode]->installed  = 1;
+				}
+
+				if ($clientId == 0)
+				{
+					$query = $db->getQuery(true)
+						->select($db->quoteName(array('lang_id', 'lang_code', 'title', 'title_native', 'sef', 'image', 'published', 'access', 'ordering')))
+						->from($db->quoteName('#__languages'));
+					$db->setQuery($query);
+
+					$contentLanguages = $db->loadObjectList('lang_code');
+
+					foreach($contentLanguages as $langCode => $contentLanguage)
+					{
+						if (!isset($languages[$clientId][$langCode]))
+						{
+							$languages[$clientId][$langCode]            = new stdClass();
+							$languages[$clientId][$langCode]->client_id = $clientId;
+							$languages[$clientId][$langCode]->lang_code = $langCode;
+						}
+						$languages[$clientId][$langCode]->lang_id      = $contentLanguage->lang_id;
+						$languages[$clientId][$langCode]->title        = $contentLanguage->title;
+						$languages[$clientId][$langCode]->title_native = $contentLanguage->title_native;
+						$languages[$clientId][$langCode]->sef          = $contentLanguage->sef;
+						$languages[$clientId][$langCode]->image        = $contentLanguage->image;
+						$languages[$clientId][$langCode]->published    = $contentLanguage->published;
+						$languages[$clientId][$langCode]->access       = $contentLanguage->access;
+						$languages[$clientId][$langCode]->ordering     = $contentLanguage->ordering;
+					}
+
+					$db = JFactory::getDbo();
+					$query = $db->getQuery(true)
+						->select($db->quoteName(array('id', 'language', 'access', 'published')))
+						->from($db->quoteName('#__menu'))
+						->where($db->quoteName('home') . ' = 1')
+						->where($db->quoteName('client_id') . ' = 0');
+					$db->setQuery($query);
+
+					$homes = $db->loadObjectList();
+
+					foreach($homes as $key => $home)
+					{
+						if (isset($languages[$clientId][$home->language]))
+						{
+							$languages[$clientId][$home->language]->home_id        = $home->id;
+							$languages[$clientId][$home->language]->home_access    = $home->access;
+							$languages[$clientId][$home->language]->home_published = $home->published;
+						}
+					}
+				}
+
+				// Check if language is available
+				foreach($languages[$clientId] as $langCode => $language)
+				{
+					if (!isset($language->installed))
+					{
+						$language->installed = null;
+					}
+					if (!isset($language->extension_enabled))
+					{
+						$language->extension_enabled = null;
+					}
+					$languages[$clientId][$langCode]->available = 0;
+					if ($clientId == 0)
+					{
+						if (!isset($language->published))
+						{
+							$language->published = null;
+						}
+						if ($language->published == 1 && $language->installed == 1 && $language->extension_enabled == 1)
+						{
+							$languages[$clientId][$langCode]->available = 1;
+						}
+					}
+					elseif ($clientId == 1)
+					{
+						if ($language->installed == 1 && $language->extension_enabled == 1)
+						{
+							$languages[$clientId][$langCode]->available = 1;
+						}
+					}
+				}
+			}
+		}
+
+		return $languages;
+	}
+
+	/**
+	 * Method to return a list of languages.
+	 *
+	 * @param   string  $clientId   Application client id
+	 * @param   string  $available  Extension state
+	 *
+	 * @return  array of language objects.
+	 *
+	 * @since  3.7.0
+	 */
+	public static function getAvailableLanguages($client = null, $available = true)
+	{
+		$availableLanguages = self::getCmsLanguages();
+
+		// Return only available languages.
+		if ($available)
+		{
+			foreach($availableLanguages as $clientId => $lang)
+			{
+				foreach($lang as $langCode => $language)
+				{
+					if ($availableLanguages[$clientId][$langCode]->available != $available)
+					{
+						unset($availableLanguages[$clientId][$langCode]);
+					}
+				}
+			}
+		}
+
+		if ($client === null)
+		{
+			return $availableLanguages;
+		}
+
+		return $availableLanguages[$clientId];
+	}
 }
