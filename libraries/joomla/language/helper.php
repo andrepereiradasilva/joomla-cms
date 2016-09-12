@@ -171,31 +171,38 @@ class JLanguageHelper
 	{
 		// To avoid doing duplicate database queries.
 		static $querySiteLanguages     = null;
+		static $queryContentLanguages  = null;
 		static $availableSiteLanguages = array();
 
-		if (is_null($querySiteLanguages))
+		if (is_null($queryContentLanguages) || is_null($querySiteLanguages))
 		{
 			$cache = JFactory::getCache('com_languages', '');
 
-			if (!$querySiteLanguages = $cache->get('availablesitelanguages'))
+			if (!($querySiteLanguages = $cache->get('sitelanguages')) || !($queryContentLanguages = $cache->get('contentlanguages')))
 			{
+			
 				$db = JFactory::getDbo();
+
+				// Get all installed and enabled site languages.
 				$query = $db->getQuery(true)
-					->select('l.*')
-					->select($db->qn('m.id', 'home_id'))
-					->select($db->qn('m.access', 'home_access'))
-					->select($db->qn('m.published', 'home_published'))
-					->from($db->qn('#__languages', 'l'))
-					->join('LEFT', $db->qn('#__extensions', 'e') . ' ON ' . $db->qn('l.lang_code') . ' = ' . $db->qn('e.element'))
-					->join('LEFT', $db->qn('#__menu', 'm') . ' ON ' . $db->qn('l.lang_code') . ' = ' . $db->qn('m.language'))
-					->where($db->qn('e.type') . ' = ' . $db->q('language'))
-					->where($db->qn('e.client_id') . ' = 0')
-					->where($db->qn('e.enabled') . ' = 1')
-					->where($db->qn('m.home') . ' = 1');
+					->select('element')
+					->from($db->qn('#__extensions'))
+					->where($db->qn('type') . ' = ' . $db->q('language'))
+					->where($db->qn('client_id') . ' = 0')
+					->where($db->qn('enabled') . ' = 1');
 
-				$querySiteLanguages = $db->setQuery($query)->loadObjectList();
+				$querySiteLanguages = $db->setQuery($query)->loadObjectList('element');
 
-				$cache->store($querySiteLanguages, 'availablesitelanguages');
+				$cache->store($querySiteLanguages, 'sitelanguages');
+
+				// Get all content languages.
+				$query = $db->getQuery(true)
+					->select('*')
+					->from($db->qn('#__languages'));
+
+				$queryContentLanguages = $db->setQuery($query)->loadObjectList();
+
+				$cache->store($queryContentLanguages, 'contentlanguages');
 			}
 		}
 
@@ -206,8 +213,10 @@ class JLanguageHelper
 
 		if (!isset($availableSiteLanguages[$key]))
 		{
-			$availableSiteLanguages[$key] = $querySiteLanguages;
-			$currentLanguage              = JFactory::getLanguage();
+			$availableSiteLanguages[$key] = $queryContentLanguages;
+			$app                          = JFactory::getApplication();
+			$menu                         = $app->getMenu();
+			$currentLanguage              = $app->getLanguage();
 			$levels                       = JFactory::getUser()->getAuthorisedViewLevels();
 			$defaultLanguageCode          = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
 			$count                        = 0;
@@ -225,7 +234,13 @@ class JLanguageHelper
 				{
 					continue;
 				}
-	
+
+				// Check if the language is installed and enabled.
+				if (!isset($querySiteLanguages[$language->lang_code]))
+				{
+					continue;
+				}
+
 				// Check if the user can view the language.
 				if ($checkAccess && (!$language->access || !in_array($language->access, $levels)))
 				{
@@ -238,20 +253,19 @@ class JLanguageHelper
 					continue;
 				}
 
+				$homeMenuItem = $menu->getDefault($language->lang_code);
+
 				// Check if the language as homepage.
-				if ($checkHome && !$language->home_id)
+				if ($checkHome && !$homeMenuItem->id)
 				{
 					continue;
 				}
+
+				// Since it passed all checks language is available.
+				$availableSiteLanguages[$key][$k]->home_id = $homeMenuItem->id;
 
 				// Check if the user can view the the home menu item.
-				if ($checkHome && $checkAccess && (!$language->home_access || !in_array($language->home_access, $levels)))
-				{
-					continue;
-				}
-
-				// Check if the user can view not published home menu items.
-				if ($checkHome && $checkPublished && (int) $language->home_published !== 1)
+				if ($checkHome && $checkAccess && (!$homeMenuItem->access || !in_array($homeMenuItem->access, $levels)))
 				{
 					continue;
 				}
