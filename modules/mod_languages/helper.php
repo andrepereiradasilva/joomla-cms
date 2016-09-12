@@ -28,6 +28,12 @@ abstract class ModLanguagesHelper
 	 */
 	public static function getList(&$params)
 	{
+		// If multilanguage is not enabled there are no languages.
+		if (!JLanguageMultilang::isEnabled())
+		{
+			return array();
+		}
+
 		// Fetch the association links for each available site content languages.
 		$languages           = JLanguageAssociations::getCurrentUriAssociations();
 		$currentLanguage     = JFactory::getLanguage();
