@@ -45,12 +45,18 @@ abstract class ModLanguagesHelper
 			return $languages;
 		}
 
-		$currentInternalUrl = 'index.php?' . http_build_query($app->getRouter()->getVars());
-		$active             = $menu->getActive();
-		$isHome             = $active->home && JRoute::_($active->link . '&Itemid=' . $active->id) == JRoute::_($currentInternalUrl);
+		$currentParameters     = $app->getRouter()->getVars();
+		$currentInternalUrl    = 'index.php?' . http_build_query($currentParameters);
+		$active                = $menu->getActive();
+		$isHome                = $active && $active->home && JRoute::_($active->link . '&Itemid=' . $active->id) == JRoute::_($currentInternalUrl);
+		$currentLanguage       = JFactory::getLanguage();
+		$currentLanguageCode   = $currentLanguage->getTag();
+		$associationsEnabled   = JLanguageAssociations::isEnabled();
+		$menuItemAssociations  = array();
+		$componentAssociations = array();
 
 		// Check if associations are enabled, if so fetch them.
-		if (JLanguageAssociations::isEnabled())
+		if ($associationsEnabled)
 		{
 			// If in a menu item, check if we are on home item and, if not, get the menu associations.
 			if (!$isHome && $active)
@@ -80,9 +86,23 @@ abstract class ModLanguagesHelper
 		// Fetch the association link for each available site content languages.
 		foreach ($languages as $i => $language)
 		{
+			$language->active = $language->lang_code === $currentLanguageCode;
+
+			// If current language get the rtl from current JLanguage metadata
+			if ($language->active)
+			{
+				$language->rtl = $currentLanguage->isRtl();
+			}
+			// If not loaded language fetch rtl directly for performance
+			else
+			{
+				$languageMetadata = JLanguage::getMetadata($language->lang_code);
+				$language->rtl    = $languageMetadata['rtl'];
+			}
+
 			switch (true)
 			{
-				// Language home page, the associations is the other language home page.
+				// Language home page, the association is the other language home page.
 				case ($isHome):
 					$language->link = JRoute::_('index.php?Itemid=' . $language->home_id . '&lang=' . $language->sef);
 					break;
@@ -93,13 +113,19 @@ abstract class ModLanguagesHelper
 					break;
 
 				// A component item association exists. Use it.
-				case (isset($componentAssociations[$i])):
+				case ($associationsEnabled && isset($componentAssociations[$i])):
 					$language->link = JRoute::_($componentAssociations[$i] . '&lang=' . $language->sef);
 					break;
 
 				// A menu item association exists. Use it.
-				case (isset($menuItemAssociations[$i])):
-					$language->link = JRoute::_($menuItemAssociations[$i] . '&lang=' . $language->sef);
+				case ($associationsEnabled && isset($menuItemAssociations[$i]) && ($item = $menu->getItem($menuItemAssociations[$i]))):
+					$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
+					break;
+
+				// If is a component without menu item (no active menu, ex: /en/component/content/).
+				case ($associationsEnabled && !isset($active)):
+					$urlParameters  = array_replace($currentParameters, array('lang' => $language->sef));
+					$language->link = JRoute::_('index.php?' . http_build_query($urlParameters));
 					break;
 
 				// No association. Fallback to language home.
