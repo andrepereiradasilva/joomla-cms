@@ -92,8 +92,8 @@ class PlgSystemLanguageFilter extends JPlugin
 		{
 			// Setup language data.
 			$this->mode_sef     = $this->app->get('sef', 0);
-			$this->sefs         = JLanguageHelper::getAvailableSiteLanguages('sef');
-			$this->lang_codes   = JLanguageHelper::getAvailableSiteLanguages('lang_code');
+			$this->sefs         = JLanguageMultilang::getAvailableSiteLanguages('sef');
+			$this->lang_codes   = JLanguageMultilang::getAvailableSiteLanguages('lang_code');
 			$this->default_lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
 		}
 	}
@@ -677,77 +677,15 @@ class PlgSystemLanguageFilter extends JPlugin
 
 		if ($this->app->isSite() && $this->params->get('alternate_meta', 1) && $doc->getType() == 'html')
 		{
-			$languages             = $this->lang_codes;
-			$menu                  = $this->app->getMenu();
-			$currentParameters     = $this->app->getRouter()->getVars();
-			$currentInternalUrl    = 'index.php?' . http_build_query($currentParameters);
-			$active                = $menu->getActive();
-			$isHome                = $active && $active->home && JRoute::_($active->link . '&Itemid=' . $active->id) == JRoute::_($currentInternalUrl);
-			$currentLanguage       = JFactory::getLanguage();
-			$currentLanguageCode   = $currentLanguage->getTag();
-			$menuItemAssociations  = array();
-			$componentAssociations = array();
+			// Fetch the association links for each available site content languages.
+			$languages = JLanguageAssociations::getCurrentUriAssociations();
 
-			// If in a menu item, check if we are on home item and, if not, get the menu associations.
-			if (!$isHome && $active)
-			{
-				$menuItemAssociations = MenusHelper::getAssociations($active->id);
-			}
-
-			// If not in home, load component associations.
-			if (!$isHome)
-			{
-				$option     = strtolower($this->app->input->get('option', '', 'string'));
-				$helperFile = JPATH_ROOT . '/components/' . $option . '/helpers/association.php';
-
-				if (file_exists($helperFile))
-				{
-					$componentClass = ucfirst(str_replace('com_', '', $option)) . 'HelperAssociation';
-					JLoader::register($componentClass, JPath::clean($helperFile));
-
-					if (class_exists($componentClass) && is_callable(array($componentClass, 'getAssociations')))
-					{
-						$componentAssociations = call_user_func(array($componentClass, 'getAssociations'));
-					}
-				}
-			}
-
-			// Fetch the association link for each available site content languages.
+			// Remove the languages that don't have an associated item.
 			foreach ($languages as $i => $language)
 			{
-				$language->active = $language->lang_code === $currentLanguageCode;
-
-				switch (true)
+				if (!$language->association)
 				{
-					// Language home page, the association is the other language home page.
-					case ($isHome):
-						$language->link = JRoute::_('index.php?Itemid=' . $language->home_id . '&lang=' . $language->sef);
-						break;
-
-					// If current language use the current url.
-					case ($language->active):
-						$language->link = JRoute::_($currentInternalUrl);
-						break;
-
-					// A component item association exists. Use it.
-					case (isset($componentAssociations[$i])):
-						$language->link = JRoute::_($componentAssociations[$i] . '&lang=' . $language->sef);
-						break;
-
-					// A menu item association exists. Use it.
-					case (isset($menuItemAssociations[$i]) && ($item = $menu->getItem($menuItemAssociations[$i]))):
-						$language->link = JRoute::_($item->link . '&Itemid=' . $item->id . '&lang=' . $language->sef);
-						break;
-
-					// If current URI is a component without menu item (no active menu, ex: /en/component/content/).
-					case (!isset($active)):
-						$urlParameters  = array_replace($currentParameters, array('lang' => $language->sef));
-						$language->link = JRoute::_('index.php?' . http_build_query($urlParameters));
-						break;
-
-					// No association, no meta tag. Discard the language.
-					default:
-						unset($languages[$i]);
+					unset($languages[$i]);
 				}
 			}
 
