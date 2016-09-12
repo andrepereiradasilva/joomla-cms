@@ -9,8 +9,6 @@
 
 defined('_JEXEC') or die;
 
-JLoader::register('MenusHelper', JPATH_ADMINISTRATOR . '/components/com_menus/helpers/menus.php');
-
 /**
  * Helper for mod_languages
  *
@@ -30,64 +28,85 @@ abstract class ModLanguagesHelper
 	 */
 	public static function getList(&$params)
 	{
-		$languages = JLanguageHelper::getAvailableSiteLanguages();
+		$languages = JLanguageHelper::getAvailableSiteLanguages('lang_code');
 		$app       = JFactory::getApplication();
 		$menu      = $app->getMenu();
 
-		// Load associations
-		$assoc = JLanguageAssociations::isEnabled();
-
-		if ($assoc)
+		// If not a multilingual site, all language point always to default home page.
+		if (!JLanguageMultilang::isEnabled())
 		{
-			$active = $menu->getActive();
+			$defaultHomeUri = JRoute::_('index.php?Itemid=' . $menu->getDefault('*')->id);
 
-			if ($active)
+			foreach ($languages as $i => $language)
 			{
-				$associations = MenusHelper::getAssociations($active->id);
+				$language->link = $defaultHomeUri;
 			}
 
-			// Load component associations
-			$class = str_replace('com_', '', $app->input->get('option')) . 'HelperAssociation';
-			JLoader::register($class, JPATH_COMPONENT_SITE . '/helpers/association.php');
+			return $languages;
+		}
 
-			if (class_exists($class) && is_callable(array($class, 'getAssociations')))
+		$currentInternalUrl = 'index.php?' . http_build_query($app->getRouter()->getVars());
+		$active             = $menu->getActive();
+		$isHome             = $active->home && JRoute::_($active->link . '&Itemid=' . $active->id) == JRoute::_($currentInternalUrl);
+
+		// Check if associations are enabled, if so fetch them.
+		if (JLanguageAssociations::isEnabled())
+		{
+			// If in a menu item, check if we are on home item and, if not, get the menu associations.
+			if (!$isHome && $active)
 			{
-				$cassociations = call_user_func(array($class, 'getAssociations'));
+				$menuItemAssociations = MenusHelper::getAssociations($active->id);
+			}
+
+			// If not in home, load component associations.
+			if (!$isHome)
+			{
+				$option     = strtolower($app->input->get('option', '', 'string'));
+				$helperFile = JPATH_ROOT . '/components/' . $option . '/helpers/association.php';
+
+				if (file_exists($helperFile))
+				{
+					$componentClass = ucfirst(str_replace('com_', '', $option)) . 'HelperAssociation';
+					JLoader::register($componentClass, JPath::clean($helperFile));
+
+					if (class_exists($componentClass) && is_callable(array($componentClass, 'getAssociations')))
+					{
+						$componentAssociations = call_user_func(array($componentClass, 'getAssociations'));
+					}
+				}
 			}
 		}
 
-		$multilang   = JLanguageMultilang::isEnabled();
-		$defaultHome = $menu->getDefault('*');
-
-		// Filter allowed languages
+		// Fetch the association link for each available site content languages.
 		foreach ($languages as $i => $language)
 		{
-			if (!$multilang)
+			switch (true)
 			{
-				$language->link = JRoute::_('index.php?Itemid=' . $defaultHome->id);
-				continue;
-			}
+				// Language home page, the associations is the other language home page.
+				case ($isHome):
+					$language->link = JRoute::_('index.php?Itemid=' . $language->home_id . '&lang=' . $language->sef);
+					break;
 
-			// Do not display language without specific home menu
-			if (isset($cassociations[$language->lang_code]))
-			{
-				$language->link = JRoute::_($cassociations[$language->lang_code] . '&lang=' . $language->sef);
-				continue;
-			}
-			
-			if (isset($associations[$language->lang_code]) && $menu->getItem($associations[$language->lang_code]))
-			{
-				$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $associations[$language->lang_code]);
-				continue;
-			}
+				// If current language use the current url.
+				case ($language->active):
+					$language->link = JRoute::_($currentInternalUrl);
+					break;
 
-			if ($language->active)
-			{
-				$language->link = JUri::getInstance()->toString(array('path', 'query'));
-				continue;
-			}
+				// A component item association exists. Use it.
+				case (isset($componentAssociations[$i])):
+					$language->link = JRoute::_($componentAssociations[$i] . '&lang=' . $language->sef);
+					break;
 
-			$language->link = JRoute::_('index.php?lang=' . $language->sef . '&Itemid=' . $language->home_id);
+				// A menu item association exists. Use it.
+				case (isset($menuItemAssociations[$i])):
+					$language->link = JRoute::_($menuItemAssociations[$i] . '&lang=' . $language->sef);
+					break;
+
+				// No association. Fallback to language home.
+				default:
+					$language->link = JRoute::_('index.php?Itemid=' . $language->home_id . '&lang=' . $language->sef);
+					break;
+			}
 		}
 
 		return $languages;
