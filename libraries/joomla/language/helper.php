@@ -215,10 +215,10 @@ class JLanguageHelper
 		{
 			$availableSiteLanguages[$key] = $queryContentLanguages;
 			$app                          = JFactory::getApplication();
-			$menu                         = $app->getMenu();
+			$menu                         = $app->getMenu('site');
 			$currentLanguage              = $app->getLanguage();
 			$levels                       = JFactory::getUser()->getAuthorisedViewLevels();
-			$defaultLanguageCode          = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
+			$defaultLanguageCode          = JComponentHelper::getParams('com_languages')->get('site', JFactory::getConfig()->get('language', 'en-GB'));
 			$count                        = 0;
 
 			foreach ($availableSiteLanguages[$key] as $k => $language)
@@ -274,18 +274,21 @@ class JLanguageHelper
 				$availableSiteLanguages[$key][$k]->available = 1;
 
 				// Check if is the current language.
-				$availableSiteLanguages[$key][$k]->active = $language->lang_code === $currentLanguage->getTag();
+				if ($app->isSite())
+				{
+					$availableSiteLanguages[$key][$k]->active = $language->lang_code === $currentLanguage->getTag();
 
-				// If current language get the rtl from current JLanguage metadata
-				if ($availableSiteLanguages[$key][$k]->active)
-				{
-					$availableSiteLanguages[$key][$k]->rtl = $currentLanguage->isRtl();
-				}
-				// If not loaded language fetch rtl directly for performance
-				else
-				{
-					$languageMetadata                      = JLanguage::getMetadata($language->lang_code);
-					$availableSiteLanguages[$key][$k]->rtl = $languageMetadata['rtl'];
+					// If current language get the rtl from current JLanguage metadata
+					if ($availableSiteLanguages[$key][$k]->active)
+					{
+						$availableSiteLanguages[$key][$k]->rtl = $currentLanguage->isRtl();
+					}
+					// If not loaded language fetch rtl directly for performance
+					else
+					{
+						$languageMetadata                      = JLanguage::getMetadata($language->lang_code);
+						$availableSiteLanguages[$key][$k]->rtl = $languageMetadata['rtl'];
+					}
 				}
 
 				$count++;
