@@ -238,6 +238,39 @@ class JApplicationAdministrator extends JApplicationCms
 	}
 
 	/**
+	 * Get the application language code.
+	 *
+	 * @return  string  App language code.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	protected function getLanguageCode()
+	{
+		$language = null;
+
+		// Check the user language.
+		if (is_null($language) && $lang = JFactory::getUser()->getParam('admin_language'))
+		{
+			$language = JLanguage::exists($lang) ? $lang : null;
+		}
+
+		// Check the default language
+		if (is_null($language) && $lang = JComponentHelper::getParams('com_languages')->get('administrator', 'en-GB'))
+		{
+			$language = JLanguage::exists($lang) ? $lang : null;
+		}
+
+		// Check the config language
+		if (is_null($language) && $lang = $this->config->get('language', 'en-GB'))
+		{
+			$language = JLanguage::exists($lang) ? $lang : null;
+		}
+
+		// Return the language or fallback to en-GB.
+		return !is_null($language) ? $language : 'en-GB';
+	}
+
+	/**
 	 * Initialise the application.
 	 *
 	 * @param   array  $options  An optional associative array of configuration settings.
@@ -257,38 +290,8 @@ class JApplicationAdministrator extends JApplicationCms
 			$user->groups = array($guestUsergroup);
 		}
 
-		// If a language was specified it has priority, otherwise use user or default language settings
-		if (empty($options['language']))
-		{
-			$lang = $user->getParam('admin_language');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				$params = JComponentHelper::getParams('com_languages');
-				$options['language'] = $params->get('administrator', $this->get('language', 'en-GB'));
-			}
-		}
-
-		// One last check to make sure we have something
-		if (!JLanguage::exists($options['language']))
-		{
-			$lang = $this->get('language', 'en-GB');
-
-			if (JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				// As a last ditch fail to english
-				$options['language'] = 'en-GB';
-			}
-		}
+		// Get the app language.
+		$options['language'] = $this->getLanguageCode();
 
 		// Finish initialisation
 		parent::initialiseApp($options);

@@ -115,6 +115,60 @@ class PlgSystemLanguageFilter extends JPlugin
 	}
 
 	/**
+	 * On language set event.
+	 *
+	 * @return  string  App language code.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function onLanguageSet()
+	{
+		if ($this->app->isSite())
+		{
+			$language = null;
+
+			// Check the url parameters
+			if ($lang = $this->app->input->get('language', '', 'string'))
+			{
+				$language = JLanguage::exists($lang) ? $lang : null;
+			}
+
+			// Check the language cookie
+			if (!$language && $lang = $this->app->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string'))
+			{
+				$language = JLanguage::exists($lang) ? $lang : null;
+			}
+
+			// Check the user language.
+			if (!$language && $lang = JFactory::getUser()->getParam('language'))
+			{
+				$language = JLanguage::exists($lang) ? $lang : null;
+			}
+
+			// Check the browser language
+			if (!$language && (int) $this->params->get('detect_browser', 0) === 1 && $lang = JLanguageHelper::detectLanguage())
+			{
+				$language = JLanguage::exists($lang) ? $lang : null;
+			}
+
+			// Check the default language
+			if (!$language && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
+			{
+				$language = JLanguage::exists($lang) ? $lang : null;
+			}
+
+			// Check the config language
+			if (!$language && $lang = $this->app->config->get('language', 'en-GB'))
+			{
+				$language = JLanguage::exists($lang) ? $lang : null;
+			}
+
+			// Return the language or fallback to en-GB.
+			return !is_null($language) ? $language : 'en-GB';
+		}
+	}
+
+	/**
 	 * After initialise.
 	 *
 	 * @return  void
