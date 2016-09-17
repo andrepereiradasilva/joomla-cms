@@ -260,14 +260,14 @@ class JApplicationAdministrator extends JApplicationCms
 			$language = JLanguage::exists($lang) ? $lang : null;
 		}
 
-		// Check the config language
+		// Check the config language or fallback to en-GB.
 		if (is_null($language) && $lang = $this->config->get('language', 'en-GB'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : null;
+			$language = JLanguage::exists($lang) ? $lang : 'en-GB';
 		}
 
-		// Return the language or fallback to en-GB.
-		return !is_null($language) ? $language : 'en-GB';
+		// Return the language.
+		return $language;
 	}
 
 	/**

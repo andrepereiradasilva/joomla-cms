@@ -88,8 +88,6 @@ class PlgSystemLanguageFilter extends JPlugin
 	{
 		parent::__construct($subject, $config);
 
-		$this->app = JFactory::getApplication();
-
 		if ($this->app->isSite())
 		{
 			// Setup language data.
@@ -111,13 +109,16 @@ class PlgSystemLanguageFilter extends JPlugin
 					unset($this->sefs[$language->sef]);
 				}
 			}
+
+			$this->app->setLanguageFilter(true);
+			$this->app->setDetectBrowser((int) $this->params->get('detect_browser', 1) === 1);
 		}
 	}
 
 	/**
 	 * On language set event.
 	 *
-	 * @return  string  App language code.
+	 * @return  void
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
@@ -157,14 +158,13 @@ class PlgSystemLanguageFilter extends JPlugin
 				$language = JLanguage::exists($lang) ? $lang : null;
 			}
 
-			// Check the config language
+			// Check the config language or fallback to en-GB.
 			if (!$language && $lang = $this->app->config->get('language', 'en-GB'))
 			{
-				$language = JLanguage::exists($lang) ? $lang : null;
+				$language = JLanguage::exists($lang) ? $lang : 'en-GB';
 			}
 
-			// Return the language or fallback to en-GB.
-			return !is_null($language) ? $language : 'en-GB';
+			$this->app->set('language', $language);
 		}
 	}
 
