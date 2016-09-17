@@ -586,8 +586,7 @@ final class JApplicationSite extends JApplicationCms
 		// If the user is a guest we populate it with the guest user group.
 		if ($user->guest)
 		{
-			$guestUsergroup = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
-			$user->groups = array($guestUsergroup);
+			$user->groups = array($this->get('guest_usergroup', 1));
 		}
 
 		/*
@@ -606,76 +605,82 @@ final class JApplicationSite extends JApplicationCms
 			$this->setDetectBrowser($pluginParams->get('detect_browser', '1') == '1');
 		}
 
-		if (empty($options['language']))
+		do
 		{
-			// Detect the specified language
-			$lang = $this->input->getString('language', null);
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
+			// Check if language exists.
+			if (!empty($options['language']) && JLanguage::exists($options['language']))
 			{
-				$options['language'] = $lang;
+				break;
 			}
-		}
 
-		if ($this->getLanguageFilter() && empty($options['language']))
-		{
-			// Detect cookie language
-			$lang = $this->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string');
+			// Use the specified language.
+			$options['language'] = $this->input->get('language', '', 'string');
 
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
+			if (JLanguage::exists($options['language']))
 			{
-				$options['language'] = $lang;
+				break;
 			}
-		}
 
-		if (empty($options['language']))
-		{
-			// Detect user language
-			$lang = $user->getParam('language');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
+			// Use cookie language.
+			if ($this->getLanguageFilter())
 			{
-				$options['language'] = $lang;
+				$options['language'] = $this->input->cookie->get(md5($this->get('secret') . 'language'), '', 'string');
+
+				if (JLanguage::exists($options['language']))
+				{
+					break;
+				}
 			}
-		}
 
-		if ($this->getDetectBrowser() && empty($options['language']))
-		{
-			// Detect browser language
-			$lang = JLanguageHelper::detectLanguage();
+			// Use user language.
+			$options['language'] = $user->getParam('language');
 
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
+			if (JLanguage::exists($options['language']))
 			{
-				$options['language'] = $lang;
+				break;
 			}
-		}
 
-		if (empty($options['language']))
-		{
-			// Detect default language
-			$params = JComponentHelper::getParams('com_languages');
-			$options['language'] = $params->get('site', $this->get('language', 'en-GB'));
-		}
-
-		// One last check to make sure we have something
-		if (!JLanguage::exists($options['language']))
-		{
-			$lang = $this->config->get('language', 'en-GB');
-
-			if (JLanguage::exists($lang))
+			// Use browser language.
+			if ($this->getDetectBrowser())
 			{
-				$options['language'] = $lang;
+				$options['language'] = JLanguageHelper::detectLanguage();
+
+				if (JLanguage::exists($options['language']))
+				{
+					break;
+				}
 			}
-			else
+
+			// Use default language
+			$options['language'] = JComponentHelper::getParams('com_languages')->get('site', '');
+
+			if (JLanguage::exists($options['language']))
 			{
-				// As a last ditch fail to english
-				$options['language'] = 'en-GB';
+				break;
 			}
-		}
+
+			// Use config language
+			$options['language'] = $this->get('language', '');
+
+			if (JLanguage::exists($options['language']))
+			{
+				break;
+			}
+
+			// Fallback to en-GB.
+			$options['language'] = 'en-GB';
+
+			if (JLanguage::exists($options['language']))
+			{
+				break;
+			}
+
+			// We have no language.
+			throw new RuntimeException('No language found.', 500);
+
+			break;
+
+		} while (1);
 
 		// Finish initialisation
 		parent::initialiseApp($options);

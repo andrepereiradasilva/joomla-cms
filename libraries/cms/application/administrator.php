@@ -253,42 +253,56 @@ class JApplicationAdministrator extends JApplicationCms
 		// If the user is a guest we populate it with the guest user group.
 		if ($user->guest)
 		{
-			$guestUsergroup = JComponentHelper::getParams('com_users')->get('guest_usergroup', 1);
-			$user->groups = array($guestUsergroup);
+			$user->groups = array($this->get('guest_usergroup', 1));
 		}
 
-		// If a language was specified it has priority, otherwise use user or default language settings
-		if (empty($options['language']))
+		do
 		{
-			$lang = $user->getParam('admin_language');
+			// Check if language exists.
+			if (!empty($options['language']) && JLanguage::exists($options['language']))
+			{
+				break;
+			}
 
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				$params = JComponentHelper::getParams('com_languages');
-				$options['language'] = $params->get('administrator', $this->get('language', 'en-GB'));
-			}
-		}
+			// Use user language.
+			$options['language'] = $user->getParam('admin_language');
 
-		// One last check to make sure we have something
-		if (!JLanguage::exists($options['language']))
-		{
-			$lang = $this->get('language', 'en-GB');
+			if (JLanguage::exists($options['language']))
+			{
+				break;
+			}
 
-			if (JLanguage::exists($lang))
+			// Use default language
+			$options['language'] = JComponentHelper::getParams('com_languages')->get('administrator', '');
+
+			if (JLanguage::exists($options['language']))
 			{
-				$options['language'] = $lang;
+				break;
 			}
-			else
+
+			// Use config language
+			$options['language'] = $this->get('language', '');
+
+			if (JLanguage::exists($options['language']))
 			{
-				// As a last ditch fail to english
-				$options['language'] = 'en-GB';
+				break;
 			}
-		}
+
+			// Fallback to en-GB.
+			$options['language'] = 'en-GB';
+
+			if (JLanguage::exists($options['language']))
+			{
+				break;
+			}
+
+			// We have no language.
+			throw new RuntimeException('No language found.', 500);
+
+			break;
+
+		} while (1);
+
 
 		// Finish initialisation
 		parent::initialiseApp($options);

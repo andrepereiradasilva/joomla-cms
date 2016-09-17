@@ -629,10 +629,7 @@ class JApplicationCms extends JApplicationWeb
 	protected function initialiseApp($options = array())
 	{
 		// Check that we were given a language in the array (since by default may be blank).
-		if (isset($options['language']))
-		{
-			$this->set('language', $options['language']);
-		}
+		$this->set('language', $options['language']);
 
 		// Build our language object
 		$lang = JLanguage::getInstance($this->get('language'), $this->get('debug_lang'));
