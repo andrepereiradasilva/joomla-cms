@@ -636,8 +636,8 @@ final class JApplicationSite extends JApplicationCms
 			$user->groups = array($guestUsergroup);
 		}
 
-		// Set the language only if not yet set.
-		if (!$this->get('language', ''))
+		// Get the app language code only if app language is not yet set.
+		if (empty($options['language']) && is_null($this->get('language', null)))
 		{
 			$options['language'] = $this->getLanguageCode();
 		}

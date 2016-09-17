@@ -628,8 +628,8 @@ class JApplicationCms extends JApplicationWeb
 	 */
 	protected function initialiseApp($options = array())
 	{
-		// Check that we were given a language in the array (since by default may be blank).
-		if (isset($options['language']) && !$this->get('language', ''))
+		// Check that we were given a language in the array (since by default may be blank) and if the language is not already set.
+		if (isset($options['language']) && is_null($this->get('language', null)))
 		{
 			$this->set('language', $options['language']);
 		}
