@@ -205,13 +205,6 @@ final class JApplicationSite extends JApplicationCms
 	 */
 	protected function doExecute()
 	{
-		// Run before initialize event for allowing to set the language.
-		JPluginHelper::importPlugin('system');
-		$this->triggerEvent('onBeforeLanguage');
-
-		// Mark beforeInitialise in the profiler.
-		JDEBUG ? $this->profiler->mark('beforeLanguage') : null;
-
 		// Initialise the application
 		$this->initialiseApp();
 
@@ -586,34 +579,34 @@ final class JApplicationSite extends JApplicationCms
 	 */
 	protected function getLanguageCode()
 	{
-		$language = null;
+		$languageCode = null;
 
 		// Check the url parameters
 		if ($lang = $this->input->get('language', '', 'string'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : null;
+			$languageCode = JLanguage::exists($lang) ? $lang : null;
 		}
 
 		// Check the user language.
-		if (!$language && $lang = JFactory::getUser()->getParam('language'))
+		if (is_null($languageCode) && $lang = JFactory::getUser()->getParam('language'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : null;
+			$languageCode = JLanguage::exists($lang) ? $lang : null;
 		}
 
 		// Check the default language
-		if (!$language && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
+		if (is_null($languageCode) && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : null;
+			$languageCode = JLanguage::exists($lang) ? $lang : null;
 		}
 
 		// Check the config language or fallback to en-GB.
-		if (!$language && $lang = $this->config->get('language', 'en-GB'))
+		if (is_null($languageCode) && $lang = $this->config->get('language', 'en-GB'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : 'en-GB';
+			$languageCode = JLanguage::exists($lang) ? $lang : 'en-GB';
 		}
 
-		// Return the language.
-		return $language;
+		// Return the language code.
+		return $languageCode;
 	}
 
 	/**
@@ -637,7 +630,7 @@ final class JApplicationSite extends JApplicationCms
 		}
 
 		// Get the app language code only if app language is not yet set.
-		if (empty($options['language']) && is_null($this->get('language', null)))
+		if (empty($options['language']))
 		{
 			$options['language'] = $this->getLanguageCode();
 		}

@@ -110,6 +110,8 @@ class PlgSystemLanguageFilter extends JPlugin
 				}
 			}
 
+			$this->checkAppLanguage();
+
 			$this->app->setLanguageFilter(true);
 			$this->app->setDetectBrowser((int) $this->params->get('detect_browser', 1) === 1);
 		}
@@ -122,49 +124,72 @@ class PlgSystemLanguageFilter extends JPlugin
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function onBeforeLanguage()
+	protected function checkAppLanguage()
 	{
 		if ($this->app->isSite())
 		{
-			$language = null;
+			$languageCode = null;
 
 			// Check the url parameters
 			if ($lang = $this->app->input->get('language', '', 'string'))
 			{
-				$language = JLanguage::exists($lang) ? $lang : null;
+				$languageCode = JLanguage::exists($lang) ? $lang : null;
 			}
 
 			// Check the language cookie
-			if (!$language && $lang = $this->app->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string'))
+			if (is_null($languageCode) && $lang = $this->app->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string'))
 			{
-				$language = JLanguage::exists($lang) ? $lang : null;
+				$languageCode = JLanguage::exists($lang) ? $lang : null;
 			}
 
 			// Check the user language.
-			if (!$language && $lang = JFactory::getUser()->getParam('language'))
+			if (is_null($languageCode) && $lang = JFactory::getUser()->getParam('language'))
 			{
-				$language = JLanguage::exists($lang) ? $lang : null;
+				$languageCode = JLanguage::exists($lang) ? $lang : null;
 			}
 
 			// Check the browser language
-			if (!$language && (int) $this->params->get('detect_browser', 0) === 1 && $lang = JLanguageHelper::detectLanguage())
+			if (is_null($languageCode) && (int) $this->params->get('detect_browser', 0) === 1 && $lang = JLanguageHelper::detectLanguage())
 			{
-				$language = JLanguage::exists($lang) ? $lang : null;
+				$languageCode = JLanguage::exists($lang) ? $lang : null;
 			}
 
 			// Check the default language
-			if (!$language && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
+			if (is_null($languageCode) && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
 			{
-				$language = JLanguage::exists($lang) ? $lang : null;
+				$languageCode = JLanguage::exists($lang) ? $lang : null;
 			}
 
 			// Check the config language or fallback to en-GB.
-			if (!$language && $lang = $this->app->config->get('language', 'en-GB'))
+			if (is_null($languageCode) && $lang = $this->app->config->get('language', 'en-GB'))
 			{
-				$language = JLanguage::exists($lang) ? $lang : 'en-GB';
+				$languageCode = JLanguage::exists($lang) ? $lang : 'en-GB';
 			}
 
-			$this->app->set('language', $language);
+			// Get the current language.
+			$currentLanguage = JFactory::getLanguage();
+
+			if ($currentLanguage->getTag() != $languageCode)
+			{
+				// Set the app language.
+				$this->app->input->set('language', $languageCode);
+				$this->app->set('language', $languageCode);
+
+				// Build our language object
+				$newLanguage = JLanguage::getInstance($languageCode, $this->app->get('debug_lang'));
+
+				// Load the language files to the new language.
+				foreach ($currentLanguage->getPaths() as $extension => $files)
+				{
+					$newLanguage->load($extension);
+				}
+
+				// Load the language to the API
+				$this->app->loadLanguage($newLanguage);
+
+				// Register the language object with JFactory
+				JFactory::$language = $newLanguage;
+			}
 		}
 	}
 

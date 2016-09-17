@@ -246,28 +246,28 @@ class JApplicationAdministrator extends JApplicationCms
 	 */
 	protected function getLanguageCode()
 	{
-		$language = null;
+		$languageCode = null;
 
 		// Check the user language.
 		if (is_null($language) && $lang = JFactory::getUser()->getParam('admin_language'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : null;
+			$languageCode = JLanguage::exists($lang) ? $lang : null;
 		}
 
 		// Check the default language
-		if (is_null($language) && $lang = JComponentHelper::getParams('com_languages')->get('administrator', 'en-GB'))
+		if (is_null($languageCode) && $lang = JComponentHelper::getParams('com_languages')->get('administrator', 'en-GB'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : null;
+			$languageCode = JLanguage::exists($lang) ? $lang : null;
 		}
 
 		// Check the config language or fallback to en-GB.
-		if (is_null($language) && $lang = $this->config->get('language', 'en-GB'))
+		if (is_null($languageCode) && $lang = $this->config->get('language', 'en-GB'))
 		{
-			$language = JLanguage::exists($lang) ? $lang : 'en-GB';
+			$languageCode = JLanguage::exists($lang) ? $lang : 'en-GB';
 		}
 
 		// Return the language.
-		return $language;
+		return $languageCode;
 	}
 
 	/**
@@ -291,7 +291,7 @@ class JApplicationAdministrator extends JApplicationCms
 		}
 
 		// Get the app language code only if app language is not yet set.
-		if (empty($options['language']) && is_null($this->get('language', null)))
+		if (empty($options['language']))
 		{
 			$options['language'] = $this->getLanguageCode();
 		}
