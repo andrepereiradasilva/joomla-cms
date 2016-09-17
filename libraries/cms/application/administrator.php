@@ -249,7 +249,7 @@ class JApplicationAdministrator extends JApplicationCms
 		$languageCode = null;
 
 		// Check the user language.
-		if (is_null($language) && $lang = JFactory::getUser()->getParam('admin_language'))
+		if (is_null($languageCode) && $lang = JFactory::getUser()->getParam('admin_language'))
 		{
 			$languageCode = JLanguage::exists($lang) ? $lang : null;
 		}
