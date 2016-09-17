@@ -207,10 +207,10 @@ final class JApplicationSite extends JApplicationCms
 	{
 		// Run before initialize event for allowing to set the language.
 		JPluginHelper::importPlugin('system');
-		$this->triggerEvent('languageSet');
+		$this->triggerEvent('onBeforeLanguage');
 
 		// Mark beforeInitialise in the profiler.
-		JDEBUG ? $this->profiler->mark('languageSet') : null;
+		JDEBUG ? $this->profiler->mark('beforeLanguage') : null;
 
 		// Initialise the application
 		$this->initialiseApp();

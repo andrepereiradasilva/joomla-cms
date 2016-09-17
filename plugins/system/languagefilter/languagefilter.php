@@ -116,13 +116,13 @@ class PlgSystemLanguageFilter extends JPlugin
 	}
 
 	/**
-	 * On language set event.
+	 * On before language event.
 	 *
 	 * @return  void
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function onLanguageSet()
+	public function onBeforeLanguage()
 	{
 		if ($this->app->isSite())
 		{
