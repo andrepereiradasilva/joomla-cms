@@ -110,86 +110,8 @@ class PlgSystemLanguageFilter extends JPlugin
 				}
 			}
 
-			$this->checkAppLanguage();
-
 			$this->app->setLanguageFilter(true);
 			$this->app->setDetectBrowser((int) $this->params->get('detect_browser', 1) === 1);
-		}
-	}
-
-	/**
-	 * On before language event.
-	 *
-	 * @return  void
-	 *
-	 * @since   __DEPLOY_VERSION__
-	 */
-	protected function checkAppLanguage()
-	{
-		if ($this->app->isSite())
-		{
-			$languageCode = null;
-
-			// Check the url parameters
-			if ($lang = $this->app->input->get('language', '', 'string'))
-			{
-				$languageCode = JLanguage::exists($lang) ? $lang : null;
-			}
-
-			// Check the language cookie
-			if (is_null($languageCode) && $lang = $this->app->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string'))
-			{
-				$languageCode = JLanguage::exists($lang) ? $lang : null;
-			}
-
-			// Check the user language.
-			if (is_null($languageCode) && $lang = JFactory::getUser()->getParam('language'))
-			{
-				$languageCode = JLanguage::exists($lang) ? $lang : null;
-			}
-
-			// Check the browser language
-			if (is_null($languageCode) && (int) $this->params->get('detect_browser', 0) === 1 && $lang = JLanguageHelper::detectLanguage())
-			{
-				$languageCode = JLanguage::exists($lang) ? $lang : null;
-			}
-
-			// Check the default language
-			if (is_null($languageCode) && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
-			{
-				$languageCode = JLanguage::exists($lang) ? $lang : null;
-			}
-
-			// Check the config language or fallback to en-GB.
-			if (is_null($languageCode) && $lang = $this->app->config->get('language', 'en-GB'))
-			{
-				$languageCode = JLanguage::exists($lang) ? $lang : 'en-GB';
-			}
-
-			// Get the current language.
-			$currentLanguage = JFactory::getLanguage();
-
-			if ($currentLanguage->getTag() != $languageCode)
-			{
-				// Set the app language.
-				$this->app->input->set('language', $languageCode);
-				$this->app->set('language', $languageCode);
-
-				// Build our language object
-				$newLanguage = JLanguage::getInstance($languageCode, $this->app->get('debug_lang'));
-
-				// Load the language files to the new language.
-				foreach ($currentLanguage->getPaths() as $extension => $files)
-				{
-					$newLanguage->load($extension);
-				}
-
-				// Load the language to the API
-				$this->app->loadLanguage($newLanguage);
-
-				// Register the language object with JFactory
-				JFactory::$language = $newLanguage;
-			}
 		}
 	}
 

@@ -647,8 +647,7 @@ class JApplicationCms extends JApplicationWeb
 		$this->loadLibraryLanguage();
 
 		// Set user specific editor.
-		$user = JFactory::getUser();
-		$editor = $user->getParam('editor', $this->get('editor'));
+		$editor = JFactory::getUser()->getParam('editor', $this->get('editor'));
 
 		if (!JPluginHelper::isEnabled('editors', $editor))
 		{
@@ -662,7 +661,7 @@ class JApplicationCms extends JApplicationWeb
 
 		$this->set('editor', $editor);
 
-		// Trigger the onAfterInitialise event.
+		// Run onAfterInitialise event.
 		JPluginHelper::importPlugin('system');
 		$this->triggerEvent('onAfterInitialise');
 	}

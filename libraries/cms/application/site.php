@@ -571,45 +571,6 @@ final class JApplicationSite extends JApplicationCms
 	}
 
 	/**
-	 * Get the application language code.
-	 *
-	 * @return  string  App language code.
-	 *
-	 * @since   __DEPLOY_VERSION__
-	 */
-	protected function getLanguageCode()
-	{
-		$languageCode = null;
-
-		// Check the url parameters
-		if ($lang = $this->input->get('language', '', 'string'))
-		{
-			$languageCode = JLanguage::exists($lang) ? $lang : null;
-		}
-
-		// Check the user language.
-		if (is_null($languageCode) && $lang = JFactory::getUser()->getParam('language'))
-		{
-			$languageCode = JLanguage::exists($lang) ? $lang : null;
-		}
-
-		// Check the default language
-		if (is_null($languageCode) && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
-		{
-			$languageCode = JLanguage::exists($lang) ? $lang : null;
-		}
-
-		// Check the config language or fallback to en-GB.
-		if (is_null($languageCode) && $lang = $this->config->get('language', 'en-GB'))
-		{
-			$languageCode = JLanguage::exists($lang) ? $lang : 'en-GB';
-		}
-
-		// Return the language code.
-		return $languageCode;
-	}
-
-	/**
 	 * Initialise the application.
 	 *
 	 * @param   array  $options  An optional associative array of configuration settings.
@@ -629,13 +590,31 @@ final class JApplicationSite extends JApplicationCms
 			$user->groups = array($guestUsergroup);
 		}
 
-		// Get the app language code only if app language is not yet set.
-		if (empty($options['language']))
+		// If app language is not yet set, check the url parameters.
+		if (empty($options['language']) && $lang = $this->input->get('language', '', 'string'))
 		{
-			$options['language'] = $this->getLanguageCode();
+			$options['language'] = JLanguage::exists($lang) ? $lang : '';
 		}
 
-		// Finish initialisation
+		// Check the user language.
+		if (empty($options['language']) && $lang = JFactory::getUser()->getParam('language'))
+		{
+			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+		}
+
+		// Check the default language.
+		if (empty($options['language']) && $lang = JComponentHelper::getParams('com_languages')->get('site', 'en-GB'))
+		{
+			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+		}
+
+		// Check the config language or fallback to en-GB.
+		if (empty($options['language']) && $lang = $this->config->get('language', 'en-GB'))
+		{
+			$options['language'] = JLanguage::exists($lang) ? $lang : 'en-GB';
+		}
+
+		// Finish initialisation.
 		parent::initialiseApp($options);
 	}
 
