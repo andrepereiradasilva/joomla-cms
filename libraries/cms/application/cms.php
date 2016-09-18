@@ -664,7 +664,7 @@ class JApplicationCms extends JApplicationWeb
 
 		$this->set('editor', $editor);
 
-		// Run onAfterInitialise event.
+		// Trigger the onAfterInitialise event.
 		JPluginHelper::importPlugin('system');
 		$this->triggerEvent('onAfterInitialise');
 	}
