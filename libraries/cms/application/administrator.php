@@ -113,7 +113,7 @@ class JApplicationAdministrator extends JApplicationCms
 	protected function doExecute()
 	{
 		// Initialise the application
-		$this->initialiseApp(array('language' => $this->getUserState('application.lang')));
+		$this->initialiseApp();
 
 		// Test for magic quotes
 		if (get_magic_quotes_gpc())
@@ -258,27 +258,27 @@ class JApplicationAdministrator extends JApplicationCms
 		}
 
 		// If app language is not yet set, check the user language.
-		if (empty($options['language']) && $lang = $this->getUserState('language', 'en-GB'))
+		if (empty($options['language']) && $lang = $this->getUserState('language', ''))
 		{
-			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
 		// Check the user params language.
-		if (empty($options['language']) && $lang = JFactory::getUser()->getParam('admin_language'))
+		if (empty($options['language']) && $lang = $user->getParam('admin_language'))
 		{
-			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
 		// Check the default language.
-		if (empty($options['language']) && $lang = JComponentHelper::getParams('com_languages')->get('administrator', 'en-GB'))
+		if (empty($options['language']) && $lang = JComponentHelper::getParams('com_languages')->get('administrator', ''))
 		{
-			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
 		// Check the config language or fallback to en-GB.
-		if (empty($options['language']) && $lang = $this->config->get('language', 'en-GB'))
+		if (empty($options['language']) && $lang = $this->config->get('language', ''))
 		{
-			$options['language'] = JLanguage::exists($lang) ? $lang : 'en-GB';
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : 'en-GB';
 		}
 
 		// Finish initialisation.
@@ -321,7 +321,7 @@ class JApplicationAdministrator extends JApplicationCms
 
 			if ($lang)
 			{
-				$this->setUserState('application.lang', $lang);
+				$this->setUserState('language', $lang);
 			}
 
 			static::purgeMessages();

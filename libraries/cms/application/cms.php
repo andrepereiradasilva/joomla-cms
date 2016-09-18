@@ -620,6 +620,55 @@ class JApplicationCms extends JApplicationWeb
 	/**
 	 * Initialise the application.
 	 *
+	 * @param   string   $languageCode  An optional language code.
+	 * @param   boolean  $reload        Relaod language.
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setLanguage($languageCode = null, $reload = false)
+	{
+		$currentLanguage = $this->language;
+
+		// Already loaded. Do nothing.
+		if ($currentLanguage && $currentLanguage->getTag() === $languageCode)
+		{
+			return;
+		}
+
+		// Check that we were given a language in the array (since by default may be blank).
+		if (!is_null($languageCode))
+		{
+			$this->set('language', $languageCode);
+		}
+
+		$newLanguage = JLanguage::getInstance($this->get('language'), $this->get('debug_lang'));
+
+		// Load the language to the API
+		$this->loadLanguage($newLanguage);
+
+		// Register the language object with JFactory
+		JFactory::$language = $newLanguage;
+
+		// If language existed before load all language files in the new language.
+		if ($currentLanguage)
+		{
+			foreach ($currentLanguage->getPaths() as $extension => $files)
+			{
+				$newLanguage->load($extension);
+			}
+		}
+		// If not load just the library language files
+		else
+		{
+			$this->loadLibraryLanguage();
+		}
+	}
+
+	/**
+	 * Initialise the application.
+	 *
 	 * @param   array  $options  An optional associative array of configuration settings.
 	 *
 	 * @return  void
@@ -629,25 +678,13 @@ class JApplicationCms extends JApplicationWeb
 	protected function initialiseApp($options = array())
 	{
 		// Check that we were given a language in the array (since by default may be blank).
-		if (isset($options['language']))
-		{
-			$this->set('language', $options['language']);
-		}
+		$languageCode = isset($options['language']) ? $options['language'] : null;
+
+		// Set the app language.
+		$this->setLanguage($languageCode);
 
 		// Set the user language.
 		$this->setUserState('language', $this->get('language'));
-
-		// Build our language object
-		$lang = JLanguage::getInstance($this->get('language'), $this->get('debug_lang'));
-
-		// Load the language to the API
-		$this->loadLanguage($lang);
-
-		// Register the language object with JFactory
-		JFactory::$language = $this->getLanguage();
-
-		// Load the library language files
-		$this->loadLibraryLanguage();
 
 		// Set user specific editor.
 		$editor = JFactory::getUser()->getParam('editor', $this->get('editor'));
@@ -664,7 +701,7 @@ class JApplicationCms extends JApplicationWeb
 
 		$this->set('editor', $editor);
 
-		// Trigger the onAfterInitialise event.
+		// Run onAfterInitialise event.
 		JPluginHelper::importPlugin('system');
 		$this->triggerEvent('onAfterInitialise');
 	}
@@ -866,7 +903,10 @@ class JApplicationCms extends JApplicationWeb
 			}
 
 			// Set the user language.
-			$this->setUserState('language', $response->language);
+			if ($response->language)
+			{
+				$this->setUserState('language', $response->language);
+			}
 
 			// OK, the credentials are authenticated and user is authorised.  Let's fire the onLogin event.
 			$results = $this->triggerEvent('onUserLogin', array((array) $response, $options));

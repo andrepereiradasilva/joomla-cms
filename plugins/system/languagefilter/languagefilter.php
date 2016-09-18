@@ -469,22 +469,8 @@ class PlgSystemLanguageFilter extends JPlugin
 		// Set the user language.
 		$this->app->setUserState('language', $lang_code);
 
-		// Change the app language.
-		$this->app->set('language', $lang_code);
-		$language = JFactory::getLanguage();
-
-		if ($language->getTag() != $lang_code)
-		{
-			$newLang = JLanguage::getInstance($lang_code);
-
-			foreach ($language->getPaths() as $extension => $files)
-			{
-				$newLang->load($extension);
-			}
-
-			JFactory::$language = $newLang;
-			$this->app->loadLanguage($newLang);
-		}
+		// Set the app language.
+		$this->app->setLanguage($lang_code);
 
 		// Create a cookie.
 		if ($this->getLanguageCookie() != $lang_code)
