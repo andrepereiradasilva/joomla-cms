@@ -865,6 +865,9 @@ class JApplicationCms extends JApplicationWeb
 				}
 			}
 
+			// Set the user language.
+			$this->setUserState('language', $response->language);
+
 			// OK, the credentials are authenticated and user is authorised.  Let's fire the onLogin event.
 			$results = $this->triggerEvent('onUserLogin', array((array) $response, $options));
 
