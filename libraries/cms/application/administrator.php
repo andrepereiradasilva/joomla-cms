@@ -263,7 +263,7 @@ class JApplicationAdministrator extends JApplicationCms
 			$options['language'] = JLanguage::exists($lang) ? $lang : '';
 		}
 
-		// ICheck the user params language.
+		// Check the user params language.
 		if (empty($options['language']) && $lang = JFactory::getUser()->getParam('admin_language'))
 		{
 			$options['language'] = JLanguage::exists($lang) ? $lang : '';
