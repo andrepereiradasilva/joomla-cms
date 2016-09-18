@@ -634,6 +634,9 @@ class JApplicationCms extends JApplicationWeb
 			$this->set('language', $options['language']);
 		}
 
+		// Set the user language.
+		$this->setUserState('language', $this->get('language'));
+
 		// Build our language object
 		$lang = JLanguage::getInstance($this->get('language'), $this->get('debug_lang'));
 

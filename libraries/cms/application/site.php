@@ -597,6 +597,12 @@ final class JApplicationSite extends JApplicationCms
 		}
 
 		// Check the user language.
+		if (empty($options['language']) && $lang = $this->getUserState('language', 'en-GB'))
+		{
+			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+		}
+
+		// Check the user params language.
 		if (empty($options['language']) && $lang = JFactory::getUser()->getParam('language'))
 		{
 			$options['language'] = JLanguage::exists($lang) ? $lang : '';

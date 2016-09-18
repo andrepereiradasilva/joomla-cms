@@ -258,6 +258,12 @@ class JApplicationAdministrator extends JApplicationCms
 		}
 
 		// If app language is not yet set, check the user language.
+		if (empty($options['language']) && $lang = $this->getUserState('language', 'en-GB'))
+		{
+			$options['language'] = JLanguage::exists($lang) ? $lang : '';
+		}
+
+		// ICheck the user params language.
 		if (empty($options['language']) && $lang = JFactory::getUser()->getParam('admin_language'))
 		{
 			$options['language'] = JLanguage::exists($lang) ? $lang : '';
