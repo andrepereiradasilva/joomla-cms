@@ -30,20 +30,15 @@ class JLanguageHelper
 	 */
 	public static function createLanguageList($actualLanguage, $basePath = JPATH_BASE, $caching = false, $installed = false)
 	{
-		$languages = static::getKnownLanguages($basePath);
-
-		// If checking if installed remove not installed languages.
-		if ($installed)
-		{
-			$languages = array_intersect_key($languages, static::getInstalledLanguages($basePath == JPATH_ADMINISTRATOR ? 1 : 0));
-		}
+		$clientId  = $basePath === JPATH_ADMINISTRATOR ? 1 : 0;
+		$languages = !$installed ? static::getKnownLanguages($basePath) : static::getInstalledLanguages($clientId, true);
 
 		$list = array();
 
-		foreach ($languages as $languageCode => $metadata)
+		foreach ($languages as $languageCode => $language)
 		{
 			$list[] = array(
-				'text'     => $metadata['name'],
+				'text'     => isset($language->metadata) ? $language->metadata['name'] : $language['name'],
 				'value'    => $languageCode,
 				'selected' => $languageCode == $actualLanguage ? 'selected="selected"' : null,
 			);
@@ -197,22 +192,21 @@ class JLanguageHelper
 
 		foreach($installedLanguages as $language)
 		{
-			$languages[$language->client_id][$language->element] = $language;
-
 			$clientPath = (int) $language->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
 			$metafile   = static::getLanguagePath($clientPath, $language->element) . '/' . $language->element . '.xml';
 
-			// Check if language folder exists.
-			if (!static::exists($language->element, $clientPath))
+			// Check if metafile is readable.
+			if (!is_readable($metafile))
 			{
-				unset($languages[$language->client_id][$language->element]);
 				continue;
 			}
+
+			$languages[$language->client_id][$language->element] = $language;
 
 			// Process the metadata.
 			if ($processMetaData)
 			{
-				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($metafile);
+				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
 
 				// No metadata found, not a valid language.
 				if (!is_array($languages[$language->client_id][$language->element]->metadata))
