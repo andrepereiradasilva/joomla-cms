@@ -32,12 +32,10 @@ class JLanguageHelper
 	{
 		$languages = static::getKnownLanguages($basePath);
 
+		// If checking if installed remove not installed languages.
 		if ($installed)
 		{
-			$installedLanguages = static::getInstalledLanguages($basePath == JPATH_ADMINISTRATOR ? 1 : 0);
-
-			// Remove not installed languages.
-			$languages = array_intersect_key($languages, $installedLanguages);
+			$languages = array_intersect_key($languages, static::getInstalledLanguages($basePath == JPATH_ADMINISTRATOR ? 1 : 0));
 		}
 
 		$list = array();
