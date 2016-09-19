@@ -9,6 +9,8 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Language helper class
  *
@@ -164,12 +166,15 @@ class JLanguageHelper
 	 * @param   integer  $clientId         The client app id.
 	 * @param   boolean  $processMetaData  Fetch Language metadata.
 	 * @param   boolean  $processManifest  Fetch Language manifest.
+	 * @param   string   $orderField       Field to order the results.
+	 * @param   string   $orderDirection   Direction to order the results.
 	 *
 	 * @return  array  Array with the language code, name, client_id and extension_id.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getInstalledLanguages($clientId = null, $processMetaData = false, $processManifest = false)
+	public static function getInstalledLanguages($clientId = null, $processMetaData = false, $processManifest = false,
+		$orderField = null, $orderDirection = null)
 	{
 		static $installedLanguages = null;
 
@@ -188,44 +193,66 @@ class JLanguageHelper
 		}
 
 		$languages = array();
+		$clientId  = (int) $clientId;
+		$clients   = is_null($clientId) ? array(0, 1) : array($clientId);
 
 		foreach($installedLanguages as $language)
 		{
-			$clientPath = (int) $language->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
-			$metafile   = static::getLanguagePath($clientPath, $language->element) . '/' . $language->element . '.xml';
-
-			// Check if metafile is readable.
-			if (!is_readable($metafile))
+			// If the language client is not needed continue cycle. Drop for performance.
+			if (!in_array((int) $language->client_id, $clients))
 			{
 				continue;
 			}
 
 			$languages[$language->client_id][$language->element] = $language;
 
-			// Process the language metadata.
-			if ($processMetaData)
+			if ($processMetaData || $processManifest)
 			{
-				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
+				$clientPath = (int) $language->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
+				$metafile   = static::getLanguagePath($clientPath, $language->element) . '/' . $language->element . '.xml';
 
-				// No metadata found, not a valid language.
-				if (!is_array($languages[$language->client_id][$language->element]->metadata))
+				// Process the language metadata.
+				if ($processMetaData)
 				{
-					unset($languages[$language->client_id][$language->element]);
-					continue;
+					$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
+
+					// No metadata found, not a valid language.
+					if (!is_array($languages[$language->client_id][$language->element]->metadata))
+					{
+						unset($languages[$language->client_id][$language->element]);
+						continue;
+					}
+				}
+
+				// Process the language manifest.
+				if ($processManifest)
+				{
+					$languages[$language->client_id][$language->element]->manifest = JInstaller::parseXMLInstallFile($metafile);
+
+					// No metadata found, not a valid language.
+					if (!is_array($languages[$language->client_id][$language->element]->manifest))
+					{
+						unset($languages[$language->client_id][$language->element]);
+						continue;
+					}
 				}
 			}
+		}
 
-			// Process the language manifest.
-			if ($processManifest)
+		// Order the list if needed.
+		if (!is_null($orderField) && !is_null($orderDirection))
+		{
+			$orderDirection = strtolower($orderDirection) === 'desc' ? -1 : 1;
+
+			foreach ($languages as $cId => $language)
 			{
-				$languages[$language->client_id][$language->element]->manifest = JInstaller::parseXMLInstallFile($metafile);
-
-				// No metadata found, not a valid language.
-				if (!is_array($languages[$language->client_id][$language->element]->manifest))
+				// If the language client is not needed continue cycle. Drop for performance.
+				if (!in_array($cId, $clients))
 				{
-					unset($languages[$language->client_id][$language->element]);
 					continue;
 				}
+
+				$languages[$cId] = ArrayHelper::sortObjects($languages[$cId], $orderField, $orderDirection, true, true);
 			}
 		}
 
