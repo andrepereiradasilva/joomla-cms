@@ -211,7 +211,7 @@ class LanguagesModelInstalled extends JModelList
 					$row->client_id    = (int) $lang->client_id;
 					$row->extension_id = (int) $lang->extension_id;
 
-					foreach ($lang->metafile as $key => $value)
+					foreach ($lang->manifest as $key => $value)
 					{
 						$row->$key = $value;
 					}

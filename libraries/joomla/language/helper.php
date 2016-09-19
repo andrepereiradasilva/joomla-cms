@@ -30,10 +30,9 @@ class JLanguageHelper
 	 */
 	public static function createLanguageList($actualLanguage, $basePath = JPATH_BASE, $caching = false, $installed = false)
 	{
+		$list      = array();
 		$clientId  = $basePath === JPATH_ADMINISTRATOR ? 1 : 0;
 		$languages = !$installed ? static::getKnownLanguages($basePath) : static::getInstalledLanguages($clientId, true);
-
-		$list = array();
 
 		foreach ($languages as $languageCode => $language)
 		{
@@ -164,13 +163,13 @@ class JLanguageHelper
 	 *
 	 * @param   integer  $clientId         The client app id.
 	 * @param   boolean  $processMetaData  Fetch Language metadata.
-	 * @param   boolean  $processMetaFile  Fetch Language metafile.
+	 * @param   boolean  $processManifest  Fetch Language manifest.
 	 *
 	 * @return  array  Array with the language code, name, client_id and extension_id.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getInstalledLanguages($clientId = null, $processMetaData = false, $processMetaFile = false)
+	public static function getInstalledLanguages($clientId = null, $processMetaData = false, $processManifest = false)
 	{
 		static $installedLanguages = null;
 
@@ -203,7 +202,7 @@ class JLanguageHelper
 
 			$languages[$language->client_id][$language->element] = $language;
 
-			// Process the metadata.
+			// Process the language metadata.
 			if ($processMetaData)
 			{
 				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
@@ -216,13 +215,13 @@ class JLanguageHelper
 				}
 			}
 
-			// Process the metafile.
-			if ($processMetaFile)
+			// Process the language manifest.
+			if ($processManifest)
 			{
-				$languages[$language->client_id][$language->element]->metafile = JInstaller::parseXMLInstallFile($metafile);
+				$languages[$language->client_id][$language->element]->manifest = JInstaller::parseXMLInstallFile($metafile);
 
 				// No metadata found, not a valid language.
-				if (!is_array($languages[$language->client_id][$language->element]->metafile))
+				if (!is_array($languages[$language->client_id][$language->element]->manifest))
 				{
 					unset($languages[$language->client_id][$language->element]);
 					continue;
