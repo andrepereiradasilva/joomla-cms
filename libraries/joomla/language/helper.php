@@ -121,13 +121,13 @@ class JLanguageHelper
 			if (JFactory::getApplication()->getClientId() == 2)
 			{
 				$languages[$key] = array();
-				$knownLangs = static::getKnownLanguages(JPATH_BASE);
+				$knownLanguages  = static::getKnownLanguages(JPATH_BASE);
 
-				foreach ($knownLangs as $metadata)
+				foreach ($knownLanguages as $languageCode => $metadata)
 				{
 					// Take off 3 letters iso code languages as they can't match browsers' languages and default them to en
-					$obj = new stdClass;
-					$obj->lang_code = $metadata['tag'];
+					$obj               = new stdClass;
+					$obj->lang_code    = $languageCode;
 					$languages[$key][] = $obj;
 				}
 			}
@@ -138,22 +138,22 @@ class JLanguageHelper
 				if (!$languages = $cache->get('languages'))
 				{
 					$db = JFactory::getDbo();
+
 					$query = $db->getQuery(true)
 						->select('*')
-						->from('#__languages')
-						->where('published=1')
-						->order('ordering ASC');
-					$db->setQuery($query);
+						->from($db->quoteName('#__languages'))
+						->where($db->quoteName('published') . ' = 1')
+						->order($db->quoteName('ordering') . ' ASC');
 
-					$languages['default'] = $db->loadObjectList();
-					$languages['sef'] = array();
+					$languages['default']   = $db->setQuery($query)->loadObjectList();
+					$languages['sef']       = array();
 					$languages['lang_code'] = array();
 
 					if (isset($languages['default'][0]))
 					{
 						foreach ($languages['default'] as $lang)
 						{
-							$languages['sef'][$lang->sef] = $lang;
+							$languages['sef'][$lang->sef]             = $lang;
 							$languages['lang_code'][$lang->lang_code] = $lang;
 						}
 					}
@@ -171,7 +171,7 @@ class JLanguageHelper
 	 *
 	 * @param   integer  $clientId  The client app id.
 	 *
-	 * @return  array  Array with the language code and name.
+	 * @return  array  Array with the language code, name, client_id and extension_id.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
@@ -214,24 +214,24 @@ class JLanguageHelper
 	 *
 	 * This is a simple, quick check for the directory that should contain language files for the given user.
 	 *
-	 * @param   string  $lang      Language to check.
-	 * @param   string  $basePath  Optional path to check.
+	 * @param   string  $languageCode  Language to check.
+	 * @param   string  $basePath      Optional path to check.
 	 *
 	 * @return  boolean  True if the language exists.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function exists($lang, $basePath = JPATH_BASE)
+	public static function exists($languageCode, $basePath = JPATH_BASE)
 	{
 		static $paths = array();
 
 		// Return false if no language was specified
-		if (!$lang)
+		if (!$languageCode)
 		{
 			return false;
 		}
 
-		$path = $basePath . '/language/' . $lang;
+		$path = static::getLanguagePath($basePath, $languageCode);
 
 		// Return previous check results if it exists
 		if (isset($paths[$path]))
@@ -258,7 +258,7 @@ class JLanguageHelper
 	{
 		try
 		{
-			return self::parseXMLLanguageFile(static::getLanguagePath(JPATH_BASE, $languageCode) . '/' . $languageCode . '.xml');
+			return static::parseXMLLanguageFile(static::getLanguagePath(JPATH_BASE, $languageCode) . '/' . $languageCode . '.xml');
 		}
 		catch (RuntimeException $e)
 		{
@@ -283,43 +283,50 @@ class JLanguageHelper
 	/**
 	 * Get the path to a language
 	 *
-	 * @param   string  $basePath  The basepath to use.
-	 * @param   string  $language  The language tag.
+	 * @param   string  $basePath      The basepath to use.
+	 * @param   string  $languageCode  The language tag.
 	 *
 	 * @return  string  language related path or null.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getLanguagePath($basePath = JPATH_BASE, $language = null)
+	public static function getLanguagePath($basePath = JPATH_BASE, $languageCode = null)
 	{
-		return $basePath . '/language' . (!empty($language) ? '/' . $language : '');
+		return $basePath . '/language' . (!empty($languageCode) ? '/' . $languageCode : '');
 	}
 
 	/**
 	 * Searches for language directories within a certain base dir.
 	 *
-	 * @param   string  $dir  directory of files.
+	 * @param   string  $path  Path of the language folder.
 	 *
 	 * @return  array  Array holding the found languages as filename => real name pairs.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function parseLanguageFiles($dir = null)
+	public static function parseLanguageFiles($path = null)
 	{
-		$languages = array();
+		static $languages = array();
+
+		if (isset($languages[$path]))
+		{
+			return $languages[$path];
+		}
+
+		$languages[$path] = array();
 
 		// Search main language directory for subdirectories
-		foreach (glob($dir . '/*', GLOB_NOSORT | GLOB_ONLYDIR) as $directory)
+		foreach (glob($path . '/*', GLOB_NOSORT | GLOB_ONLYDIR) as $languagePath)
 		{
 			// But only directories with lang code format
-			if (preg_match('#/[a-z]{2,3}-[A-Z]{2}$#', $directory))
+			if (preg_match('#/[a-z]{2,3}-[A-Z]{2}$#', $languagePath))
 			{
-				$languageCode = pathinfo($directory, PATHINFO_FILENAME);
+				$languageCode = pathinfo($languagePath, PATHINFO_FILENAME);
 
 				// Get installed language metadata from xml file and merge it with lang array
 				try
 				{
-					$languages[$languageCode] = self::parseXMLLanguageFile($directory . '/' . $languageCode . '.xml');
+					$languages[$path][$languageCode] = static::parseXMLLanguageFile($languagePath . '/' . $languageCode . '.xml');
 				}
 				catch (RuntimeException $e)
 				{
@@ -328,7 +335,7 @@ class JLanguageHelper
 			}
 		}
 
-		return $languages;
+		return $languages[$path];
 	}
 
 	/**
@@ -349,17 +356,17 @@ class JLanguageHelper
 		}
 
 		// Try to load the file
-		$xml = simplexml_load_string(file_get_contents($path));
+		$xml = simplexml_load_file($path);
 
 		if (!$xml)
 		{
-			return;
+			return null;
 		}
 
 		// Check that it's a metadata file
 		if ((string) $xml->getName() != 'metafile')
 		{
-			return;
+			return null;
 		}
 
 		$metadata = array();
