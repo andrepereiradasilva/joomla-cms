@@ -156,14 +156,14 @@ abstract class JHtmlUsers
 		}
 		else
 		{
-			$path = JLanguage::getLanguagePath(JPATH_ADMINISTRATOR, $value);
+			$path = JLanguageHelper::getLanguagePath(JPATH_ADMINISTRATOR, $value);
 			$file = "$value.xml";
 
 			$result = null;
 
 			if (is_file("$path/$file"))
 			{
-				$result = JLanguage::parseXMLLanguageFile("$path/$file");
+				$result = JLanguageHelper::parseXMLLanguageFile("$path/$file");
 			}
 
 			if ($result)
@@ -194,14 +194,14 @@ abstract class JHtmlUsers
 		}
 		else
 		{
-			$path = JLanguage::getLanguagePath(JPATH_SITE, $value);
+			$path = JLanguageHelper::getLanguagePath(JPATH_SITE, $value);
 			$file = "$value.xml";
 
 			$result = null;
 
 			if (is_file("$path/$file"))
 			{
-				$result = JLanguage::parseXMLLanguageFile("$path/$file");
+				$result = JLanguageHelper::parseXMLLanguageFile("$path/$file");
 			}
 
 			if ($result)

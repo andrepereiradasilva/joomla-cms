@@ -312,11 +312,11 @@ final class InstallationApplicationWeb extends JApplicationCms
 	public function getLocaliseAdmin($db = false)
 	{
 		// Read the files in the admin area.
-		$path               = JLanguage::getLanguagePath(JPATH_ADMINISTRATOR);
+		$path               = JLanguageHelper::getLanguagePath(JPATH_ADMINISTRATOR);
 		$langfiles['admin'] = JFolder::folders($path);
 
 		// Read the files in the site area.
-		$path              = JLanguage::getLanguagePath(JPATH_SITE);
+		$path              = JLanguageHelper::getLanguagePath(JPATH_SITE);
 		$langfiles['site'] = JFolder::folders($path);
 
 		if ($db)
