@@ -224,7 +224,7 @@ class LanguagesModelInstalled extends JModelList
 
 					// If current than set published.
 					$clientInfo       = JApplicationHelper::getClientInfo($lang->client_id);
-					$row->published   = (int) JComponentHelper::getParams('com_languages')->get($clientInfo->name, 'en-GB') == $row->language;
+					$row->published   = (int) (JComponentHelper::getParams('com_languages')->get($clientInfo->name, 'en-GB') == $row->language);
 					$row->checked_out = 0;
 					$this->data[]     = $row;
 				}
