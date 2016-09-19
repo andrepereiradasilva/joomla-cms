@@ -199,28 +199,39 @@ class JLanguageHelper
 		{
 			$languages[$language->client_id][$language->element] = $language;
 
+			$clientPath = (int) $language->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
+			$metafile   = static::getLanguagePath($clientPath, $language->element) . '/' . $language->element . '.xml';
+
+			// Check if language folder exists.
+			if (!static::exists($language->element, $clientPath))
+			{
+				unset($languages[$language->client_id][$language->element]);
+				continue;
+			}
+
+			// Process the metadata.
 			if ($processMetaData)
 			{
-				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
+				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($metafile);
 
 				// No metadata found, not a valid language.
 				if (!is_array($languages[$language->client_id][$language->element]->metadata))
 				{
 					unset($languages[$language->client_id][$language->element]);
+					continue;
 				}
 			}
 
-			if (isset($languages[$language->client_id][$language->element]) && $processMetaFile)
+			// Process the metafile.
+			if ($processMetaFile)
 			{
-				$clientPath = (int) $language->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
-				$metafile   = static::getLanguagePath($clientPath, $language->element) . '/' . $language->element . '.xml';
-
 				$languages[$language->client_id][$language->element]->metafile = JInstaller::parseXMLInstallFile($metafile);
 
 				// No metadata found, not a valid language.
 				if (!is_array($languages[$language->client_id][$language->element]->metafile))
 				{
 					unset($languages[$language->client_id][$language->element]);
+					continue;
 				}
 			}
 		}
