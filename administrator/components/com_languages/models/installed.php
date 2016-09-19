@@ -198,23 +198,11 @@ class LanguagesModelInstalled extends JModelList
 		{
 			$this->data = array();
 
-			// Get information.
-			$db = $this->getDbo();
-			$query = $db->getQuery(true);
-
 			// Select languages installed from the extensions table.
-			$query->select($db->quoteName(array('a.element', 'a.client_id', 'a.extension_id')))
-				->from($db->quoteName('#__extensions', 'a'))
-				->where($db->quoteName('a.type') . ' = ' . $db->quote('language'))
-				->where($db->quoteName('state') . ' = 0')
-				->where($db->quoteName('enabled') . ' = 1');
-
-			// For client_id = 1 do we need to check language table also?
-			$db->setQuery($query);
-			$langlist = $db->loadObjectList();
+			$langlist = JLanguageHelper::getInstalledLanguages();
 
 			// Compute all the languages.
-			foreach ($langlist as $lang)
+			foreach ($langlist as $languageCode => $lang)
 			{
 				$client       = JApplicationHelper::getClientInfo($lang->client_id);
 				$clientPath   = (int) $lang->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;

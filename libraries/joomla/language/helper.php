@@ -184,7 +184,7 @@ class JLanguageHelper
 			$db = JFactory::getDbo();
 
 			$query = $db->getQuery(true)
-				->select($db->quoteName(array('element', 'name', 'client_id')))
+				->select($db->quoteName(array('element', 'name', 'client_id', 'extension_id')))
 				->from($db->quoteName('#__extensions'))
 				->where($db->quoteName('type') . ' = ' . $db->quote('language'))
 				->where($db->quoteName('state') . ' = 0')
