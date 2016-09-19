@@ -328,27 +328,30 @@ final class InstallationApplicationWeb extends JApplicationCms
 
 			$langs = JLanguageHelper::getInstalledLanguages();
 
-			foreach ($langs as $languageCode => $lang)
+			foreach ($langs as $clientId => $language)
 			{
-				switch ($lang->client_id)
+				foreach ($language as $languageCode => $lang)
 				{
-					// Site.
-					case 0:
-						if (in_array($lang->element, $langfiles_disk['site']))
-						{
-							$langfiles['site'][] = $lang->element;
-						}
+					switch ($lang->client_id)
+					{
+						// Site.
+						case 0:
+							if (in_array($lang->element, $langfiles_disk['site']))
+							{
+								$langfiles['site'][] = $lang->element;
+							}
 
-						break;
+							break;
 
-					// Administrator.
-					case 1:
-						if (in_array($lang->element, $langfiles_disk['admin']))
-						{
-							$langfiles['admin'][] = $lang->element;
-						}
+						// Administrator.
+						case 1:
+							if (in_array($lang->element, $langfiles_disk['admin']))
+							{
+								$langfiles['admin'][] = $lang->element;
+							}
 
-						break;
+							break;
+					}
 				}
 			}
 		}
