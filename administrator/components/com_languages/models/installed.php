@@ -199,55 +199,35 @@ class LanguagesModelInstalled extends JModelList
 			$this->data = array();
 
 			// Select languages installed from the extensions table.
-			$langlist = JLanguageHelper::getInstalledLanguages();
+			$langlist = JLanguageHelper::getInstalledLanguages(null, false, true);
 
 			// Compute all the languages.
-			foreach ($langlist as $languageCode => $lang)
+			foreach ($langlist as $clientId => $language)
 			{
-				$client       = JApplicationHelper::getClientInfo($lang->client_id);
-				$clientPath   = (int) $lang->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
-				$metafilePath = $clientPath . '/language/' . $lang->element . '/' . $lang->element . '.xml';
-
-				$info = JApplicationHelper::parseXMLLangMetaFile($metafilePath);
-				if (!is_array($info))
+				foreach ($language as $languageCode => $lang)
 				{
-					$app = JFactory::getApplication();
-					$app->enqueueMessage(JText::sprintf('COM_LANGUAGES_ERROR_LANGUAGE_METAFILE_MISSING', $lang->element, $metafilePath), 'warning');
+					$row               = new StdClass;
+					$row->language     = $lang->element;
+					$row->client_id    = (int) $lang->client_id;
+					$row->extension_id = (int) $lang->extension_id;
 
-					continue;
+					foreach ($lang->metafile as $key => $value)
+					{
+						$row->$key = $value;
+					}
+
+					// Fix wrongly set parentheses in RTL languages
+					if (JFactory::getLanguage()->isRtl())
+					{
+						$row->name = html_entity_decode($row->name . '&#x200E;', ENT_QUOTES, 'UTF-8');
+					}
+
+					// If current than set published.
+					$clientInfo       = JApplicationHelper::getClientInfo($lang->client_id);
+					$row->published   = (int) JComponentHelper::getParams('com_languages')->get($clientInfo->name, 'en-GB') == $row->language;
+					$row->checked_out = 0;
+					$this->data[]     = $row;
 				}
-
-				$row  = new StdClass;
-
-				$row->language     = $lang->element;
-				$row->client_id    = (int) $lang->client_id;
-				$row->extension_id = (int) $lang->extension_id;
-
-				foreach ($info as $key => $value)
-				{
-					$row->$key = $value;
-				}
-
-				// Fix wrongly set parentheses in RTL languages
-				if (JFactory::getLanguage()->isRtl())
-				{
-					$row->name = html_entity_decode($row->name . '&#x200E;', ENT_QUOTES, 'UTF-8');
-				}
-
-				// If current than set published.
-				$params = JComponentHelper::getParams('com_languages');
-
-				if ($params->get($client->name, 'en-GB') == $row->language)
-				{
-					$row->published = 1;
-				}
-				else
-				{
-					$row->published = 0;
-				}
-
-				$row->checked_out = 0;
-				$this->data[] = $row;
 			}
 		}
 

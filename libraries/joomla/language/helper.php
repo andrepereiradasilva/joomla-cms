@@ -167,13 +167,15 @@ class JLanguageHelper
 	/**
 	 * Get a list of installed languages.
 	 *
-	 * @param   integer  $clientId  The client app id.
+	 * @param   integer  $clientId         The client app id.
+	 * @param   boolean  $processMetaData  Fetch Language metadata.
+	 * @param   boolean  $processMetaFile  Fetch Language metafile.
 	 *
 	 * @return  array  Array with the language code, name, client_id and extension_id.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getInstalledLanguages($clientId = null)
+	public static function getInstalledLanguages($clientId = null, $processMetaData = false, $processMetaFile = false)
 	{
 		static $installedLanguages = null;
 
@@ -188,23 +190,42 @@ class JLanguageHelper
 				->where($db->quoteName('state') . ' = 0')
 				->where($db->quoteName('enabled') . ' = 1');
 
-			$installedLanguages = $db->setQuery($query)->loadObjectList('element');
+			$installedLanguages = $db->setQuery($query)->loadObjectList();
 		}
 
-		$languages = $installedLanguages;
+		$languages = array();
 
-		if (!is_null($clientId))
+		foreach($installedLanguages as $language)
 		{
-			foreach($languages as $languageCode => $language)
+			$languages[$language->client_id][$language->element] = $language;
+
+			if ($processMetaData)
 			{
-				if ((int) $language->client_id !== $clientId)
+				$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
+
+				// No metadata found, not a valid language.
+				if (!is_array($languages[$language->client_id][$language->element]->metadata))
 				{
-					unset($languages[$languageCode]);
+					unset($languages[$language->client_id][$language->element]);
+				}
+			}
+
+			if (isset($languages[$language->client_id][$language->element]) && $processMetaFile)
+			{
+				$clientPath = (int) $language->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
+				$metafile   = static::getLanguagePath($clientPath, $language->element) . '/' . $language->element . '.xml';
+
+				$languages[$language->client_id][$language->element]->metafile = JInstaller::parseXMLInstallFile($metafile);
+
+				// No metadata found, not a valid language.
+				if (!is_array($languages[$language->client_id][$language->element]->metafile))
+				{
+					unset($languages[$language->client_id][$language->element]);
 				}
 			}
 		}
 
-		return $languages;
+		return !is_null($clientId) ? $languages[$clientId] : $languages;
 	}
 
 	/**
