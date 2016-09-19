@@ -311,49 +311,26 @@ final class InstallationApplicationWeb extends JApplicationCms
 	 */
 	public function getLocaliseAdmin($db = false)
 	{
-		// Read the files in the admin area.
-		$path               = JLanguageHelper::getLanguagePath(JPATH_ADMINISTRATOR);
-		$langfiles['admin'] = JFolder::folders($path);
+		$langfiles = array();
 
-		// Read the files in the site area.
-		$path              = JLanguageHelper::getLanguagePath(JPATH_SITE);
-		$langfiles['site'] = JFolder::folders($path);
-
+		// if db connection, fetch them from the database.
 		if ($db)
 		{
-			$langfiles_disk     = $langfiles;
-			$langfiles          = array();
-			$langfiles['admin'] = array();
-			$langfiles['site']  = array();
-
-			$langs = JLanguageHelper::getInstalledLanguages();
-
-			foreach ($langs as $clientId => $language)
+			foreach (JLanguageHelper::getInstalledLanguages() as $clientId => $language)
 			{
+				$clientName = $clientId === 0 ? 'site' : 'admin';
+
 				foreach ($language as $languageCode => $lang)
 				{
-					switch ($lang->client_id)
-					{
-						// Site.
-						case 0:
-							if (in_array($lang->element, $langfiles_disk['site']))
-							{
-								$langfiles['site'][] = $lang->element;
-							}
-
-							break;
-
-						// Administrator.
-						case 1:
-							if (in_array($lang->element, $langfiles_disk['admin']))
-							{
-								$langfiles['admin'][] = $lang->element;
-							}
-
-							break;
-					}
+					$langfiles[$clientName][] = $lang->element;
 				}
 			}
+		}
+		// Read the folder names in the site and admin area.
+		else
+		{
+			$langfiles['site']  = JFolder::folders(JLanguageHelper::getLanguagePath(JPATH_SITE));
+			$langfiles['admin'] = JFolder::folders(JLanguageHelper::getLanguagePath(JPATH_ADMINISTRATOR));
 		}
 
 		return $langfiles;
