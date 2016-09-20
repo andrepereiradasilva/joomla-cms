@@ -28,6 +28,14 @@ class JTableUser extends JTable
 	public $groups;
 
 	/**
+	 * Associative array of group ids => group ids for the user
+	 *
+	 * @var    array
+	 * @since  11.1
+	 */
+	public $groupsMapping;
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.
@@ -94,20 +102,35 @@ class JTableUser extends JTable
 
 		// Bind the data to the table.
 		$return = $this->bind($data);
-
+  
 		if ($return !== false)
 		{
 			// Load the user groups.
 			$query->clear()
-				->select($this->_db->quoteName('g.id'))
-				->select($this->_db->quoteName('g.title'))
-				->from($this->_db->quoteName('#__usergroups') . ' AS g')
-				->join('INNER', $this->_db->quoteName('#__user_usergroup_map') . ' AS m ON m.group_id = g.id')
-				->where($this->_db->quoteName('m.user_id') . ' = ' . (int) $userId);
+				->select($this->_db->quoteName(
+						array('b.id', 'a.id'),
+						array('child_id', null)
+					)
+				)
+				->from($this->_db->qn('#__user_usergroup_map', 'm'))
+				->join('LEFT', $this->_db->qn('#__usergroups', 'a') . ' ON ' . $this->_db->qn('a.id') . ' = ' . $this->_db->qn('m.group_id'))
+				->join('LEFT', $this->_db->qn('#__usergroups', 'b') . ' ON ' . $this->_db->qn('b.lft') . ' <= ' . $this->_db->qn('a.lft')
+					. ' AND ' . $this->_db->qn('b.lft') . ' >= ' . $this->_db->qn('a.lft'))
+				->where($this->_db->qn('m.user_id') . ' = ' . (int) $userId);
+
 			$this->_db->setQuery($query);
 
 			// Add the groups to the user data.
-			$this->groups = $this->_db->loadAssocList('id', 'id');
+			$groups = $this->_db->loadObjectList();
+
+			$this->groups        = array();
+			$this->groupsMapping = array();
+
+			foreach($groups as $key => $group)
+			{
+				$this->groups[$group->id]              = $group->id;
+				$this->groupsMapping[$group->child_id] = $group->id;
+			}
 		}
 
 		return $return;
