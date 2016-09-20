@@ -43,28 +43,11 @@ abstract class JUserHelper
 			// Add the group data to the user object.
 			$user->groups[$groupId] = $groupId;
 
-			// @todo: add the child groups
-			$user->childGroups[$groupId] = array();
-
 			// Store the user object.
 			$user->save();
-		}
 
-		// Set the group data for any preloaded user objects.
-		$temp              = JUser::getInstance((int) $userId);
-		$temp->groups      = $user->groups;
-		$temp->childGroups = $user->childGroups;
-
-		if (JFactory::getSession()->getId())
-		{
-			// Set the group data for the user object in the session.
-			$temp = JFactory::getUser();
-
-			if ($temp->id == $userId)
-			{
-				$temp->groups      = $user->groups;
-				$temp->childGroups = $user->childGroups;
-			}
+			// Preload the user groups.
+			$user->preloadUserGroups((int) $userId);
 		}
 
 		return true;
@@ -126,24 +109,12 @@ abstract class JUserHelper
 		{
 			// Remove the user from the group.
 			unset($user->groups[$key]);
-			unset($user->childGroups[$key]);
 
 			// Store the user object.
 			$user->save();
-		}
 
-		// Set the group data for any preloaded user objects.
-		$temp = JFactory::getUser((int) $userId);
-		$temp->groups      = $user->groups;
-		$temp->childGroups = $user->childGroups;
-
-		// Set the group data for the user object in the session.
-		$temp = JFactory::getUser();
-
-		if ($temp->id == $userId)
-		{
-			$temp->groups      = $user->groups;
-			$temp->childGroups = $user->childGroups;
+			// Preload the user groups.
+			$user->preloadUserGroups((int) $userId);
 		}
 
 		return true;
@@ -165,31 +136,13 @@ abstract class JUserHelper
 		$user = JUser::getInstance((int) $userId);
 
 		// Set the group ids.
-		$groups = ArrayHelper::toInteger($groups);
-		$user->groups = $groups;
-
-		// @todo: add the child groups
-		$user->childGroups = $groups;
+		$user->groups = ArrayHelper::toInteger($groups);
 
 		// Store the user object.
 		$user->save();
 
-		if (session_id())
-		{
-			// Set the group data for any preloaded user objects.
-			$temp = JFactory::getUser((int) $userId);
-			$temp->groups      = $user->groups;
-			$temp->childGroups = $user->childGroups;
-
-			// Set the group data for the user object in the session.
-			$temp = JFactory::getUser();
-
-			if ($temp->id == $userId)
-			{
-				$temp->groups      = $user->groups;
-				$temp->childGroups = $user->childGroups;
-			}
-		}
+		// Preload the user groups.
+		$user->preloadUserGroups((int) $userId);
 
 		return true;
 	}
