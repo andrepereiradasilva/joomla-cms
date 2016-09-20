@@ -103,34 +103,10 @@ class JTableUser extends JTable
 		// Bind the data to the table.
 		$return = $this->bind($data);
   
+		// Load the user groups.
 		if ($return !== false)
 		{
-			// Load the user groups.
-			$query->clear()
-				->select($this->_db->quoteName(
-						array('b.id', 'a.id'),
-						array('child_id', null)
-					)
-				)
-				->from($this->_db->qn('#__user_usergroup_map', 'm'))
-				->join('LEFT', $this->_db->qn('#__usergroups', 'a') . ' ON ' . $this->_db->qn('a.id') . ' = ' . $this->_db->qn('m.group_id'))
-				->join('LEFT', $this->_db->qn('#__usergroups', 'b') . ' ON ' . $this->_db->qn('b.lft') . ' <= ' . $this->_db->qn('a.lft')
-					. ' AND ' . $this->_db->qn('b.lft') . ' >= ' . $this->_db->qn('a.lft'))
-				->where($this->_db->qn('m.user_id') . ' = ' . (int) $userId);
-
-			$this->_db->setQuery($query);
-
-			// Add the groups to the user data.
-			$groups = $this->_db->loadObjectList();
-
-			$this->groups      = array();
-			$this->childGroups = array();
-
-			foreach($groups as $key => $group)
-			{
-				$this->groups[$group->id]        = $group->id;
-				$this->childGroups[$group->id][] = $group->child_id;
-			}
+			$this->preloadUserGroups((int) $userId);
 		}
 
 		return $return;
@@ -163,17 +139,6 @@ class JTableUser extends JTable
 		{
 			// Set the group ids.
 			$this->groups = ArrayHelper::toInteger($this->groups);
-
-			// Get the titles for the user groups.
-			$query = $this->_db->getQuery(true)
-				->select($this->_db->quoteName('id'))
-				->select($this->_db->quoteName('title'))
-				->from($this->_db->quoteName('#__usergroups'))
-				->where($this->_db->quoteName('id') . ' = ' . implode(' OR ' . $this->_db->quoteName('id') . ' = ', $this->groups));
-			$this->_db->setQuery($query);
-
-			// Set the titles for the user groups.
-			$this->groups = $this->_db->loadAssocList('id', 'id');
 		}
 
 		return $return;
@@ -511,5 +476,45 @@ class JTableUser extends JTable
 		$db->execute();
 
 		return true;
+	}
+
+	/**
+	 * Loads the user groups to JUser properties.
+	 *
+	 * @param   integer  $userId   The user id. Null will use current user.
+	 *
+	 * @return  void
+	 *
+	 * @since   11.1
+	 */
+	public function preloadUserGroups($userId = null)
+	{
+		$userId = is_null($userId) ? $this->id : (int) $userId;
+
+		// Load all user groups and it's parents.
+		$query = $this->_db->getQuery(true)
+			->select(
+				$this->_db->quoteName(
+					array('b.id', 'a.id'),
+					array('child_id', null)
+				)
+			)
+			->from($this->_db->qn('#__user_usergroup_map', 'm'))
+			->join('LEFT', $this->_db->qn('#__usergroups', 'a') . ' ON ' . $this->_db->qn('a.id') . ' = ' . $this->_db->qn('m.group_id'))
+			->join('LEFT', $this->_db->qn('#__usergroups', 'b') . ' ON ' . $this->_db->qn('b.lft') . ' <= ' . $this->_db->qn('a.lft')
+					. ' AND ' . $this->_db->qn('b.lft') . ' >= ' . $this->_db->qn('a.lft'))
+			->where($this->_db->qn('m.user_id') . ' = ' . (int) $userId);
+
+		$groups = $this->_db->setQuery($query)->loadObjectList();
+
+		// Add the groups to the user data.
+		$this->groups      = array();
+		$this->childGroups = array();
+
+		foreach($groups as $key => $group)
+		{
+			$this->groups[$group->id]        = $group->id;
+			$this->childGroups[$group->id][] = $group->child_id;
+		}
 	}
 }
