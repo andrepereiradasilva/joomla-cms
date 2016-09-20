@@ -49,6 +49,23 @@ class JTableAsset extends JTableNested
 	public $rules = null;
 
 	/**
+	 * Array with table columns names hardcoded, for performance.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $columns = array(
+		'id'        => null,
+		'parent_id' => null,
+		'lft'       => null,
+		'rgt'       => null,
+		'level'     => null,
+		'name'      => null,
+		'title'     => null,
+		'rules'     => null,
+	);
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.
