@@ -107,9 +107,9 @@ class JLanguageHelper
 	 */
 	public static function getLanguages($key = 'default')
 	{
-		static $languages;
+		static $languages = array();
 
-		if (empty($languages))
+		if (!isset($languages[$key]))
 		{
 			// Installation uses available languages
 			if (JFactory::getApplication()->getClientId() == 2)
@@ -127,33 +127,9 @@ class JLanguageHelper
 			}
 			else
 			{
-				$cache = JFactory::getCache('com_languages', '');
-
-				if (!$languages = $cache->get('languages'))
-				{
-					$db = JFactory::getDbo();
-
-					$query = $db->getQuery(true)
-						->select('*')
-						->from($db->quoteName('#__languages'))
-						->where($db->quoteName('published') . ' = 1')
-						->order($db->quoteName('ordering') . ' ASC');
-
-					$languages['default']   = $db->setQuery($query)->loadObjectList();
-					$languages['sef']       = array();
-					$languages['lang_code'] = array();
-
-					if (isset($languages['default'][0]))
-					{
-						foreach ($languages['default'] as $lang)
-						{
-							$languages['sef'][$lang->sef]             = $lang;
-							$languages['lang_code'][$lang->lang_code] = $lang;
-						}
-					}
-
-					$cache->store($languages, 'languages');
-				}
+				$languages['default']   = static::getContentLanguages(true, null, 'ordering', 'ASC');
+				$languages['lang_code'] = ArrayHelper::pivot($languages['default'], 'lang_code');
+				$languages['sef']       = ArrayHelper::pivot($languages['default'], 'sef');
 			}
 		}
 
@@ -161,35 +137,101 @@ class JLanguageHelper
 	}
 
 	/**
+	 * Get a list of content languages.
+	 *
+	 * @param   integer  $pivot            The pivot of the array.
+	 * @param   integer  $checkInstalled   Check if the content language is installed.
+	 * @param   string   $orderField       Field to order the results.
+	 * @param   string   $orderDirection   Direction to order the results.
+	 *
+	 * @return  array  Array of the content languages.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getContentLanguages($checkInstalled = true, $pivot = 'lang_code', $orderField = null, $orderDirection = null)
+	{
+		static $contentLanguages = null;
+
+		if (is_null($contentLanguages))
+		{
+			$cache = JFactory::getCache('com_languages', '');
+
+			if (!$contentLanguages = $cache->get('contentlanguages'))
+			{
+				$db = JFactory::getDbo();
+
+				$query = $db->getQuery(true)
+					->select('*')
+					->from($db->quoteName('#__languages'))
+					->where($db->quoteName('published') . ' = 1');
+
+				$contentLanguages = $db->setQuery($query)->loadObjectList();
+
+				$cache->store($contentLanguages, 'contentlanguages');
+			}
+		}
+
+		$languages = $contentLanguages;
+
+		// Check if the language is installed, if needed.
+		if ($checkInstalled)
+		{
+			$languages = array_values(array_intersect_key(ArrayHelper::pivot($languages, 'lang_code'), static::getInstalledLanguages(0)));
+		}
+
+		// Order the list, if needed.
+		if (!is_null($orderField) && !is_null($orderDirection))
+		{
+			$languages = ArrayHelper::sortObjects($languages, $orderField, strtolower($orderDirection) === 'desc' ? -1 : 1, true, true);
+		}
+
+		// Add the pivot, if needed.
+		if (!is_null($pivot))
+		{
+			$languages = ArrayHelper::pivot($languages, $pivot);
+		}
+
+		return $languages;
+	}
+
+	/**
 	 * Get a list of installed languages.
 	 *
+	 * @param   integer  $pivot            The pivot of the array.
 	 * @param   integer  $clientId         The client app id.
 	 * @param   boolean  $processMetaData  Fetch Language metadata.
 	 * @param   boolean  $processManifest  Fetch Language manifest.
 	 * @param   string   $orderField       Field to order the results.
 	 * @param   string   $orderDirection   Direction to order the results.
 	 *
-	 * @return  array  Array with the language code, name, client_id and extension_id.
+	 * @return  array  Array with the installed languages.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getInstalledLanguages($clientId = null, $processMetaData = false, $processManifest = false,
-		$orderField = null, $orderDirection = null)
+	public static function getInstalledLanguages($clientId = null, $processMetaData = false,
+		$processManifest = false, $pivot = 'element', $orderField = null, $orderDirection = null)
 	{
 		static $installedLanguages = null;
 
 		if (is_null($installedLanguages))
 		{
-			$db = JFactory::getDbo();
+			$cache = JFactory::getCache('com_languages', '');
 
-			$query = $db->getQuery(true)
-				->select($db->quoteName(array('element', 'name', 'client_id', 'extension_id')))
-				->from($db->quoteName('#__extensions'))
-				->where($db->quoteName('type') . ' = ' . $db->quote('language'))
-				->where($db->quoteName('state') . ' = 0')
-				->where($db->quoteName('enabled') . ' = 1');
+			if (!$installedLanguages = $cache->get('installedlanguages'))
+			{
+				$db = JFactory::getDbo();
 
-			$installedLanguages = $db->setQuery($query)->loadObjectList();
+				$query = $db->getQuery(true)
+					->select($db->quoteName(array('element', 'name', 'client_id', 'extension_id')))
+					->from($db->quoteName('#__extensions'))
+					->where($db->quoteName('type') . ' = ' . $db->quote('language'))
+					->where($db->quoteName('state') . ' = 0')
+					->where($db->quoteName('enabled') . ' = 1');
+
+				$installedLanguages = $db->setQuery($query)->loadObjectList();
+
+				$cache->store($installedLanguages, 'installedlanguages');
+			}
 		}
 
 		$languages = array();
@@ -204,7 +246,7 @@ class JLanguageHelper
 				continue;
 			}
 
-			$languages[$language->client_id][$language->element] = $language;
+			$lang = $language;
 
 			if ($processMetaData || $processManifest)
 			{
@@ -214,12 +256,11 @@ class JLanguageHelper
 				// Process the language metadata.
 				if ($processMetaData)
 				{
-					$languages[$language->client_id][$language->element]->metadata = static::getMetadata($language->element);
+					$lang->metadata = static::getMetadata($language->element);
 
 					// No metadata found, not a valid language.
-					if (!is_array($languages[$language->client_id][$language->element]->metadata))
+					if (!is_array($lang->metadata))
 					{
-						unset($languages[$language->client_id][$language->element]);
 						continue;
 					}
 				}
@@ -227,19 +268,20 @@ class JLanguageHelper
 				// Process the language manifest.
 				if ($processManifest)
 				{
-					$languages[$language->client_id][$language->element]->manifest = JInstaller::parseXMLInstallFile($metafile);
+					$lang->manifest = JInstaller::parseXMLInstallFile($metafile);
 
 					// No metadata found, not a valid language.
-					if (!is_array($languages[$language->client_id][$language->element]->manifest))
+					if (!is_array($lang->manifest))
 					{
-						unset($languages[$language->client_id][$language->element]);
 						continue;
 					}
 				}
 			}
+
+			$languages[$language->client_id][] = $lang;
 		}
 
-		// Order the list if needed.
+		// Order the list, if needed.
 		if (!is_null($orderField) && !is_null($orderDirection))
 		{
 			$orderDirection = strtolower($orderDirection) === 'desc' ? -1 : 1;
@@ -253,6 +295,21 @@ class JLanguageHelper
 				}
 
 				$languages[$cId] = ArrayHelper::sortObjects($languages[$cId], $orderField, $orderDirection, true, true);
+			}
+		}
+
+		// Add the pivot, if needed.
+		if (!is_null($pivot))
+		{
+			foreach ($languages as $cId => $language)
+			{
+				// If the language client is not needed continue cycle. Drop for performance.
+				if (!in_array($cId, $clients))
+				{
+					continue;
+				}
+
+				$languages[$cId] = ArrayHelper::pivot($languages[$cId], $pivot);
 			}
 		}
 
