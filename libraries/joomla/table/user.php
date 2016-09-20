@@ -28,12 +28,12 @@ class JTableUser extends JTable
 	public $groups;
 
 	/**
-	 * Associative array of group ids => group ids for the user
+	 * Associative array of the child group ids
 	 *
 	 * @var    array
 	 * @since  11.1
 	 */
-	public $groupsMapping;
+	public $childGroups;
 
 	/**
 	 * Constructor
@@ -123,13 +123,13 @@ class JTableUser extends JTable
 			// Add the groups to the user data.
 			$groups = $this->_db->loadObjectList();
 
-			$this->groups        = array();
-			$this->groupsMapping = array();
+			$this->groups      = array();
+			$this->childGroups = array();
 
 			foreach($groups as $key => $group)
 			{
-				$this->groups[$group->id]              = $group->id;
-				$this->groupsMapping[$group->child_id] = $group->id;
+				$this->groups[$group->id]        = $group->id;
+				$this->childGroups[$group->id][] = $group->child_id;
 			}
 		}
 
