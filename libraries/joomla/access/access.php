@@ -743,7 +743,22 @@ class JAccess
 
 				if (!empty($userId) && $user->id === $userId)
 				{
-					$result = $recursive ? array_keys($user->groupsMapping) : array_keys($user->groups);
+					if (!$recursive)
+					{
+						$result = array_keys($user->groups);
+					}
+					else
+					{
+						$result = array();
+
+						foreach($user->childGroups as $userGroup => $childGroups)
+						{
+							foreach($childGroups as $key => $groupId)
+							{
+								$result[] = $groupId;
+							}
+						}
+					}
 				}
 				// If not the current user we make a query.
 				else
