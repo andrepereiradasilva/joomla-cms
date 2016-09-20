@@ -235,8 +235,7 @@ class JLanguageHelper
 		}
 
 		$languages = array();
-		$clientId  = (int) $clientId;
-		$clients   = is_null($clientId) ? array(0, 1) : array($clientId);
+		$clients   = is_null($clientId) ? array(0, 1) : array((int) $clientId);
 
 		foreach($installedLanguages as $language)
 		{
@@ -256,7 +255,7 @@ class JLanguageHelper
 				// Process the language metadata.
 				if ($processMetaData)
 				{
-					$lang->metadata = static::getMetadata($language->element);
+					$lang->metadata = static::parseXMLLanguageFile($metafile);
 
 					// No metadata found, not a valid language.
 					if (!is_array($lang->metadata))
