@@ -37,32 +37,29 @@ abstract class JHtmlContentLanguage
 	 */
 	public static function existing($all = false, $translate = false)
 	{
-		if (empty(static::$items))
+		if (is_null($items))
 		{
-			// Get the database object and a new query object.
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
+			$contentLanguages = JLanguageHelper::getContentLanguages(true, null, 'title', 'ASC');
 
-			// Build the query.
-			$query->select('a.lang_code AS value, a.title AS text, a.title_native')
-				->from('#__languages AS a')
-				->where('a.published >= 0')
-				->order('a.title');
+			$items = array();
 
-			// Set the query and load the options.
-			$db->setQuery($query);
-			static::$items = $db->loadObjectList();
+			foreach($contentLanguages as $key => $language)
+			{
+				$items[$key]->value         = $language->lang_code;
+				$items[$key]->text          = $language->title;
+				$items[$key]->title_native  = $language->title_native;
+			}
 		}
 
 		if ($all)
 		{
 			$all_option = array(new JObject(array('value' => '*', 'text' => $translate ? JText::alt('JALL', 'language') : 'JALL_LANGUAGE')));
 
-			return array_merge($all_option, static::$items);
+			return array_merge($all_option, $items);
 		}
 		else
 		{
-			return static::$items;
+			return $items;
 		}
 	}
 }
