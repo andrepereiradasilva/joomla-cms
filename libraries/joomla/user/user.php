@@ -132,6 +132,14 @@ class JUser extends JObject
 	public $groups = array();
 
 	/**
+	 * Associative array of user groups mapping
+	 *
+	 * @var    array
+	 * @since  11.1
+	 */
+	public $groupsMapping = array();
+
+	/**
 	 * Guest status
 	 *
 	 * @var    boolean
