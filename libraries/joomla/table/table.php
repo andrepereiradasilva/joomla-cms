@@ -117,6 +117,14 @@ abstract class JTable extends JObject implements JObservableInterface, JTableInt
 	protected $_jsonEncode = array();
 
 	/**
+	 * Array with table columns names hardcoded, for performance.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $columns = null;
+
+	/**
 	 * Object constructor to set table and key fields.  In most cases this will
 	 * be overridden by child classes to explicitly set the table and key fields
 	 * for a particular database table.
@@ -238,13 +246,21 @@ abstract class JTable extends JObject implements JObservableInterface, JTableInt
 
 		if ($cache === null || $reload)
 		{
-			// Lookup the fields for this table only once.
-			$name   = $this->_tbl;
-			$fields = $this->_db->getTableColumns($name, false);
-
-			if (empty($fields))
+			// If the columns values are hardcoded, for performance we use them.
+			if (!is_null($this->columns) && !$reload)
 			{
-				throw new UnexpectedValueException(sprintf('No columns found for %s table', $name));
+				$fields = $this->columns;
+			}
+			// Lookup the fields for this table only once.
+			else
+			{
+				$name   = $this->_tbl;
+				$fields = $this->_db->getTableColumns($name, false);
+
+				if (empty($fields))
+				{
+					throw new UnexpectedValueException(sprintf('No columns found for %s table', $name));
+				}
 			}
 
 			$cache = $fields;
