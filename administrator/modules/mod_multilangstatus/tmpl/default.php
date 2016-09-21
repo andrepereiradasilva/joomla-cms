@@ -42,7 +42,6 @@ JFactory::getDocument()->addScriptDeclaration("
 		'width'       => '800px',
 		'bodyHeight'  => '70',
 		'modalWidth'  => '80',
-		'footer'      => '<a class="btn" data-dismiss="modal" type="button" aria-hidden="true">'
-				. JText::_('JTOOLBAR_CLOSE') . '</a>',
+		'footer'      => '<a class="btn" data-dismiss="modal" aria-hidden="true">' . JText::_('JTOOLBAR_CLOSE') . '</a>',
 	)
 );
