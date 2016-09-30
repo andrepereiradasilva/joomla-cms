@@ -198,68 +198,36 @@ class LanguagesModelInstalled extends JModelList
 		{
 			$this->data = array();
 
-			// Get information.
-			$db = $this->getDbo();
-			$query = $db->getQuery(true);
-
 			// Select languages installed from the extensions table.
-			$query->select($db->quoteName(array('a.element', 'a.client_id', 'a.extension_id')))
-				->from($db->quoteName('#__extensions', 'a'))
-				->where($db->quoteName('a.type') . ' = ' . $db->quote('language'))
-				->where($db->quoteName('state') . ' = 0')
-				->where($db->quoteName('enabled') . ' = 1');
-
-			// For client_id = 1 do we need to check language table also?
-			$db->setQuery($query);
-			$langlist = $db->loadObjectList();
+			$langlist = JLanguageHelper::getInstalledLanguages(null, false, true);
 
 			// Compute all the languages.
-			foreach ($langlist as $lang)
+			foreach ($langlist as $clientId => $language)
 			{
-				$client       = JApplicationHelper::getClientInfo($lang->client_id);
-				$clientPath   = (int) $lang->client_id === 0 ? JPATH_SITE : JPATH_ADMINISTRATOR;
-				$metafilePath = $clientPath . '/language/' . $lang->element . '/' . $lang->element . '.xml';
-
-				$info = JApplicationHelper::parseXMLLangMetaFile($metafilePath);
-				if (!is_array($info))
+				foreach ($language as $languageCode => $lang)
 				{
-					$app = JFactory::getApplication();
-					$app->enqueueMessage(JText::sprintf('COM_LANGUAGES_ERROR_LANGUAGE_METAFILE_MISSING', $lang->element, $metafilePath), 'warning');
+					$row               = new StdClass;
+					$row->language     = $lang->element;
+					$row->client_id    = (int) $lang->client_id;
+					$row->extension_id = (int) $lang->extension_id;
 
-					continue;
+					foreach ($lang->manifest as $key => $value)
+					{
+						$row->$key = $value;
+					}
+
+					// Fix wrongly set parentheses in RTL languages
+					if (JFactory::getLanguage()->isRtl())
+					{
+						$row->name = html_entity_decode($row->name . '&#x200E;', ENT_QUOTES, 'UTF-8');
+					}
+
+					// If current than set published.
+					$clientInfo       = JApplicationHelper::getClientInfo($lang->client_id);
+					$row->published   = (int) (JComponentHelper::getParams('com_languages')->get($clientInfo->name, 'en-GB') == $row->language);
+					$row->checked_out = 0;
+					$this->data[]     = $row;
 				}
-
-				$row  = new StdClass;
-
-				$row->language     = $lang->element;
-				$row->client_id    = (int) $lang->client_id;
-				$row->extension_id = (int) $lang->extension_id;
-
-				foreach ($info as $key => $value)
-				{
-					$row->$key = $value;
-				}
-
-				// Fix wrongly set parentheses in RTL languages
-				if (JFactory::getLanguage()->isRtl())
-				{
-					$row->name = html_entity_decode($row->name . '&#x200E;', ENT_QUOTES, 'UTF-8');
-				}
-
-				// If current than set published.
-				$params = JComponentHelper::getParams('com_languages');
-
-				if ($params->get($client->name, 'en-GB') == $row->language)
-				{
-					$row->published = 1;
-				}
-				else
-				{
-					$row->published = 0;
-				}
-
-				$row->checked_out = 0;
-				$this->data[] = $row;
 			}
 		}
 
@@ -456,8 +424,7 @@ class LanguagesModelInstalled extends JModelList
 	{
 		if (is_null($this->path))
 		{
-			$client = $this->getClient();
-			$this->path = JLanguage::getLanguagePath($client->path);
+			$this->path = JLanguageHelper::getLanguagePath($this->getClient()->path);
 		}
 
 		return $this->path;
