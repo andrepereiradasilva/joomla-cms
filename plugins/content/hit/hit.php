@@ -25,11 +25,11 @@ class PlgContentHit extends JPlugin
 	protected $app;
 
 	/**
-	 * Plugin that adds an hit whne visiting an item.
+	 * Plugin that adds an hit when visiting an item.
 	 *
 	 * @param   string   $context  The context of the content being passed to the plugin.
 	 * @param   mixed    &$row     An object with a "text" property or the string to be cloaked.
-	 * @param   mixed    &$params  Additional parameters. See {@see PlgContentEmailcloak()}.
+	 * @param   mixed    &$params  Additional parameters. See {@see PlgContentHit()}.
 	 * @param   integer  $page     Optional page number. Unused. Defaults to zero.
 	 *
 	 * @return  boolean	True on success.
@@ -55,7 +55,7 @@ class PlgContentHit extends JPlugin
 	}
 
 	/**
-	 * Receive AJAX Call
+	 * Receive Ajax Call
 	 *
 	 * @return  void
 	 *
