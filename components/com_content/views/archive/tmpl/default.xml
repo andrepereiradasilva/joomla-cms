@@ -16,11 +16,13 @@
 		<fieldset name="basic" label="JGLOBAL_ARCHIVE_OPTIONS"
 		>
 
-			<field name="orderby_sec" type="list"
-				default="alpha"
-				description="JGLOBAL_ARTICLE_ORDER_DESC"
+			<field
+				name="orderby_sec"
+				type="list"
 				label="JGLOBAL_ARTICLE_ORDER_LABEL"
-		>
+				description="JGLOBAL_ARTICLE_ORDER_DESC"
+				default="alpha"
+				>
 				<option value="date">JGLOBAL_OLDEST_FIRST</option>
 				<option value="rdate">JGLOBAL_MOST_RECENT_FIRST</option>
 				<option value="alpha">JGLOBAL_TITLE_ALPHABETICAL</option>

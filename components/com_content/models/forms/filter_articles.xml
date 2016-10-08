@@ -111,8 +111,8 @@
 			<option value="a.id DESC">JGRID_HEADING_ID_DESC</option>
 			<option value="a.featured ASC">JFEATURED_ASC</option>
 			<option value="a.featured DESC">JFEATURED_DESC</option>
-			<option value="a.hits ASC" requires="hit">>JGLOBAL_HITS_ASC</option>
-			<option value="a.hits DESC" requires="hit">>>JGLOBAL_HITS_DESC</option>
+			<option value="a.hits ASC" requires="plg_content_hit">JGLOBAL_HITS_ASC</option>
+			<option value="a.hits DESC" requires="plg_content_hit">>JGLOBAL_HITS_DESC</option>
 		</field>
 		<field
 			name="limit"
