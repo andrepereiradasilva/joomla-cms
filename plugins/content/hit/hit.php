@@ -25,41 +25,30 @@ class PlgContentHit extends JPlugin
 	protected $app;
 
 	/**
-	 * Plugin that adds an hit when visiting an item.
-	 *
-	 * @param   string   $context  The context of the content being passed to the plugin.
-	 * @param   mixed    &$row     An object with a "text" property or the string to be cloaked.
-	 * @param   mixed    &$params  Additional parameters. See {@see PlgContentHit()}.
-	 * @param   integer  $page     Optional page number. Unused. Defaults to zero.
+	 * On after app dispatch.
 	 *
 	 * @return  boolean	True on success.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function onContentBeforeDisplay($context, &$row, &$params, $page = 0)
+	public function onAfterDispatch()
 	{
-		// Check if the id/context is available for hit.
-		if (!$this->availableForHit($context, $row->id))
+		// We only add hits in the frontend.
+		if (!$this->app->isSite())
 		{
-			return false;
+			return;
 		}
 
-		$options = array(
-			'ajaxUrl' => JRoute::_('index.php?option=com_ajax&group=content&plugin=contentHit&format=json'),
-			'context' => $context,
-			'id'      => $row->id,
-			'token'   => JSession::getFormToken(),
-		);
+		$id      = $this->app->input->get('id', null, 'int');
+		$context = $this->app->input->get('option', '', 'string') . '.' . $this->app->input->get('view', '', 'string');
 
-		JHtml::_('behavior.core');
+		// Check if the id/context is available for hit.
+		if (!$this->availableForHit($context, $id))
+		{
+			return;
+		}
 
-		// Include core and polyfill for browsers lower than IE 9.
-		JHtml::_('behavior.polyfill', 'event', 'lt IE 9');
-
-		$this->app->getDocument()->addScriptOptions('plg_content_hit', $options);
-		JHtml::_('script', 'plg_content_hit/hit.js', false, true);
-
-		return true;
+		$this->addHitScripts($context, $id);
 	}
 
 	/**
@@ -109,6 +98,34 @@ class PlgContentHit extends JPlugin
 
 		echo new JResponseJson();
 		$this->app->close();
+	}
+
+	/**
+	 * Add the ajax hit scripts.
+	 *
+	 * @param   string   $context  The context of the content being passed to the plugin.
+	 * @param   string   $id       The item id.
+	 *
+	 * @return  void.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	protected function addHitScripts($context = '', $id = null)
+	{
+		$options = array(
+			'ajaxUrl' => JRoute::_('index.php?option=com_ajax&group=content&plugin=contentHit&format=json'),
+			'context' => $context,
+			'id'      => $id,
+			'token'   => JSession::getFormToken(),
+		);
+
+		JHtml::_('behavior.core');
+
+		// Include core and polyfill for browsers lower than IE 9.
+		JHtml::_('behavior.polyfill', 'event', 'lt IE 9');
+
+		$this->app->getDocument()->addScriptOptions('plg_content_hit', $options);
+		JHtml::_('script', 'plg_content_hit/hit.js', false, true);
 	}
 
 	/**
