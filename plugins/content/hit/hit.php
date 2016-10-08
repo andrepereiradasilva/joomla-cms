@@ -77,7 +77,7 @@ class PlgContentHit extends JPlugin
 		}
 
 		// Check if is a ajax request.
-		if (strtolower($this->app->input->server->get('HTTP_X_REQUESTED_WITH', '')) === 'xmlhttprequest')
+		if (strtolower($this->app->input->server->get('HTTP_X_REQUESTED_WITH', '')) !== 'xmlhttprequest')
 		{
 			// Do nothing.
 			echo new JResponseJson();
