@@ -43,12 +43,10 @@ class PlgContentHit extends JPlugin
 		$context = $this->app->input->get('option', '', 'string') . '.' . $this->app->input->get('view', '', 'string');
 
 		// Check if the id/context is available for hit.
-		if (!$this->availableForHit($context, $id))
+		if ($this->availableForHit($context, $id))
 		{
-			return;
+			$this->addHitScripts($context, $id);
 		}
-
-		$this->addHitScripts($context, $id);
 	}
 
 	/**
