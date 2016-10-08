@@ -121,9 +121,6 @@ class PlgContentHit extends JPlugin
 			$this->app->close();
 		}
 
-		// Set the hit counter
-		$hitcount = $this->app->input->set('hitcount', 1);
-
 		// Hit it!
 		try
 		{
