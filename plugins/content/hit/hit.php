@@ -92,6 +92,8 @@ class PlgContentHit extends JPlugin
 			$process = false;
 		}
 
+		$id = $this->app->input->get('id', null, 'int');
+
 		// Hit it!
 		if ($process && $model = $this->availableForHit($this->app->input->get('context', '', 'string'), $id))
 		{
