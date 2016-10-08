@@ -124,8 +124,22 @@ class JFormFieldList extends JFormField
 					continue;
 				}
 
-				// Requires hit plugin enabled
-				if (in_array('plg_content_hit', $requires) && !JPluginHelper::isEnabled('content', 'hit'))
+				// Requires a particular plugin enabled
+				$process = true;
+
+				foreach ($requires as $require)
+				{
+					if (preg_match('#plg_([a-z0-9_\-]+)_([a-z0-9_\-]+)#i', $require, $matches))
+					{
+						if (!JPluginHelper::isEnabled($matches[1], $matches[2]))
+						{
+							$process = false;
+							continue;
+						}
+					}
+				}
+
+				if (!$process)
 				{
 					continue;
 				}
