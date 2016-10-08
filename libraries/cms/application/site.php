@@ -590,94 +590,37 @@ final class JApplicationSite extends JApplicationCms
 			$user->groups = array($guestUsergroup);
 		}
 
-		/*
-		 * If a language was specified it has priority, otherwise use user or default language settings
-		 * Check this only if the languagefilter plugin is enabled
-		 *
-		 * @TODO - Remove the hardcoded dependency to the languagefilter plugin
-		 */
-		if (JPluginHelper::isEnabled('system', 'languagefilter'))
+		// If app language is not yet set, check the url parameters.
+		if (empty($options['language']) && $lang = $this->input->get('language', '', 'string'))
 		{
-			$plugin = JPluginHelper::getPlugin('system', 'languagefilter');
-
-			$pluginParams = new Registry($plugin->params);
-
-			$this->setLanguageFilter(true);
-			$this->setDetectBrowser($pluginParams->get('detect_browser', '1') == '1');
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
-		if (empty($options['language']))
+		// Check the user language.
+		if (empty($options['language']) && $lang = $this->getUserState('language', ''))
 		{
-			// Detect the specified language
-			$lang = $this->input->getString('language', null);
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
-		if ($this->getLanguageFilter() && empty($options['language']))
+		// Check the user params language.
+		if (empty($options['language']) && $lang = $user->getParam('language'))
 		{
-			// Detect cookie language
-			$lang = $this->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
-		if (empty($options['language']))
+		// Check the default language.
+		if (empty($options['language']) && $lang = JComponentHelper::getParams('com_languages')->get('site', ''))
 		{
-			// Detect user language
-			$lang = $user->getParam('language');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
-		if ($this->getDetectBrowser() && empty($options['language']))
+		// Check the config language or fallback to en-GB.
+		if (empty($options['language']) && $lang = $this->config->get('language', ''))
 		{
-			// Detect browser language
-			$lang = JLanguageHelper::detectLanguage();
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : 'en-GB';
 		}
 
-		if (empty($options['language']))
-		{
-			// Detect default language
-			$params = JComponentHelper::getParams('com_languages');
-			$options['language'] = $params->get('site', $this->get('language', 'en-GB'));
-		}
-
-		// One last check to make sure we have something
-		if (!JLanguage::exists($options['language']))
-		{
-			$lang = $this->config->get('language', 'en-GB');
-
-			if (JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				// As a last ditch fail to english
-				$options['language'] = 'en-GB';
-			}
-		}
-
-		// Finish initialisation
+		// Finish initialisation.
 		parent::initialiseApp($options);
 	}
 

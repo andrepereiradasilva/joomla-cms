@@ -493,11 +493,9 @@ class LanguagesModelInstalled extends JModelList
 	{
 		if ($cid)
 		{
-			$client = $this->getClient();
-
-			if ($client->name == 'administrator')
+			if ($this->getClient()->name == 'administrator')
 			{
-				JFactory::getApplication()->setUserState('application.lang', $cid);
+				JFactory::getApplication()->setUserState('language', $cid);
 			}
 		}
 		else

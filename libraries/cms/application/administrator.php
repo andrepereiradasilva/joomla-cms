@@ -113,7 +113,7 @@ class JApplicationAdministrator extends JApplicationCms
 	protected function doExecute()
 	{
 		// Initialise the application
-		$this->initialiseApp(array('language' => $this->getUserState('application.lang')));
+		$this->initialiseApp();
 
 		// Test for magic quotes
 		if (get_magic_quotes_gpc())
@@ -257,40 +257,31 @@ class JApplicationAdministrator extends JApplicationCms
 			$user->groups = array($guestUsergroup);
 		}
 
-		// If a language was specified it has priority, otherwise use user or default language settings
-		if (empty($options['language']))
+		// If app language is not yet set, check the user language.
+		if (empty($options['language']) && $lang = $this->getUserState('language', ''))
 		{
-			$lang = $user->getParam('admin_language');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				$params = JComponentHelper::getParams('com_languages');
-				$options['language'] = $params->get('administrator', $this->get('language', 'en-GB'));
-			}
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
-		// One last check to make sure we have something
-		if (!JLanguage::exists($options['language']))
+		// Check the user params language.
+		if (empty($options['language']) && $lang = $user->getParam('admin_language'))
 		{
-			$lang = $this->get('language', 'en-GB');
-
-			if (JLanguage::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				// As a last ditch fail to english
-				$options['language'] = 'en-GB';
-			}
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
 		}
 
-		// Finish initialisation
+		// Check the default language.
+		if (empty($options['language']) && $lang = JComponentHelper::getParams('com_languages')->get('administrator', ''))
+		{
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : '';
+		}
+
+		// Check the config language or fallback to en-GB.
+		if (empty($options['language']) && $lang = $this->config->get('language', ''))
+		{
+			$options['language'] = $lang && JLanguage::exists($lang) ? $lang : 'en-GB';
+		}
+
+		// Finish initialisation.
 		parent::initialiseApp($options);
 	}
 
@@ -330,7 +321,7 @@ class JApplicationAdministrator extends JApplicationCms
 
 			if ($lang)
 			{
-				$this->setUserState('application.lang', $lang);
+				$this->setUserState('language', $lang);
 			}
 
 			static::purgeMessages();
