@@ -83,6 +83,7 @@ class ContentViewFeatured extends JViewLegacy
 		$this->filterForm    = $this->get('FilterForm');
 		$this->activeFilters = $this->get('ActiveFilters');
 		$this->vote          = JPluginHelper::isEnabled('content', 'vote');
+		$this->hit           = JPluginHelper::isEnabled('content', 'hit');
 
 		// Check for errors.
 		if (count($errors = $this->get('Errors')))

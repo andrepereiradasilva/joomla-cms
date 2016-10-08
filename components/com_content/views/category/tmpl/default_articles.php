@@ -116,7 +116,7 @@ if (!empty($this->items))
 						<?php echo JHtml::_('grid.sort', 'JAUTHOR', 'author', $listDirn, $listOrder); ?>
 					</th>
 				<?php endif; ?>
-				<?php if ($this->params->get('list_show_hits')) : ?>
+				<?php if ($this->params->get('list_show_hits') && $this->hit) : ?>
 					<th id="categorylist_header_hits">
 						<?php echo JHtml::_('grid.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
 					</th>
@@ -224,7 +224,7 @@ if (!empty($this->items))
 					<?php endif; ?>
 				</td>
 			<?php endif; ?>
-			<?php if ($this->params->get('list_show_hits', 1)) : ?>
+			<?php if ($this->params->get('list_show_hits', 1) && $this->hit) : ?>
 				<td <?php echo $headerHits; ?> class="list-hits">
 							<span class="badge badge-info">
 								<?php echo JText::sprintf('JGLOBAL_HITS_COUNT', $article->hits); ?>
