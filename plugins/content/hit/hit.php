@@ -33,9 +33,17 @@ class PlgContentHit extends JPlugin
 	 * @param   integer  $page     Optional page number. Unused. Defaults to zero.
 	 *
 	 * @return  boolean	True on success.
+	 *
+	 * @since   __DEPLOY_VERSION__
 	 */
 	public function onContentBeforeDisplay($context, &$row, &$params, $page = 0)
 	{
+		// Check if the id/context is available for hit.
+		if (!$this->availableForHit($context, $row->id))
+		{
+			return false;
+		}
+
 		$options = array(
 			'ajaxUrl' => JRoute::_('index.php?option=com_ajax&group=content&plugin=contentHit&format=json'),
 			'context' => $context,
@@ -68,30 +76,54 @@ class PlgContentHit extends JPlugin
 		$this->app->setHeader('Content-Type', $this->app->mimeType . '; charset=' . $this->app->charSet);
 		$this->app->sendHeaders();
 
+		$process = true;
+
 		// Check if user token is valid.
 		if (!JSession::checkToken('post'))
 		{
 			$this->app->enqueueMessage(JText::_('JINVALID_TOKEN'), 'error');
-			echo new JResponseJson();
-			$this->app->close();
+			$process = false;
 		}
 
 		// Check if is a ajax request.
 		if (strtolower($this->app->input->server->get('HTTP_X_REQUESTED_WITH', '')) !== 'xmlhttprequest')
 		{
 			// Do nothing.
-			echo new JResponseJson();
-			$this->app->close();
+			$process = false;
 		}
 
-		$context = $this->app->input->get('context', '', 'string');
-		$id      = $this->app->input->get('id', null, 'int');
+		// Hit it!
+		if ($process && $model = $this->availableForHit($this->app->input->get('context', '', 'string'), $id))
+		{
+			try
+			{
+				$model->hit((int) $id);
+			}
+			catch (Exception $e)
+			{
+				// Do nothing.
+			}
+		}
 
+		echo new JResponseJson();
+		$this->app->close();
+	}
+
+	/**
+	 * Check if the id/context is available for hit.
+	 *
+	 * @param   string   $context  The context of the content being passed to the plugin.
+	 * @param   string   $id       The item id.
+	 *
+	 * @return  boolean|JModelLegacy  False on not available, the model on success.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	protected function availableForHit($context = '', $id = null)
+	{
 		if (!$context || !$id)
 		{
-			// Do nothing.
-			echo new JResponseJson();
-			$this->app->close();
+			return false;
 		}
 
 		$parts          = explode('.', $context);
@@ -105,33 +137,25 @@ class PlgContentHit extends JPlugin
 		// Check if model can be loaded and hit method executable.
 		if (!class_exists($modelClassName) || !is_callable(array($modelClassName, 'hit')))
 		{
-			// Do nothing.
-			echo new JResponseJson();
-			$this->app->close();
+			return false;
 		}
 
 		// Load the model.
-		$model = JModelLegacy::getInstance($itemName, $componentName . 'Model', array('ignore_request' => true));
-
-		// Check if model is loaded and _context property exists.
-		if (!$model || $model->get('_context') !== $context)
-		{
-			// Do nothing.
-			echo new JResponseJson();
-			$this->app->close();
-		}
-
-		// Hit it!
 		try
 		{
-			$model->hit((int) $id);
+			$model = JModelLegacy::getInstance($itemName, $componentName . 'Model', array('ignore_request' => true));
 		}
 		catch (Exception $e)
 		{
-			// Do nothing.
+			return false;
 		}
 
-		echo new JResponseJson();
-		$this->app->close();
+		// Check if model is loaded and _context property exists.
+		if (!$model || ($parts[1] !== 'category' && $model->get('_context') !== $context))
+		{
+			return false;
+		}
+
+		return $model;
 	}
 }
