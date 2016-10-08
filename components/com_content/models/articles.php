@@ -46,13 +46,18 @@ class ContentModelArticles extends JModelList
 				'ordering', 'a.ordering',
 				'featured', 'a.featured',
 				'language', 'a.language',
-				'hits', 'a.hits',
 				'publish_up', 'a.publish_up',
 				'publish_down', 'a.publish_down',
 				'images', 'a.images',
 				'urls', 'a.urls',
 				'filter_tag'
 			);
+
+			if (JPluginHelper::isEnabled('content', 'hit'))
+			{
+				$config['filter_fields'][] = 'hits';
+				$config['filter_fields'][] = 'a.hits';
+			}
 		}
 
 		parent::__construct($config);
@@ -196,9 +201,15 @@ class ContentModelArticles extends JModelList
 					// Use created if publish_up is 0
 					'CASE WHEN a.publish_up = ' . $db->quote($db->getNullDate()) . ' THEN a.created ELSE a.publish_up END as publish_up,' .
 					'a.publish_down, a.images, a.urls, a.attribs, a.metadata, a.metakey, a.metadesc, a.access, ' .
-					'a.hits, a.xreference, a.featured, a.language, ' . ' ' . $query->length('a.fulltext') . ' AS readmore'
+					'a.xreference, a.featured, a.language, ' . ' ' . $query->length('a.fulltext') . ' AS readmore'
 			)
 		);
+
+		// If hits enabled.
+		if (JPluginHelper::isEnabled('content', 'hit'))
+		{
+			$query->select($this->getState('list.select', 'a.hits'));
+		}
 
 		// Process an Archived Article layout
 		if ($this->getState('filter.published') == 2)
@@ -520,7 +531,10 @@ class ContentModelArticles extends JModelList
 					break;
 
 				case 'hits':
-					$query->where('a.hits >= ' . $hitsFilter . ' ');
+					if (JPluginHelper::isEnabled('content', 'hit'))
+					{
+						$query->where('a.hits >= ' . $hitsFilter . ' ');
+					}
 					break;
 
 				case 'title':
