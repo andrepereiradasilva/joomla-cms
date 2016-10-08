@@ -152,7 +152,7 @@
 				<option value="hide">JHIDE</option>
 				<option value="title">JGLOBAL_TITLE</option>
 				<option value="author">JAUTHOR</option>
-				<option value="hits">JGLOBAL_HITS</option>
+				<option value="hits" requires="plg_content_hits">JGLOBAL_HITS</option>
         			<option value="tag">JTAG</option>
 			</field>
 
@@ -182,13 +182,16 @@
 				size="15"
 			/>
 
-			<field name="list_show_hits" type="list"
-				description="JGLOBAL_LIST_HITS_DESC"
+			<field
+				name="list_show_hits"
+				type="list"
 				label="JGLOBAL_LIST_HITS_LABEL"
-			>
-				<option value="" requires="hit">JGLOBAL_USE_GLOBAL</option>
-				<option value="0" requires="hit">JHIDE</option>
-				<option value="1" requires="hit">JSHOW</option>
+				description="JGLOBAL_LIST_HITS_DESC"
+				requires="plg_content_hit"
+				>
+				<option value="">JGLOBAL_USE_GLOBAL</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
 			</field>
 
 			<field name="list_show_author" type="list"
@@ -253,8 +256,8 @@
 				<option value="ralpha">JGLOBAL_TITLE_REVERSE_ALPHABETICAL</option>
 				<option value="author">JGLOBAL_AUTHOR_ALPHABETICAL</option>
 				<option value="rauthor">JGLOBAL_AUTHOR_REVERSE_ALPHABETICAL</option>
-				<option value="hits" requires="hit">JGLOBAL_MOST_HITS</option>
-				<option value="rhits" requires="hit">JGLOBAL_LEAST_HITS</option>
+				<option value="hits" requires="plg_content_hit">JGLOBAL_MOST_HITS</option>
+				<option value="rhits" requires="plg_content_hit">JGLOBAL_LEAST_HITS</option>
 				<option value="random">JGLOBAL_RANDOM_ORDER</option>
 				<option value="order">JGLOBAL_ORDERING</option>
 				<option value="vote" requires="vote">JGLOBAL_VOTES_DESC</option>
@@ -504,10 +507,13 @@
 				<option value="1">JSHOW</option>
 			</field>
 
-			<field name="show_hits" type="list"
-				description="JGLOBAL_SHOW_HITS_DESC"
+			<field
+				name="show_hits"
+				type="list"
 				label="JGLOBAL_SHOW_HITS_LABEL"
-			>
+				description="JGLOBAL_SHOW_HITS_DESC"
+				requires="plg_content_hit"
+				>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>

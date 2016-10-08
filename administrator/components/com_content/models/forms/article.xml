@@ -131,9 +131,17 @@
 		<field name="access" type="accesslevel" label="JFIELD_ACCESS_LABEL"
 			description="JFIELD_ACCESS_DESC" size="1" />
 
-		<field name="hits" type="text" label="JGLOBAL_HITS"
-			description="COM_CONTENT_FIELD_HITS_DESC" class="readonly" size="6"
-			readonly="true" filter="unset" />
+		<field
+			name="hits"
+			type="text"
+			label="JGLOBAL_HITS"
+			description="COM_CONTENT_FIELD_HITS_DESC"
+			class="readonly"
+			size="6"
+			readonly="true"
+			filter="unset"
+			requires="plg_content_hit"
+		/>
 
 		<field name="language" type="contentlanguage" label="JFIELD_LANGUAGE_LABEL"
 			description="COM_CONTENT_FIELD_LANGUAGE_DESC"
@@ -395,9 +403,11 @@
 			<field
 				name="show_hits"
 				type="list"
-				class="chzn-color"
 				label="JGLOBAL_SHOW_HITS_LABEL"
-				description="JGLOBAL_SHOW_HITS_DESC">
+				description="JGLOBAL_SHOW_HITS_DESC"
+				class="chzn-color"
+				requires="plg_content_hit"
+				>
 				<option	value="">JGLOBAL_USE_GLOBAL</option>
 				<option	value="0">JHIDE</option>
 				<option	value="1">JSHOW</option>
@@ -627,7 +637,9 @@
 				name="show_hits"
 				type="hidden"
 				label="JGLOBAL_SHOW_HITS_LABEL"
-				description="JGLOBAL_SHOW_HITS_DESC">
+				description="JGLOBAL_SHOW_HITS_DESC"
+				requires="plg_content_hit"
+				>
 			</field>
 
 			<field

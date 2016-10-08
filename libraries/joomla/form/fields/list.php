@@ -125,7 +125,7 @@ class JFormFieldList extends JFormField
 				}
 
 				// Requires hit plugin enabled
-				if (in_array('hit', $requires) && !JPluginHelper::isEnabled('content', 'hit'))
+				if (in_array('plg_content_hit', $requires) && !JPluginHelper::isEnabled('content', 'hit'))
 				{
 					continue;
 				}

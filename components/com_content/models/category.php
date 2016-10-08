@@ -84,12 +84,17 @@ class ContentModelCategory extends JModelList
 				'ordering', 'a.ordering',
 				'featured', 'a.featured',
 				'language', 'a.language',
-				'hits', 'a.hits',
 				'publish_up', 'a.publish_up',
 				'publish_down', 'a.publish_down',
 				'author', 'a.author',
 				'filter_tag'
 			);
+
+			if (JPluginHelper::isEnabled('content', 'hit'))
+			{
+				$config['filter_fields'][] = 'hits';
+				$config['filter_fields'][] = 'a.hits';
+			}
 		}
 
 		parent::__construct($config);

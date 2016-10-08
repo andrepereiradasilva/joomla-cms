@@ -82,11 +82,19 @@ class ContentHelperQuery
 				break;
 
 			case 'hits' :
-				$orderby = 'a.hits DESC';
+				$orderby = 'a.id DESC';
+				if (JPluginHelper::isEnabled('content', 'hit'))
+				{
+					$orderby = 'a.hits DESC';
+				}
 				break;
 
 			case 'rhits' :
-				$orderby = 'a.hits';
+				$orderby = 'a.id ASC';
+				if (JPluginHelper::isEnabled('content', 'hit'))
+				{
+					$orderby = 'a.hits ASC';
+				}
 				break;
 
 			case 'order' :

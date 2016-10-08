@@ -239,7 +239,9 @@
 			name="show_hits"
 			type="list"
 			label="JGLOBAL_SHOW_HITS_LABEL"
-			description="JGLOBAL_SHOW_HITS_DESC">
+			description="JGLOBAL_SHOW_HITS_DESC"
+			requires="plg_content_hit"
+			>
 			<option	value="">JGLOBAL_USE_GLOBAL</option>
 			<option value="1">JSHOW</option>
 			<option value="0">JHIDE</option>
