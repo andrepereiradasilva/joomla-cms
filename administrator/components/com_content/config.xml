@@ -768,16 +768,18 @@
 				<option value="0">JHIDE</option>
 		</field>
 
-		<field name="filter_field"
+		<field
+			name="filter_field"
 			type="list"
-			default="hide"
 			label="JGLOBAL_FILTER_FIELD_LABEL"
-			description="JGLOBAL_FILTER_FIELD_DESC">
-				<option value="hide">JHIDE</option>
-				<option value="title">JGLOBAL_TITLE</option>
-				<option value="author">JAUTHOR</option>
-				<option value="hits">JGLOBAL_HITS</option>
-				<option value="tag">JTAG</option>
+			description="JGLOBAL_FILTER_FIELD_DESC"
+			default="hide"
+			>
+			<option value="hide">JHIDE</option>
+			<option value="title">JGLOBAL_TITLE</option>
+			<option value="author">JAUTHOR</option>
+			<option value="hits" requires="hit">JGLOBAL_HITS</option>
+			<option value="tag">JTAG</option>
 		</field>
 
 		<field name="show_headings"
@@ -868,37 +870,26 @@
 				value="order">JGLOBAL_CATEGORY_MANAGER_ORDER</option>
 		</field>
 
-		<field name="orderby_sec"
+		<field
+			name="orderby_sec"
 			type="list"
-			default="rdate"
 			label="JGLOBAL_ARTICLE_ORDER_LABEL"
-			description="JGLOBAL_ARTICLE_ORDER_DESC">
-			<option
-				value="rdate">JGLOBAL_MOST_RECENT_FIRST</option>
-			<option
-				value="date">JGLOBAL_OLDEST_FIRST</option>
-			<option
-				value="alpha">JGLOBAL_TITLE_ALPHABETICAL</option>
-			<option
-				value="ralpha">JGLOBAL_TITLE_REVERSE_ALPHABETICAL</option>
-			<option
-				value="author">JGLOBAL_AUTHOR_ALPHABETICAL</option>
-			<option
-				value="rauthor">JGLOBAL_AUTHOR_REVERSE_ALPHABETICAL</option>
-			<option
-				value="hits">JGLOBAL_MOST_HITS</option>
-			<option
-				value="rhits">JGLOBAL_LEAST_HITS</option>
-			<option
-				value="order">JGLOBAL_ARTICLE_MANAGER_ORDER</option>
-			<option 
-				value="vote" requires="vote">JGLOBAL_VOTES_DESC</option>
-			<option 
-				value="rvote" requires="vote">JGLOBAL_VOTES_ASC</option>
-			<option 
-				value="rank" requires="vote"> JGLOBAL_RATINGS_DESC</option>
-			<option 
-				value="rrank" requires="vote">JGLOBAL_RATINGS_ASC</option>
+			description="JGLOBAL_ARTICLE_ORDER_DESC"
+			default="rdate"
+			>
+			<option value="rdate">JGLOBAL_MOST_RECENT_FIRST</option>
+			<option value="date">JGLOBAL_OLDEST_FIRST</option>
+			<option value="alpha">JGLOBAL_TITLE_ALPHABETICAL</option>
+			<option value="ralpha">JGLOBAL_TITLE_REVERSE_ALPHABETICAL</option>
+			<option value="author">JGLOBAL_AUTHOR_ALPHABETICAL</option>
+			<option value="rauthor">JGLOBAL_AUTHOR_REVERSE_ALPHABETICAL</option>
+			<option value="hits" requires="hit">JGLOBAL_MOST_HITS</option>
+			<option value="rhits" requires="hit">JGLOBAL_LEAST_HITS</option>
+			<option value="order">JGLOBAL_ARTICLE_MANAGER_ORDER</option>
+			<option value="vote" requires="vote">JGLOBAL_VOTES_DESC</option>
+			<option value="rvote" requires="vote">JGLOBAL_VOTES_ASC</option>
+			<option value="rank" requires="vote"> JGLOBAL_RATINGS_DESC</option>
+			<option value="rrank" requires="vote">JGLOBAL_RATINGS_ASC</option>
 		</field>
 
 		<field name="order_date" type="list"
