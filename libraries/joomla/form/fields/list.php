@@ -123,6 +123,12 @@ class JFormFieldList extends JFormField
 				{
 					continue;
 				}
+
+				// Requires hit plugin enabled
+				if (in_array('hit', $requires) && !JPluginHelper::isEnabled('content', 'hit'))
+				{
+					continue;
+				}
 			}
 
 			$value = (string) $option['value'];

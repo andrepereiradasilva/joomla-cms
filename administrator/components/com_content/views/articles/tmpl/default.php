@@ -21,7 +21,7 @@ $userId    = $user->get('id');
 $listOrder = str_replace(' ' . $this->state->get('list.direction'), '', $this->state->get('list.fullordering'));
 $listDirn  = $this->escape($this->state->get('list.direction'));
 $saveOrder = $listOrder == 'a.ordering';
-$columns   = 10;
+$columns   = 9;
 
 if ($saveOrder)
 {
@@ -83,9 +83,12 @@ $assoc = JLanguageAssociations::isEnabled();
 						<th width="10%" class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'JDATE', 'a.created', $listDirn, $listOrder); ?>
 						</th>
-						<th width="1%" class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
-						</th>
+						<?php if ($this->hit) : ?>
+							<?php $columns++; ?>
+							<th width="1%" class="nowrap hidden-phone">
+								<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
+							</th>
+						<?php endif;?>
 						<?php if ($this->vote) : ?>
 							<?php $columns++; ?>
 							<th width="1%" class="nowrap hidden-phone">
@@ -208,11 +211,13 @@ $assoc = JLanguageAssociations::isEnabled();
 						<td class="nowrap small hidden-phone">
 							<?php echo JHtml::_('date', $item->created, JText::_('DATE_FORMAT_LC4')); ?>
 						</td>
-						<td class="hidden-phone center">
-							<span class="badge badge-info">
-								<?php echo (int) $item->hits; ?>
-							</span>
-						</td>
+						<?php if ($this->hit) : ?>
+							<td class="hidden-phone center">
+								<span class="badge badge-info">
+									<?php echo (int) $item->hits; ?>
+								</span>
+							</td>
+						<?php endif; ?>
 						<?php if ($this->vote) : ?>
 							<td class="hidden-phone center">
 								<span class="badge badge-success" >
