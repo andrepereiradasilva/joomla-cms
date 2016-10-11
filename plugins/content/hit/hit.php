@@ -92,8 +92,8 @@ echo $formName;
 		{
 			if ($fullOrdering = $form->getField('fullordering', 'list', null))
 			{
-				$fullOrdering->addListOption('JGLOBAL_HITS_ASC', array('value' => 'a.hits ASC'));
-				$fullOrdering->addListOption('JGLOBAL_HITS_DESC', array('value' => 'a.hits DESC'));
+				$fullOrdering->addListOption('JGLOBAL_HITS_ASC', array('value' => 'a.hits ASC'))
+					->addListOption('JGLOBAL_HITS_DESC', array('value' => 'a.hits DESC'));
 			}
 		}
 		// Config pages
@@ -111,8 +111,8 @@ echo $formName;
 
 				if ($orderBySec = $form->getField('orderby_sec', 'shared', null))
 				{
-					$orderBySec->addListOption('JGLOBAL_MOST_HITS', array('value' => 'hits'));
-					$orderBySec->addListOption('JGLOBAL_LEAST_HITS', array('value' => 'rhits'));
+					$orderBySec->addOption('JGLOBAL_MOST_HITS', array('value' => 'hits'))
+						->addOption('JGLOBAL_LEAST_HITS', array('value' => 'rhits'));
 				}
 			}
 
@@ -126,7 +126,7 @@ echo $formName;
 			{
 				if ($articleOrdering = $form->getField('article_ordering', 'params', null))
 				{
-					$articleOrdering->addListOption('MOD_ARTICLES_CATEGORY_OPTION_HITS_VALUE', array('value' => 'a.hits'));
+					$articleOrdering->addOption('MOD_ARTICLES_CATEGORY_OPTION_HITS_VALUE', array('value' => 'a.hits'));
 				}
 
 				$formName .= '.' . $data->module;
@@ -136,7 +136,7 @@ echo $formName;
 			{
 				if ($ordering = $form->getField('ordering', 'params.basic', null))
 				{
-					$ordering->addListOption('JGLOBAL_HITS', array('value' => 'a.hits'));
+					$ordering->addOption('JGLOBAL_HITS', array('value' => 'a.hits'));
 				}
 
 				// Add to direction showon value
