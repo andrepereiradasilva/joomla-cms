@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fields name="params">
+		<fieldset name="display">
+			<field
+				name="show_hits"
+				type="radio"
+				label="MOD_ARTICLES_CATEGORY_FIELD_SHOWHITS_LABEL"
+				description="MOD_ARTICLES_CATEGORY_FIELD_SHOWHITS_DESC"
+				default="0"
+				class="btn-group btn-group-yesno"
+				requires="plg_content_hit"
+				>
+				<option value="1">JSHOW</option>
+				<option value="0">JHIDE</option>
+			</field>
+		</fieldset>
+	</fields>
+</form>

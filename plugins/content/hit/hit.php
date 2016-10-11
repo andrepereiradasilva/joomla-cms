@@ -49,6 +49,113 @@ class PlgContentHit extends JPlugin
 		}
 	}
 
+
+	function onContentPrepareForm($form, $data)
+	{
+		// Check we have a form.
+		if (!($form instanceof JForm))
+		{
+			$this->_subject->setError('JERROR_NOT_A_FORM');
+
+			return false;
+		}
+
+		$formFilePath = '';
+		$formName     = $form->getName();
+echo $formName;
+
+		// Add hits option in backend filter forms.
+		$filterFormNames = array(
+			// Content
+			'com_content.articles.filter',
+			'com_content.featured.filter',
+			'com_categories.categories.article.filter',
+			// Contacts
+			'com_contact.contacts.filter',
+			'com_categories.categories.contact.filter',
+			// News Feeds
+			'com_newsfeeds.newsfeed.filter',
+			'com_categories.categories.newsfeed.filter',
+			// Banners
+			'com_categories.categories.banners.filter',
+			// Tags
+			'com_tags.tags.filter',
+			// Search
+			//'com_search.searches.filter',
+			// Redirect
+			//'com_redirect.links.filter',
+		);
+
+		
+		// Add to backend searchtools filters.
+		if (in_array($formName, $filterFormNames))
+		{
+			if ($fullOrdering = $form->getField('fullordering', 'list', null))
+			{
+				$fullOrdering->addListOption('JGLOBAL_HITS_ASC', array('value' => 'a.hits ASC'));
+				$fullOrdering->addListOption('JGLOBAL_HITS_DESC', array('value' => 'a.hits DESC'));
+			}
+		}
+		// Config pages
+		elseif ($formName === 'com_config.component')
+		{
+			$component = JFactory::getApplication()->input->get('component', '', 'string');
+
+			// Content Component
+			if ($component === 'com_content')
+			{
+				if ($filterField = $form->getField('filter_field', 'list_default_parameters', null))
+				{
+					$filterField->addListOption('JGLOBAL_HITS', array('value' => 'hits'));
+				}
+
+				if ($orderBySec = $form->getField('orderby_sec', 'shared', null))
+				{
+					$orderBySec->addListOption('JGLOBAL_MOST_HITS', array('value' => 'hits'));
+					$orderBySec->addListOption('JGLOBAL_LEAST_HITS', array('value' => 'rhits'));
+				}
+			}
+
+			$formName .= '.' . $component;
+		}
+		// Modules
+		elseif ($formName === 'com_modules.module')
+		{
+			// Articles - Category
+			if ($data->module === 'mod_articles_category')
+			{
+				if ($articleOrdering = $form->getField('article_ordering', 'params', null))
+				{
+					$articleOrdering->addListOption('MOD_ARTICLES_CATEGORY_OPTION_HITS_VALUE', array('value' => 'a.hits'));
+				}
+
+				$formName .= '.' . $data->module;
+			}
+			// Articles - News
+			elseif ($data->module === 'mod_articles_news')
+			{
+				if ($ordering = $form->getField('ordering', 'params.basic', null))
+				{
+					$ordering->addListOption('JGLOBAL_HITS', array('value' => 'a.hits'));
+				}
+
+				// Add to direction showon value
+				if ($showOn = $form->getFieldAttribute('direction', 'showon', null, 'params.basic'))
+				{
+					$form->setFieldAttribute('direction', 'showon', $showOn . ',a.hits', 'params.basic');
+				}
+
+				$formName .= '.' . $data->module;
+			}
+		}
+
+		// Add extra fields if form exists.
+		JForm::addFormPath(__DIR__ . '/forms');
+		$form->loadFile($formName, false);
+
+		return true;
+	}
+
 	/**
 	 * Receive Ajax Call
 	 *
