@@ -382,25 +382,6 @@ class ContentModelArticle extends JModelAdmin
 			$form->setFieldAttribute('state', 'filter', 'unset');
 		}
 
-		// Prevent messing with article language and category when editing existing article with associations
-		$app = JFactory::getApplication();
-		$assoc = JLanguageAssociations::isEnabled();
-
-		// Check if article is associated
-		if ($this->getState('article.id') && $app->isSite() && $assoc)
-		{
-			$associations = JLanguageAssociations::getAssociations('com_content', '#__content', 'com_content.item', $id);
-
-			// Make fields read only
-			if (!empty($associations))
-			{
-				$form->setFieldAttribute('language', 'readonly', 'true');
-				$form->setFieldAttribute('catid', 'readonly', 'true');
-				$form->setFieldAttribute('language', 'filter', 'unset');
-				$form->setFieldAttribute('catid', 'filter', 'unset');
-			}
-		}
-
 		return $form;
 	}
 
