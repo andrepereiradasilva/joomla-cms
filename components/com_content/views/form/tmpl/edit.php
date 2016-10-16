@@ -135,6 +135,12 @@ JFactory::getDocument()->addScriptDeclaration("
 				<?php echo $this->form->renderField('language'); ?>
 			<?php echo JHtml::_("bootstrap.endTab"); ?>
 
+			<?php if (JLanguageAssociations::isEnabled()) : ?>
+				<?php echo JHtml::_('bootstrap.addTab', 'com-content-form', 'associations', JText::_('JGLOBAL_FIELDSET_ASSOCIATIONS')); ?>
+				<?php echo JLayoutHelper::render('joomla.edit.associations', $this); ?>
+				<?php echo JHtml::_('bootstrap.endTab'); ?>
+			<?php endif; ?>
+
 			<?php echo JHtml::_("bootstrap.addTab", "com-content-form", "metadata", JText::_("COM_CONTENT_METADATA")); ?>
 				<?php echo $this->form->renderField('metadesc'); ?>
 				<?php echo $this->form->renderField('metakey'); ?>

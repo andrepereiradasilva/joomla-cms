@@ -192,4 +192,53 @@ class ContentModelForm extends ContentModelArticle
 
 		return parent::save($data);
 	}
+
+	/**
+	 * Allows preprocessing of the JForm object.
+	 *
+	 * @param   JForm   $form   The form object
+	 * @param   array   $data   The data to be merged into the form object
+	 * @param   string  $group  The plugin group to be executed
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	protected function preprocessForm(JForm $form, $data, $group = 'content')
+	{
+		// Association content items
+		if (JLanguageAssociations::isEnabled())
+		{
+			$languages = JLanguageHelper::getContentLanguages(false, true, null, 'ordering', 'asc');
+
+			if (count($languages) > 1)
+			{
+				$addform = new SimpleXMLElement('<form />');
+				$fields = $addform->addChild('fields');
+				$fields->addAttribute('name', 'associations');
+				$fieldset = $fields->addChild('fieldset');
+				$fieldset->addAttribute('name', 'item_associations');
+				$fieldset->addAttribute('addfieldpath', '/administrator/components/com_content/models/fields/modal');
+				$fieldset->addAttribute('description', 'COM_CONTENT_ITEM_ASSOCIATIONS_FIELDSET_DESC');
+
+				foreach ($languages as $language)
+				{
+					$field = $fieldset->addChild('field');
+					$field->addAttribute('name', $language->lang_code);
+					$field->addAttribute('type', 'modal_article');
+					$field->addAttribute('language', $language->lang_code);
+					$field->addAttribute('label', $language->title);
+					$field->addAttribute('translate_label', 'false');
+					$field->addAttribute('select', 'true');
+					$field->addAttribute('new', 'false');
+					$field->addAttribute('edit', 'false');
+					$field->addAttribute('clear', 'true');
+				}
+
+				$form->load($addform, false);
+			}
+		}
+
+		parent::preprocessForm($form, $data, $group);
+	}
 }
