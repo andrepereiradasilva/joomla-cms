@@ -30,6 +30,14 @@ class ContentModelForm extends ContentModelArticle
 	public $typeAlias = 'com_content.article';
 
 	/**
+	 * The context used for the associations table.
+	 *
+	 * @var    string
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $associationsContext = 'com_content.item';
+
+	/**
 	 * Method to auto-populate the model state.
 	 *
 	 * Note. Calling getState in this method will result in recursion.
@@ -163,34 +171,6 @@ class ContentModelForm extends ContentModelArticle
 	public function getReturnPage()
 	{
 		return base64_encode($this->getState('return_page'));
-	}
-
-	/**
-	 * Method to save the form data.
-	 *
-	 * @param   array  $data  The form data.
-	 *
-	 * @return  boolean  True on success.
-	 *
-	 * @since   3.2
-	 */
-	public function save($data)
-	{
-		// Associations are not edited in frontend ATM so we have to inherit them
-		if (JLanguageAssociations::isEnabled() && !empty($data['id']))
-		{
-			if ($associations = JLanguageAssociations::getAssociations('com_content', '#__content', 'com_content.item', $data['id']))
-			{
-				foreach ($associations as $tag => $associated)
-				{
-					$associations[$tag] = (int) $associated->id;
-				}
-
-				$data['associations'] = $associations;
-			}
-		}
-
-		return parent::save($data);
 	}
 
 	/**
