@@ -30,14 +30,6 @@ class ContentModelForm extends ContentModelArticle
 	public $typeAlias = 'com_content.article';
 
 	/**
-	 * The context used for the associations table.
-	 *
-	 * @var    string
-	 * @since  __DEPLOY_VERSION__
-	 */
-	protected $associationsContext = 'com_content.item';
-
-	/**
 	 * Method to auto-populate the model state.
 	 *
 	 * Note. Calling getState in this method will result in recursion.
