@@ -158,6 +158,22 @@ class ContentModelForm extends ContentModelArticle
 			$value->metadata['tags'] = $value->tags;
 		}
 
+		// Load associated content items
+		if (JLanguageAssociations::isEnabled())
+		{
+			$value->associations = array();
+
+			if ($value->id != null)
+			{
+				$associations = JLanguageAssociations::getAssociations('com_content', '#__content', 'com_content.item', $value->id);
+
+				foreach ($associations as $tag => $association)
+				{
+					$value->associations[$tag] = $association->id;
+				}
+			}
+		}
+
 		return $value;
 	}
 
