@@ -724,39 +724,40 @@ class ContentModelArticle extends JModelAdmin
 		}
 
 		// Association content items
-		$assoc = JLanguageAssociations::isEnabled();
-
-		if ($assoc)
+		if (JLanguageAssociations::isEnabled())
 		{
-			$languages = JLanguageHelper::getLanguages('lang_code');
-			$addform = new SimpleXMLElement('<form />');
-			$fields = $addform->addChild('fields');
-			$fields->addAttribute('name', 'associations');
-			$fieldset = $fields->addChild('fieldset');
-			$fieldset->addAttribute('name', 'item_associations');
-			$fieldset->addAttribute('description', 'COM_CONTENT_ITEM_ASSOCIATIONS_FIELDSET_DESC');
-			$add = false;
+			$isSite    = JFactory::getApplication()->isSite();
+			$languages = JLanguageHelper::getContentLanguages(false, true, null, 'ordering', 'asc');
 
-			foreach ($languages as $tag => $language)
+			if (count($languages) > 1)
 			{
-				if (empty($data->language) || $tag != $data->language)
+				$addform = new SimpleXMLElement('<form />');
+				$fields = $addform->addChild('fields');
+				$fields->addAttribute('name', 'associations');
+				$fieldset = $fields->addChild('fieldset');
+				$fieldset->addAttribute('name', 'item_associations');
+				$fieldset->addAttribute('description', 'COM_CONTENT_ITEM_ASSOCIATIONS_FIELDSET_DESC');
+
+				// If in site edit form add the admin field path
+				if ($isSite)
 				{
-					$add = true;
+					$fieldset->addAttribute('addfieldpath', '/administrator/components/com_content/models/fields/modal');
+				}
+
+				foreach ($languages as $language)
+				{
 					$field = $fieldset->addChild('field');
-					$field->addAttribute('name', $tag);
+					$field->addAttribute('name', $language->lang_code);
 					$field->addAttribute('type', 'modal_article');
-					$field->addAttribute('language', $tag);
+					$field->addAttribute('language', $language->lang_code);
 					$field->addAttribute('label', $language->title);
 					$field->addAttribute('translate_label', 'false');
 					$field->addAttribute('select', 'true');
-					$field->addAttribute('new', 'true');
-					$field->addAttribute('edit', 'true');
+					$field->addAttribute('new', $isSite ? 'false' : 'true');
+					$field->addAttribute('edit', $isSite ? 'false' : 'true');
 					$field->addAttribute('clear', 'true');
 				}
-			}
 
-			if ($add)
-			{
 				$form->load($addform, false);
 			}
 		}
