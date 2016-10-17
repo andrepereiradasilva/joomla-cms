@@ -149,33 +149,7 @@ class JLanguageHelper
 			}
 			else
 			{
-				$cache = JFactory::getCache('com_languages', '');
-
-				if (!$languages = $cache->get('languages'))
-				{
-					$db = JFactory::getDbo();
-					$query = $db->getQuery(true)
-						->select('*')
-						->from('#__languages')
-						->where('published=1')
-						->order('ordering ASC');
-					$db->setQuery($query);
-
-					$languages['default'] = $db->loadObjectList();
-					$languages['sef'] = array();
-					$languages['lang_code'] = array();
-
-					if (isset($languages['default'][0]))
-					{
-						foreach ($languages['default'] as $lang)
-						{
-							$languages['sef'][$lang->sef] = $lang;
-							$languages['lang_code'][$lang->lang_code] = $lang;
-						}
-					}
-
-					$cache->store($languages, 'languages');
-				}
+				$languages[$key] = JLanguageMultilang::getAvailableSiteLanguages($key);
 			}
 		}
 
