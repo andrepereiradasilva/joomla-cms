@@ -252,7 +252,9 @@ abstract class JPluginHelper
 						}
 
 						// Instantiate and register the plugin.
+						!JDEBUG || $plugin->name != 'languagefilter' ?: JProfiler::getInstance('Application')->mark('');
 						new $className($dispatcher, (array) ($plugin));
+						!JDEBUG || $plugin->name != 'languagefilter' ?: JProfiler::getInstance('Application')->mark('<strong style="color:green">LOADED</strong> '.$plugin->name. '::construct');
 					}
 				}
 			}
