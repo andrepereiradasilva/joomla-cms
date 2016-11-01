@@ -78,6 +78,7 @@ class ContentViewCategory extends JViewCategory
 		$numIntro   = $params->def('num_intro_articles', 4);
 		$numLinks   = $params->def('num_links', 4);
 		$this->vote = JPluginHelper::isEnabled('content', 'vote');
+		$this->hit  = JPluginHelper::isEnabled('content', 'hit');
 
 		// Compute the article slugs and prepare introtext (runs content plugins).
 		foreach ($this->items as $item)

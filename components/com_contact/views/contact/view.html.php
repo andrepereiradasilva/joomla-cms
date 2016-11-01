@@ -294,9 +294,6 @@ class ContactViewContact extends JViewLegacy
 			$this->setLayout($active->query['layout']);
 		}
 
-		$model = $this->getModel();
-		$model->hit();
-
 		$captchaSet = $params->get('captcha', JFactory::getApplication()->get('captcha', '0'));
 
 		foreach (JPluginHelper::getPlugin('captcha') as $plugin)

@@ -259,8 +259,8 @@
 					<option value="ralpha">JGLOBAL_TITLE_REVERSE_ALPHABETICAL</option>
 					<option value="author">JGLOBAL_AUTHOR_ALPHABETICAL</option>
 					<option value="rauthor">JGLOBAL_AUTHOR_REVERSE_ALPHABETICAL</option>
-					<option value="hits">JGLOBAL_MOST_HITS</option>
-					<option value="rhits">JGLOBAL_LEAST_HITS</option>
+					<option value="hits" requires="plg_content_hit">JGLOBAL_MOST_HITS</option>
+					<option value="rhits" requires="plg_content_hit">JGLOBAL_LEAST_HITS</option>
 					<option value="random">JGLOBAL_RANDOM_ORDER</option>
 					<option value="order">JGLOBAL_ORDERING</option>
 					<option value="vote" requires="vote">JGLOBAL_VOTES_DESC</option>
@@ -585,9 +585,10 @@
 			<field
 				name="show_hits"
 				type="list"
-				description="JGLOBAL_SHOW_HITS_DESC"
 				label="JGLOBAL_SHOW_HITS_LABEL"
-			>
+				description="JGLOBAL_SHOW_HITS_DESC"
+				requires="plg_content_hit"
+				>
 				<option value="">JGLOBAL_USE_GLOBAL</option>
 				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>

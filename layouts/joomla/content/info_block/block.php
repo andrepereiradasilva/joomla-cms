@@ -57,7 +57,7 @@ $blockPosition = $displayData['params']->get('info_block_position', 0);
 				<?php echo JLayoutHelper::render('joomla.content.info_block.modify_date', $displayData); ?>
 			<?php endif; ?>
 
-			<?php if ($displayData['params']->get('show_hits')) : ?>
+			<?php if ($displayData['params']->get('show_hits') && JPluginHelper::isEnabled('content', 'hit')) : ?>
 				<?php echo JLayoutHelper::render('joomla.content.info_block.hits', $displayData); ?>
 			<?php endif; ?>
 		<?php endif; ?>

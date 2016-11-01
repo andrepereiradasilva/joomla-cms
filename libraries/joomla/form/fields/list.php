@@ -123,6 +123,26 @@ class JFormFieldList extends JFormField
 				{
 					continue;
 				}
+
+				// Requires a particular plugin enabled
+				$process = true;
+
+				foreach ($requires as $require)
+				{
+					if (preg_match('#plg_([a-z0-9_\-]+)_([a-z0-9_\-]+)#i', $require, $matches))
+					{
+						if (!JPluginHelper::isEnabled($matches[1], $matches[2]))
+						{
+							$process = false;
+							continue;
+						}
+					}
+				}
+
+				if (!$process)
+				{
+					continue;
+				}
 			}
 
 			$value = (string) $option['value'];
@@ -158,5 +178,30 @@ class JFormFieldList extends JFormField
 		reset($options);
 
 		return $options;
+	}
+
+	/**
+	 * Method to add a option to the list field.
+	 *
+	 * @param   string  $text        Text/Language variable of the option.
+	 * @param   array   $attributes  Array of attributes ('name' => 'value' format)
+	 *
+	 * @return  JFormFieldList  For chaining.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function addOption($text, $attributes = array())
+	{
+		if ($text && $this->element instanceof SimpleXMLElement)
+		{
+			$child = $this->element->addChild('option', $text);
+
+			foreach ($attributes as $name => $value)
+			{
+				$child->addAttribute($name, $value);
+			}
+		}
+
+		return $this;
 	}
 }

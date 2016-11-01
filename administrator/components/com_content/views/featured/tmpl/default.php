@@ -21,6 +21,7 @@ $listOrder = str_replace(' ' . $this->state->get('list.direction'), '', $this->s
 $listDirn  = $this->escape($this->state->get('list.direction'));
 $canOrder  = $user->authorise('core.edit.state', 'com_content.article');
 $saveOrder = $listOrder == 'fp.ordering';
+$columns   = 9;
 
 if ($saveOrder)
 {
@@ -74,13 +75,18 @@ if ($saveOrder)
 						<th width="10%" class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'JDATE', 'a.created', $listDirn, $listOrder); ?>
 						</th>
-						<th width="1%" class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
-						</th>
+						<?php if ($this->hit) : ?>
+							<?php $columns++; ?>
+							<th width="1%" class="nowrap hidden-phone">
+								<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_HITS', 'a.hits', $listDirn, $listOrder); ?>
+							</th>
+						<?php endif;?>
 						<?php if ($this->vote) : ?>
+							<?php $columns++; ?>
 							<th width="1%" class="nowrap hidden-phone">
 								<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_VOTES', 'rating_count', $listDirn, $listOrder); ?>
 							</th>
+							<?php $columns++; ?>
 							<th width="1%" class="nowrap hidden-phone">
 								<?php echo JHtml::_('searchtools.sort', 'JGLOBAL_RATINGS', 'rating', $listDirn, $listOrder); ?>
 							</th>
@@ -92,7 +98,7 @@ if ($saveOrder)
 					</thead>
 					<tfoot>
 					<tr>
-						<td colspan="10">
+						<td colspan="<?php echo $columns; ?>">
 							<?php echo $this->pagination->getListFooter(); ?>
 						</td>
 					</tr>
@@ -187,11 +193,13 @@ if ($saveOrder)
 							<td class="nowrap small hidden-phone">
 								<?php echo JHtml::_('date', $item->created, JText::_('DATE_FORMAT_LC4')); ?>
 							</td>
-							<td class="center hidden-phone">
-								<span class="badge badge-info">
-								<?php echo (int) $item->hits; ?>
-								</span>
-							</td>
+							<?php if ($this->hit) : ?>
+								<td class="center hidden-phone">
+									<span class="badge badge-info">
+									<?php echo (int) $item->hits; ?>
+									</span>
+								</td>
+							<?php endif; ?>
 							<?php if ($this->vote) : ?>
 								<td class="hidden-phone">
 									<span class="badge badge-success" >

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<fieldset>
+		<field
+			name="hits"
+			type="text"
+			label="JGLOBAL_HITS"
+			description="COM_CONTENT_FIELD_HITS_DESC"
+			class="readonly"
+			size="6"
+			readonly="true"
+			filter="unset"
+		/>
+	</fieldset>
+
+	<fields name="attribs">
+		<fieldset name="basic">
+			<field
+				name="show_hits"
+				type="list"
+				label="JGLOBAL_SHOW_HITS_LABEL"
+				description="JGLOBAL_SHOW_HITS_DESC"
+				class="chzn-color"
+				>
+				<option	value="">JGLOBAL_USE_GLOBAL</option>
+				<option	value="0">JHIDE</option>
+				<option	value="1">JSHOW</option>
+			</field>
+		</fieldset>
+
+		<fieldset name="basic-limited">
+			<field
+				name="show_hits"
+				type="hidden"
+				label="JGLOBAL_SHOW_HITS_LABEL"
+				description="JGLOBAL_SHOW_HITS_DESC"
+			/>
+		</fieldset>
+	</fields>
+</form>

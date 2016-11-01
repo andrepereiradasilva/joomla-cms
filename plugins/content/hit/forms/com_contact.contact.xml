@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+	<field
+		name="hits"
+		type="text"
+		label="JGLOBAL_HITS"
+		description="COM_CONTACT_HITS_DESC"
+		class="readonly"
+		size="6"
+		readonly="true"
+		filter="unset"
+	/>
+</form>

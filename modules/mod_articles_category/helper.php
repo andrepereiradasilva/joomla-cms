@@ -185,6 +185,17 @@ abstract class ModArticlesCategoryHelper
 
 				break;
 
+			case 'a.hits':
+				$articles->setState('list.ordering', $ordering);
+				$articles->setState('list.direction', $params->get('article_ordering_direction', 'ASC'));
+
+				if (!JPluginHelper::isEnabled('content', 'hit'))
+				{
+					$articles->setState('list.ordering', 'a.ordering');
+				}
+
+				break;
+
 			default:
 				$articles->setState('list.ordering', $ordering);
 				$articles->setState('list.direction', $params->get('article_ordering_direction', 'ASC'));
