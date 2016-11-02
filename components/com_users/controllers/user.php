@@ -29,23 +29,47 @@ class UsersControllerUser extends UsersController
 	{
 		JSession::checkToken('post') or jexit(JText::_('JINVALID_TOKEN'));
 
-		$app    = JFactory::getApplication();
-		$input  = $app->input;
-		$method = $input->getMethod();
+		$app           = JFactory::getApplication();
+		$input         = $app->input;
+		$method        = $input->getMethod();
+		$defaultReturn = 'index.php?option=com_users&view=profile';
 
 		// Populate the data array:
 		$data = array();
 
-		$data['return']    = base64_decode($app->input->post->get('return', '', 'BASE64'));
+		$data['return']    = base64_decode($input->post->get('return', '', 'BASE64'));
 		$data['username']  = $input->$method->get('username', '', 'USERNAME');
 		$data['password']  = $input->$method->get('password', '', 'RAW');
 		$data['secretkey'] = $input->$method->get('secretkey', '', 'RAW');
 
-		// Check for a simple menu item id
-		if (is_numeric($data['return']))
+		// Check if there is a return path inside the return path URL (example: edit forms).
+		$returnUri = new JUri($data['return']);
+		$returnVar = $returnUri->getVar('return', '');
+
+		if ($returnVar !== '')
 		{
+			$data['return'] = base64_decode($returnVar);
+		}
+
+		// Set the return URL if empty.
+		if (!$data['return'])
+		{
+			$data['return'] = $defaultReturn;
+		}
+		// Don't redirect to an external URL.
+		elseif (!JUri::isInternal($data['return']))
+		{
+			$data['return'] = $defaultReturn;
+		}
+		// Check for a simple menu item id
+		elseif (is_numeric($data['return']))
+		{
+			$data['return'] = 'index.php?Itemid=' . $data['return'];
+
+			// For multilanguague we check the language and add it to the url.
 			if (JLanguageMultilang::isEnabled())
 			{
+				$lang = '';
 
 				$db = JFactory::getDbo();
 				$query = $db->getQuery(true)
@@ -58,42 +82,14 @@ class UsersControllerUser extends UsersController
 
 				try
 				{
-					$language = $db->loadResult();
+					$language        = $db->loadResult();
+					$data['return'] .= $language !== '*' ? '&lang=' . $language : '';
 				}
 				catch (RuntimeException $e)
 				{
-					return;
-				}
-
-				if ($language !== '*')
-				{
-					$lang = '&lang=' . $language;
-				}
-				else
-				{
-					$lang = '';
+					$data['return'] = $defaultReturn;
 				}
 			}
-			else
-			{
-				$lang = '';
-			}
-
-			$data['return'] = 'index.php?Itemid=' . $data['return'] . $lang;
-		}
-		else
-		{
-			// Don't redirect to an external URL.
-			if (!JUri::isInternal($data['return']))
-			{
-				$data['return'] = '';
-			}
-		}
-
-		// Set the return URL if empty.
-		if (empty($data['return']))
-		{
-			$data['return'] = 'index.php?option=com_users&view=profile';
 		}
 
 		// Set the return URL in the user state to allow modification by plugins
@@ -115,9 +111,9 @@ class UsersControllerUser extends UsersController
 		{
 			// Login failed !
 			// Clear user name, password and secret key before sending the login form back to the user.
-			$data['remember'] = (int) $options['remember'];
-			$data['username'] = '';
-			$data['password'] = '';
+			$data['remember']  = (int) $options['remember'];
+			$data['username']  = '';
+			$data['password']  = '';
 			$data['secretkey'] = '';
 			$app->setUserState('users.login.form.data', $data);
 			$app->redirect(JRoute::_('index.php?option=com_users&view=login', false));
