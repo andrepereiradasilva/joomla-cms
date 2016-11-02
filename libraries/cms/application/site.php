@@ -142,7 +142,7 @@ final class JApplicationSite extends JApplicationCms
 			case 'html':
 				// Get language
 				$lang_code = $this->getLanguage()->getTag();
-				$languages = JLanguageHelper::getContentLanguages(true, true, 'lang_code');;
+				$languages = JLanguageHelper::getContentLanguages();
 
 				// Set metadata
 				if (isset($languages[$lang_code]) && $languages[$lang_code]->metakey)
@@ -326,7 +326,7 @@ final class JApplicationSite extends JApplicationCms
 
 			// Get language
 			$lang_code = $this->getLanguage()->getTag();
-			$languages = JLanguageHelper::getContentLanguages(true, true, 'lang_code');
+			$languages = JLanguageHelper::getContentLanguages();
 
 			$title = $this->get('sitename');
 
