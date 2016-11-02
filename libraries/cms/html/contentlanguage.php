@@ -34,7 +34,7 @@ abstract class JHtmlContentLanguage
 		if ($items === null)
 		{
 			$items            = array();
-			$contentLanguages = JLanguageHelper::getContentLanguages(false, true, 'lang_code', 'title', 'ASC');
+			$contentLanguages = JLanguageHelper::getContentLanguages(false, true, 'lang_code', 'ordering', 'ASC');
 
 			foreach($contentLanguages as $key => $language)
 			{
