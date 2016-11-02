@@ -17,14 +17,6 @@ defined('JPATH_PLATFORM') or die;
 abstract class JHtmlContentLanguage
 {
 	/**
-	 * Cached array of the content language items.
-	 *
-	 * @var    array
-	 * @since  1.6
-	 */
-	protected static $items = null;
-
-	/**
 	 * Get a list of the available content language items.
 	 *
 	 * @param   boolean  $all        True to include All (*)
@@ -37,32 +29,32 @@ abstract class JHtmlContentLanguage
 	 */
 	public static function existing($all = false, $translate = false)
 	{
-		if (empty(static::$items))
+		static $items = null;
+
+		if ($items === null)
 		{
-			// Get the database object and a new query object.
-			$db    = JFactory::getDbo();
-			$query = $db->getQuery(true);
+			$items            = array();
+			$contentLanguages = JLanguageHelper::getContentLanguages(false, true, 'lang_code', 'title', 'ASC');
 
-			// Build the query.
-			$query->select('a.lang_code AS value, a.title AS text, a.title_native')
-				->from('#__languages AS a')
-				->where('a.published >= 0')
-				->order('a.title');
-
-			// Set the query and load the options.
-			$db->setQuery($query);
-			static::$items = $db->loadObjectList();
+			foreach($contentLanguages as $key => $language)
+			{
+				$extra                     = $language->published ? '' : ' [' . JText::_('JUNPUBLISHED') . ']';
+				$items[$key]               = new stdClass;
+				$items[$key]->value        = $language->lang_code;
+				$items[$key]->text         = $language->title . $extra;
+				$items[$key]->title_native = $language->title_native . $extra;
+			}
 		}
 
 		if ($all)
 		{
-			$all_option = array(new JObject(array('value' => '*', 'text' => $translate ? JText::alt('JALL', 'language') : 'JALL_LANGUAGE')));
+			$allItem        = new stdClass;
+			$allItem->value = '*';
+			$allItem->text  = $translate ? JText::alt('JALL', 'language') : 'JALL_LANGUAGE';
 
-			return array_merge($all_option, static::$items);
+			return array_replace(array($allItem), $items);
 		}
-		else
-		{
-			return static::$items;
-		}
+
+		return $items;
 	}
 }

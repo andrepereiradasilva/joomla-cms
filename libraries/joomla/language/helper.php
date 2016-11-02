@@ -333,7 +333,8 @@ class JLanguageHelper
 
 				$query = $db->getQuery(true)
 					->select('*')
-					->from($db->quoteName('#__languages'));
+					->from($db->quoteName('#__languages'))
+					->where($db->quoteName('published') . ' IN (0, 1)');
 
 				$contentLanguages = $db->setQuery($query)->loadObjectList();
 
