@@ -84,7 +84,7 @@ class JLanguageHelper
 		if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 		{
 			$browserLangs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-			$systemLangs = self::getLanguages();
+			$systemLangs  = static::getLanguages();
 
 			foreach ($browserLangs as $browserLang)
 			{
@@ -143,7 +143,6 @@ class JLanguageHelper
 
 				foreach ($knownLanguages as $metadata)
 				{
-					// Take off 3 letters iso code languages as they can't match browsers' languages and default them to en
 					$obj               = new stdClass;
 					$obj->lang_code    = $metadata['tag'];
 					$languages[$key][] = $obj;
