@@ -60,18 +60,14 @@ abstract class MultilangstatusHelper
 	 * Method to return a list of published content languages.
 	 *
 	 * @return  array of language objects.
+	 *
+	 * @deprecated  __DEPLOY_VERSION__  No replacement.
 	 */
 	public static function getContentlangs()
 	{
-		// Check for published Content Languages.
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select('a.lang_code AS lang_code')
-			->select('a.published AS published')
-			->from('#__languages AS a');
-		$db->setQuery($query);
+		JLog::add(__METHOD__ . ' is deprecated. No replacement.', JLog::WARNING, 'deprecated');
 
-		return $db->loadObjectList();
+		return JLanguageHelper::getContentLanguages(false, false, null);
 	}
 
 	/**
