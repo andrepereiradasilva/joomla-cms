@@ -32,7 +32,7 @@ abstract class ModLanguagesHelper
 	{
 		$user      = JFactory::getUser();
 		$lang      = JFactory::getLanguage();
-		$languages = JLanguageHelper::getLanguages();
+		$languages = JLanguageHelper::getContentLanguages(true, true, null, 'ordering', 'asc');
 		$app       = JFactory::getApplication();
 		$menu      = $app->getMenu();
 

@@ -139,7 +139,7 @@ abstract class MultilangstatusHelper
 	public static function getContacts()
 	{
 		$db = JFactory::getDbo();
-		$languages = count(JLanguageHelper::getContentLanguages());
+		$languages = count(JLanguageHelper::getContentLanguages(true, true, null));
 
 		// Get the number of contact with all as language
 		$alang = $db->getQuery(true)
