@@ -99,40 +99,20 @@ abstract class ModulesHelper
 	 */
 	public static function getPositions($clientId, $editPositions = false)
 	{
-		$db    = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select('DISTINCT(position)')
-			->from('#__modules')
-			->where($db->quoteName('client_id') . ' = ' . (int) $clientId)
-			->order('position');
-
-		$db->setQuery($query);
-
-		try
-		{
-			$positions = $db->loadColumn();
-			$positions = is_array($positions) ? $positions : array();
-		}
-		catch (RuntimeException $e)
-		{
-			JError::raiseWarning(500, $e->getMessage());
-
-			return;
-		}
+		$positions = static::getActivePositions($clientId);
 
 		// Build the list
 		$options = array();
 
 		foreach ($positions as $position)
 		{
-			if (!$position && !$editPositions)
+			if (!$position->position && !$editPositions)
 			{
-				$options[] = JHtml::_('select.option', 'none', JText::_('COM_MODULES_NONE'));
+				$options[] = JHtml::_('select.option', 'none', $position->text);
+				continue;
 			}
-			else
-			{
-				$options[] = JHtml::_('select.option', $position, $position);
-			}
+
+			$options[] = JHtml::_('select.option', $position->position, $position->text);
 		}
 
 		return $options;
@@ -344,5 +324,90 @@ abstract class ModulesHelper
 		$group['items'] = $options;
 
 		return $group;
+	}
+
+	/**
+	 * Get a list of active modules positions
+	 *
+	 * @param   integer  $clientId     Client ID
+	 * @param   boolean  $description  Return the description.
+	 *
+	 * @return  array  A list of active positions.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getActivePositions($clientId, $description = true)
+	{
+		$db    = JFactory::getDbo();
+		$query = $db->getQuery(true)
+			->select('DISTINCT(' . $db->quoteName('position') . ')')
+			->select('""', 'text')
+			->from($db->quoteName('#__modules'))
+			->where($db->quoteName('client_id') . ' = ' . (int) $clientId);
+
+		try
+		{
+			$positions = $db->setQuery($query)->loadObjectList('position');
+		}
+		catch (RuntimeException $e)
+		{
+			JFactory::getApplication()->enqueueMessage($e->getMessage(), 'warning');
+
+			$positions = new stdClass;
+		}
+
+		// Get the descriptions
+		if ($description)
+		{
+			// Get client template styles.
+			$db    = JFactory::getDbo();
+			$query = $db->getQuery(true)
+				->select(array('template', 'home'))
+				->from($db->quoteName('#__template_styles'))
+				->where($db->quoteName('client_id') . ' = ' . (int) $clientId)
+				->order($db->quoteName('home') . ' DESC');
+
+			$templates = $db->setQuery($query)->loadObjectList();
+
+			JLoader::register('TemplatesHelper', JPATH_ADMINISTRATOR . '/components/com_templates/helpers/templates.php');
+
+			$templatesPositions = array();
+
+			// Preload the template positions.
+			foreach ($templates as $template)
+			{
+				$templatesPositions[$template->template] = TemplatesHelper::getPositions($clientId, $template->template);
+			}
+
+			// Get the description of the active positions.
+			foreach ($positions as &$position)
+			{
+				// If no position (None)
+				if (!$position->position)
+				{
+					$position->text = JText::_('COM_MODULES_NONE');
+					continue;
+				}
+
+				foreach ($templatesPositions as $template => $templatePositions)
+				{
+					foreach ($templatePositions as $templatePosition)
+					{
+						if ($position->position === $templatePosition)
+						{
+							$position->text = static::getTranslatedModulePosition($clientId, $template, $position->position) . ' [' . $position->position . ']';
+							continue;
+						}
+					}
+
+					if ($position->text)
+					{
+						continue;
+					}
+				}
+			}
+		}
+
+		return ArrayHelper::sortObjects($positions, 'text');
 	}
 }
