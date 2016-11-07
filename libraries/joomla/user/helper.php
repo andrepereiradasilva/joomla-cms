@@ -40,41 +40,14 @@ abstract class JUserHelper
 		// Add the user to the group if necessary.
 		if (!in_array($groupId, $user->groups))
 		{
-			// Get the title of the group.
-			$db = JFactory::getDbo();
-			$query = $db->getQuery(true)
-				->select($db->quoteName('title'))
-				->from($db->quoteName('#__usergroups'))
-				->where($db->quoteName('id') . ' = ' . (int) $groupId);
-			$db->setQuery($query);
-			$title = $db->loadResult();
-
-			// If the group does not exist, return an exception.
-			if (!$title)
-			{
-				throw new RuntimeException('Access Usergroup Invalid');
-			}
-
 			// Add the group data to the user object.
-			$user->groups[$title] = $groupId;
+			$user->groups[$groupId] = $groupId;
 
 			// Store the user object.
 			$user->save();
-		}
 
-		// Set the group data for any preloaded user objects.
-		$temp         = JUser::getInstance((int) $userId);
-		$temp->groups = $user->groups;
-
-		if (JFactory::getSession()->getId())
-		{
-			// Set the group data for the user object in the session.
-			$temp = JFactory::getUser();
-
-			if ($temp->id == $userId)
-			{
-				$temp->groups = $user->groups;
-			}
+			// Preload the user groups.
+			$user->preloadUserGroups((int) $userId);
 		}
 
 		return true;
@@ -95,6 +68,23 @@ abstract class JUserHelper
 		$user = JUser::getInstance((int) $userId);
 
 		return isset($user->groups) ? $user->groups : array();
+	}
+
+	/**
+	 * Method to get a list of child groups a user is in.
+	 *
+	 * @param   integer  $userId  The id of the user.
+	 *
+	 * @return  array    List of child groups
+	 *
+	 * @since   11.1
+	 */
+	public static function getUserChildGroups($userId)
+	{
+		// Get the user object.
+		$user = JUser::getInstance((int) $userId);
+
+		return isset($user->childGroups) ? $user->childGroups : array();
 	}
 
 	/**
@@ -122,18 +112,9 @@ abstract class JUserHelper
 
 			// Store the user object.
 			$user->save();
-		}
 
-		// Set the group data for any preloaded user objects.
-		$temp = JFactory::getUser((int) $userId);
-		$temp->groups = $user->groups;
-
-		// Set the group data for the user object in the session.
-		$temp = JFactory::getUser();
-
-		if ($temp->id == $userId)
-		{
-			$temp->groups = $user->groups;
+			// Preload the user groups.
+			$user->preloadUserGroups((int) $userId);
 		}
 
 		return true;
@@ -155,41 +136,13 @@ abstract class JUserHelper
 		$user = JUser::getInstance((int) $userId);
 
 		// Set the group ids.
-		$groups = ArrayHelper::toInteger($groups);
-		$user->groups = $groups;
-
-		// Get the titles for the user groups.
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select($db->quoteName('id') . ', ' . $db->quoteName('title'))
-			->from($db->quoteName('#__usergroups'))
-			->where($db->quoteName('id') . ' = ' . implode(' OR ' . $db->quoteName('id') . ' = ', $user->groups));
-		$db->setQuery($query);
-		$results = $db->loadObjectList();
-
-		// Set the titles for the user groups.
-		for ($i = 0, $n = count($results); $i < $n; $i++)
-		{
-			$user->groups[$results[$i]->id] = $results[$i]->id;
-		}
+		$user->groups = ArrayHelper::toInteger($groups);
 
 		// Store the user object.
 		$user->save();
 
-		if (session_id())
-		{
-			// Set the group data for any preloaded user objects.
-			$temp = JFactory::getUser((int) $userId);
-			$temp->groups = $user->groups;
-
-			// Set the group data for the user object in the session.
-			$temp = JFactory::getUser();
-
-			if ($temp->id == $userId)
-			{
-				$temp->groups = $user->groups;
-			}
-		}
+		// Preload the user groups.
+		$user->preloadUserGroups((int) $userId);
 
 		return true;
 	}

@@ -738,45 +738,64 @@ class JAccess
 			// Registered user and guest if all groups are requested
 			else
 			{
-				$db = JFactory::getDbo();
+				// For the current user id we already have the data in JUser.
+				$user = JFactory::getUser();
 
-				// Build the database query to get the rules for the asset.
-				$query = $db->getQuery(true)
-					->select($recursive ? 'b.id' : 'a.id');
-
-				if (empty($userId))
+				if (!empty($userId) && $user->id === $userId)
 				{
-					$query->from('#__usergroups AS a')
-						->where('a.id = ' . (int) $guestUsergroup);
+					if (!$recursive)
+					{
+						$result = array_keys($user->groups);
+					}
+					else
+					{
+						$result = array();
+
+						foreach($user->childGroups as $userGroup => $childGroups)
+						{
+							foreach($childGroups as $key => $groupId)
+							{
+								$result[] = $groupId;
+							}
+						}
+					}
 				}
+				// If not the current user we make a query.
 				else
 				{
-					$query->from('#__user_usergroup_map AS map')
-						->where('map.user_id = ' . (int) $userId)
-						->join('LEFT', '#__usergroups AS a ON a.id = map.group_id');
-				}
+					$db = JFactory::getDbo();
 
-				// If we want the rules cascading up to the global asset node we need a self-join.
-				if ($recursive)
-				{
-					$query->join('LEFT', '#__usergroups AS b ON b.lft <= a.lft AND b.rgt >= a.rgt');
-				}
+					// Build the database query to get the rules for the asset.
+					$query = $db->getQuery(true)
+						->select($recursive ? 'b.id' : 'a.id');
 
-				// Execute the query and load the rules from the result.
-				$db->setQuery($query);
-				$result = $db->loadColumn();
+					if (empty($userId))
+					{
+						$query->from('#__usergroups AS a')
+							->where('a.id = ' . (int) $guestUsergroup);
+					}
+					else
+					{
+						$query->from('#__user_usergroup_map AS map')
+							->where('map.user_id = ' . (int) $userId)
+							->join('LEFT', '#__usergroups AS a ON a.id = map.group_id');
+					}
+
+					// If we want the rules cascading up to the global asset node we need a self-join.
+					if ($recursive)
+					{
+						$query->join('LEFT', '#__usergroups AS b ON b.lft <= a.lft AND b.rgt >= a.rgt');
+					}
+
+					// Execute the query and load the rules from the result.
+					$db->setQuery($query);
+					$result = $db->loadColumn();
+				}
 
 				// Clean up any NULL or duplicate values, just in case
 				$result = ArrayHelper::toInteger($result);
 
-				if (empty($result))
-				{
-					$result = array('1');
-				}
-				else
-				{
-					$result = array_unique($result);
-				}
+				$result = empty($result) ? array('1') : array_unique($result);
 			}
 
 			self::$groupsByUser[$storeId] = $result;
