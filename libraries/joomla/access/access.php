@@ -414,7 +414,7 @@ class JAccess
 	 * e.g. it will get 'com_content', but not 'com_content.article.1' or
 	 * any more specific asset type rules.
 	 *
-	 * @return   array Array of component names that were preloaded.
+	 * @return   array  Array of component names that were preloaded.
 	 *
 	 * @since    1.6
 	 */
@@ -505,7 +505,7 @@ class JAccess
 
 		!JDEBUG ?: JProfiler::getInstance('Application')->mark('After JAccess::preload (all components)');
 
-		return true;
+		return $components;
 	}
 
 	/**
