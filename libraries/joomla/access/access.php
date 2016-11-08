@@ -52,7 +52,7 @@ class JAccess
 	 */
 	protected static $assetPermissionsById = array();
 
- 	/**
+	/**
 	 * Array of permissions for an asset type
 	 * (Array Key = Asset Name)
 	 *
