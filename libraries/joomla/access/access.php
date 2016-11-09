@@ -535,8 +535,8 @@ class JAccess
 		// Get the asset id and name.
 		$assetId = self::getAssetId($assetKey);
 
-		// If asset rules already cached em memory return it.
-		if ($assetId && isset(self::$assetRules[$assetId]))
+		// If asset rules already cached em memory return it (only in full recursive mode).
+		if ($recursive && $recursiveParentAsset && $assetId && isset(self::$assetRules[$assetId]))
 		{
 			return self::$assetRules[$assetId];
 		}
@@ -564,7 +564,7 @@ class JAccess
 		}
 
 		// Almost all calls can take advantage of preloading.
-		if ($recursive && $recursiveParentAsset && $assetId && isset(self::$preloadedAssets[$assetId]))
+		if ($assetId && isset(self::$preloadedAssets[$assetId]))
 		{
 			!JDEBUG ?: JProfiler::getInstance('Application')->mark('Before JAccess::getAssetRules (id:' . $assetId . ' name:' . $assetName . ')');
 
@@ -596,6 +596,12 @@ class JAccess
 						continue;
 					}
 
+					// If empty asset to not add to rules.
+					if (self::$assetPermissionsParentIdMapping[$extensionName][$id]->rules === '{}')
+					{
+						continue;
+					}
+
 					$collected[] = self::$assetPermissionsParentIdMapping[$extensionName][$id]->rules;
 				}
 			}
@@ -616,7 +622,7 @@ class JAccess
 				self::$assetRulesIdentities[$hash] = $rules;
 			}
 
-			// Only save rules if recursive.
+			// Save asset rules to memory cache(only in full recursive mode).
 			if ($recursive && $recursiveParentAsset)
 			{
 				self::$assetRules[$assetId] = self::$assetRulesIdentities[$hash];
