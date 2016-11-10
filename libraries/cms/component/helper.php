@@ -60,9 +60,7 @@ class JComponentHelper
 
 		if (is_string($result->params))
 		{
-			$temp = new Registry;
-			$temp->loadString(static::$components[$option]->params);
-			static::$components[$option]->params = $temp;
+			static::$components[$option]->params = new Registry(static::$components[$option]->params);
 		}
 
 		return $result;
@@ -80,9 +78,7 @@ class JComponentHelper
 	 */
 	public static function isEnabled($option)
 	{
-		$result = static::getComponent($option, true);
-
-		return $result->enabled;
+		return JExtensionHelper::isEnabled('component', null, $option);
 	}
 
 	/**
@@ -97,15 +93,7 @@ class JComponentHelper
 	 */
 	public static function isInstalled($option)
 	{
-		$db = JFactory::getDbo();
-
-		return (int) $db->setQuery(
-			$db->getQuery(true)
-				->select('COUNT(' . $db->quoteName('extension_id') . ')')
-				->from($db->quoteName('#__extensions'))
-				->where($db->quoteName('element') . ' = ' . $db->quote($option))
-				->where($db->quoteName('type') . ' = ' . $db->quote('component'))
-		)->loadResult();
+		return (int) JExtensionHelper::isInstalled('component', null, $option);
 	}
 
 	/**
@@ -461,7 +449,7 @@ class JComponentHelper
 		}
 
 		// Loaded with success.
-		if (static::$components && count(static::$components) !== 0)
+		if (static::$components && static::$components !== array())
 		{
 			return true;
 		}
