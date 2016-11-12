@@ -525,14 +525,18 @@ abstract class JModuleHelper
 		/** @var JCacheControllerCallback $cache */
 		$cache = JFactory::getCache($cacheparams->cachegroup, 'callback');
 
+		// For B/C we still get the owncache and cache_time.
+		$moduleCaching   = $moduleparams->get('owncache', null) === null ? $moduleparams->get('caching', $conf->get('caching', 2)) : $moduleparams->get('owncache', null);
+		$moduleCacheTime = $moduleparams->get('cache_time', null) === '' ? $moduleparams->get('cachetime', $conf->get('cachetime', 15)) : $moduleparams->get('cache_time', 0) * 60;
+
 		// Turn cache off for internal callers if parameters are set to off and for all logged in users
-		if ($moduleparams->get('owncache', null) === '0' || $conf->get('caching') == 0 || $user->get('id'))
+		if ($moduleCaching == 0 || $user->id)
 		{
 			$cache->setCaching(false);
 		}
 
 		// Module cache is set in seconds, global cache in minutes, setLifeTime works in minutes
-		$cache->setLifeTime($moduleparams->get('cache_time', $conf->get('cachetime') * 60) / 60);
+		$cache->setLifeTime($moduleCacheTime / 60);
 
 		$wrkaroundoptions = array('nopathway' => 1, 'nohead' => 0, 'nomodules' => 1, 'modulemode' => 1, 'mergehead' => 1);
 
