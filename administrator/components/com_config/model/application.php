@@ -479,77 +479,45 @@ class ConfigModelApplication extends ConfigModelForm
 			return false;
 		}
 
-		try
+		$asset = JTable::getInstance('Asset');
+		$asset->load(array('name' => $permission['component']));
+
+		// No asset found when editing? Problems with assets table... 
+		if (!$asset->id)
 		{
-			// Load the current settings for this component.
-			$query = $this->db->getQuery(true)
-				->select($this->db->quoteName(array('name', 'rules')))
-				->from($this->db->quoteName('#__assets'))
-				->where($this->db->quoteName('name') . ' = ' . $this->db->quote($permission['component']));
-
-			$this->db->setQuery($query);
-
-			// Load the results as a list of stdClass objects (see later for more options on retrieving data).
-			$results = $this->db->loadAssocList();
-		}
-		catch (Exception $e)
-		{
-			$app->enqueueMessage($e->getMessage(), 'error');
-
-			return false;
-		}
-
-		// No record found, let's create one.
-		if (empty($results))
-		{
-			$data = array();
-			$data[$permission['action']] = array($permission['rule'] => $permission['value']);
-
-			$rules        = new JAccessRules($data);
-			$asset        = JTable::getInstance('asset');
-			$asset->rules = (string) $rules;
-			$asset->name  = (string) $permission['component'];
-			$asset->title = (string) $permission['title'];
-
-			// Get the parent asset id so we have a correct tree.
-			$parentAsset = JTable::getInstance('Asset');
-
-			if (strpos($asset->name, '.') !== false)
-			{
-				$assetParts = explode('.', $asset->name);
-				$parentAsset->loadByName($assetParts[0]);
-				$parentAssetId = $parentAsset->id;
-			}
-			else
-			{
-				$parentAssetId = $parentAsset->getRootId();
-			}
-
 			/**
-			 * @to do: incorrect ACL stored
-			 * When changing a permission of an item that doesn't have a row in the asset table the row a new row is created.
-			 * This works fine for item <-> component <-> global config scenario and component <-> global config scenario.
-			 * But doesn't work properly for item <-> section(s) <-> component <-> global config scenario,
-			 * because a wrong parent asset id (the component) is stored.
-			 * Happens when there is no row in the asset table (ex: deleted or not created on update).
-			 */
-
-			$asset->setLocation($parentAssetId, 'last-child');
-
-			if (!$asset->check() || !$asset->store())
+			 * We are trying to create an asset for a level upper than 1, inform the user to save permissions and then edit.
+			 * We do this because at this point we don't know if the asset is level 2 or more.
+			 * This way we don't store incorrect ACL rules.
+			 **/
+			if (strpos($asset->name, '.') === false)
 			{
-				$app->enqueueMessage(JText::_('JLIB_UNKNOWN'), 'error');
+				$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'error');
 
 				return false;
 			}
+
+			// If is a component asset we can help by create a new asset.
+			$asset        = JTable::getInstance('Asset');
+			$asset->rules = (string) new JAccessRules(array($permission['action'] => array($permission['rule'] => $permission['value'])));
+			$asset->name  = (string) $permission['component'];
+			$asset->title = (string) $permission['title'];
+
+			$asset->setLocation($asset->getRootId(), 'last-child');
 		}
+		// Asset found, let's update it.
 		else
 		{
 			// Decode the rule settings.
-			$temp = json_decode($results[0]['rules'], true);
+			$temp = json_decode($asset->rules, true);
 
 			// Check if a new value is to be set.
-			if (isset($permission['value']))
+			if (!isset($permission['value']))
+			{
+				$asset->rules = '{}';
+			}
+			// There is a value, set it.
+			else
 			{
 				// Check if we already have an action entry.
 				if (!isset($temp[$permission['action']]))
@@ -563,93 +531,60 @@ class ConfigModelApplication extends ConfigModelForm
 					$temp[$permission['action']][$permission['rule']] = array();
 				}
 
-				// Set the new permission.
-				$temp[$permission['action']][$permission['rule']] = (int) $permission['value'];
-
 				// Check if we have an inherited setting.
 				if (strlen($permission['value']) === 0)
 				{
 					unset($temp[$permission['action']][$permission['rule']]);
 				}
-			}
-			else
-			{
-				// There is no value so remove the action as it's not needed.
-				unset($temp[$permission['action']]);
-			}
+				// Set the new permission.
+				else
+				{
+					$temp[$permission['action']][$permission['rule']] = (int) $permission['value'];
+				}
 
-			// Store the new permissions.
-			try
-			{
-				$query->clear()
-					->update($this->db->quoteName('#__assets'))
-					->set($this->db->quoteName('rules') . ' = ' . $this->db->quote(json_encode($temp)))
-					->where($this->db->quoteName('name') . ' = ' . $this->db->quote($permission['component']));
-
-				$this->db->setQuery($query)->execute();
-			}
-			catch (Exception $e)
-			{
-				$app->enqueueMessage($e->getMessage(), 'error');
-
-				return false;
+				// If the action as no rules, we use empty json, else we'll use them.
+				$asset->rules = count($temp[$permission['action']]) === 0 ? '{}' : json_encode($temp);
 			}
 		}
 
-		// All checks done.
+		// Create/Update the asset rules.
+		if (!$asset->check() || !$asset->store())
+		{
+			$app->enqueueMessage($asset->getError(), 'error');
+
+			return false;
+		}
+
+		/**
+		 * When we reach this point the asset is saved (new or updated).
+		 * We now need to send the new asset calculated permissions.
+		 */
 		$result = array(
 			'text'    => '',
 			'class'   => '',
 			'result'  => true,
 		);
 
-		// Show the current effective calculated permission considering current group, path and cascade.
+		$assetId = $asset->id;
 
+		// If not in global config we need the parent_id asset to calculate permissions.
+		$parentAssetId = !$isGlobalConfig ? $asset->parent_id : null;
+
+		/**
+		 * @to do: incorrect info
+		 * When creating a new item (not saving) it uses the calculated permissions from the component (item <-> component <-> global config).
+		 * But if we have a section too (item <-> section(s) <-> component <-> global config) this is not correct.
+		 * Also, currently it uses the component permission, but should use the calculated permissions for achild of the component/section.
+		 */
 		try
 		{
-			// Get the asset id by the name of the component.
-			$query->clear()
-				->select($this->db->quoteName('id'))
-				->from($this->db->quoteName('#__assets'))
-				->where($this->db->quoteName('name') . ' = ' . $this->db->quote($permission['component']));
-
-			$this->db->setQuery($query);
-
-			$assetId = (int) $this->db->loadResult();
-
-			// Fetch the parent asset id.
-			$parentAssetId = null;
-
-			/**
-			 * @to do: incorrect info
-			 * When creating a new item (not saving) it uses the calculated permissions from the component (item <-> component <-> global config).
-			 * But if we have a section too (item <-> section(s) <-> component <-> global config) this is not correct.
-			 * Also, currently it uses the component permission, but should use the calculated permissions for achild of the component/section.
-			 */
-
-			// If not in global config we need the parent_id asset to calculate permissions.
-			if (!$isGlobalConfig)
-			{
-				// In this case we need to get the component rules too.
-				$query->clear()
-					->select($this->db->quoteName('parent_id'))
-					->from($this->db->quoteName('#__assets'))
-					->where($this->db->quoteName('id') . ' = ' . $assetId);
-
-				$this->db->setQuery($query);
-
-				$parentAssetId = (int) $this->db->loadResult();
-			}
-
 			// Get the group parent id of the current group.
-			$query->clear()
+			$query = $this->db->getQuery(true)
 				->select($this->db->quoteName('parent_id'))
 				->from($this->db->quoteName('#__usergroups'))
 				->where($this->db->quoteName('id') . ' = ' . (int) $permission['rule']);
 
-			$this->db->setQuery($query);
-
-			$parentGroupId = (int) $this->db->loadResult();
+			$parentGroupId = (int) $this->db->setQuery($query)->loadResult();
 
 			// Count the number of child groups of the current group.
 			$query->clear()
@@ -657,9 +592,7 @@ class ConfigModelApplication extends ConfigModelForm
 				->from($this->db->quoteName('#__usergroups'))
 				->where($this->db->quoteName('parent_id') . ' = ' . (int) $permission['rule']);
 
-			$this->db->setQuery($query);
-
-			$totalChildGroups = (int) $this->db->loadResult();
+			$totalChildGroups = (int) $this->db->setQuery($query)->loadResult();
 		}
 		catch (Exception $e)
 		{
