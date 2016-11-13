@@ -152,8 +152,6 @@ class JToolbar
 	 */
 	public function render()
 	{
-		$html = array();
-
 		// Start toolbar div.
 		$html = JLayoutHelper::render('joomla.toolbar.containeropen', array('id' => $this->_name));
 
