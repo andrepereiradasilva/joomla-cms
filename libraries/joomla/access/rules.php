@@ -217,7 +217,6 @@ class JAccessRules
 		{
 			// Convert the action to JSON, then back into an array otherwise
 			// re-encoding will quote the JSON for the identities in the action.
-			// Also don't save empty rules.
 			$temp[$name] = json_decode((string) $rule);
 		}
 
