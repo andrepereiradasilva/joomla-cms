@@ -80,7 +80,6 @@ abstract class JToolbarButton
 		);
 
 		return JLayoutHelper::render('joomla.toolbar.base', $options);
-
 	}
 
 	/**
