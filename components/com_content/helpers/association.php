@@ -77,7 +77,7 @@ abstract class ContentHelperAssociation extends CategoryHelperAssociation
 		if ($associations = self::getAssociations($id))
 		{
 			$levels    = JFactory::getUser()->getAuthorisedViewLevels();
-			$languages = JLanguageHelper::getLanguages();
+			$languages = JLanguageHelper::getContentLanguages(true, true, null);
 
 			foreach ($languages as $language)
 			{

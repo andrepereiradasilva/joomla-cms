@@ -84,7 +84,7 @@ class JLanguageHelper
 		if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE']))
 		{
 			$browserLangs = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-			$systemLangs = self::getLanguages();
+			$systemLangs  = static::getLanguages();
 
 			foreach ($browserLangs as $browserLang)
 			{
@@ -131,53 +131,28 @@ class JLanguageHelper
 	 */
 	public static function getLanguages($key = 'default')
 	{
-		static $languages;
+		static $languages = array();
 
-		if (empty($languages))
+		if (!isset($languages[$key]))
 		{
 			// Installation uses available languages
 			if (JFactory::getApplication()->getClientId() == 2)
 			{
 				$languages[$key] = array();
-				$knownLangs = JLanguage::getKnownLanguages(JPATH_BASE);
+				$knownLanguages  = JLanguage::getKnownLanguages(JPATH_BASE);
 
-				foreach ($knownLangs as $metadata)
+				foreach ($knownLanguages as $metadata)
 				{
-					// Take off 3 letters iso code languages as they can't match browsers' languages and default them to en
-					$obj = new stdClass;
-					$obj->lang_code = $metadata['tag'];
+					$obj               = new stdClass;
+					$obj->lang_code    = $metadata['tag'];
 					$languages[$key][] = $obj;
 				}
 			}
 			else
 			{
-				$cache = JFactory::getCache('com_languages', '');
-
-				if (!$languages = $cache->get('languages'))
-				{
-					$db = JFactory::getDbo();
-					$query = $db->getQuery(true)
-						->select('*')
-						->from('#__languages')
-						->where('published=1')
-						->order('ordering ASC');
-					$db->setQuery($query);
-
-					$languages['default'] = $db->loadObjectList();
-					$languages['sef'] = array();
-					$languages['lang_code'] = array();
-
-					if (isset($languages['default'][0]))
-					{
-						foreach ($languages['default'] as $lang)
-						{
-							$languages['sef'][$lang->sef] = $lang;
-							$languages['lang_code'][$lang->lang_code] = $lang;
-						}
-					}
-
-					$cache->store($languages, 'languages');
-				}
+				$languages['default']   = static::getContentLanguages(true, true, null, 'ordering', 'ASC');
+				$languages['lang_code'] = ArrayHelper::pivot($languages['default'], 'lang_code');
+				$languages['sef']       = ArrayHelper::pivot($languages['default'], 'sef');
 			}
 		}
 
@@ -333,7 +308,8 @@ class JLanguageHelper
 
 				$query = $db->getQuery(true)
 					->select('*')
-					->from($db->quoteName('#__languages'));
+					->from($db->quoteName('#__languages'))
+					->where($db->quoteName('published') . ' IN (0, 1)');
 
 				$contentLanguages = $db->setQuery($query)->loadObjectList();
 
