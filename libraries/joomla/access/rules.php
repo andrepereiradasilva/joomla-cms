@@ -135,6 +135,12 @@ class JAccessRules
 	 */
 	public function mergeAction($action, $identities)
 	{
+		// Don't use empty identities.
+		if ($identities === array())
+		{
+			return;
+		}
+
 		if (isset($this->data[$action]))
 		{
 			// If exists, merge the action.
@@ -212,10 +218,7 @@ class JAccessRules
 			// Convert the action to JSON, then back into an array otherwise
 			// re-encoding will quote the JSON for the identities in the action.
 			// Also don't save empty rules.
-			if ($rule !== array())
-			{
-				$temp[$name] = json_decode((string) $rule);
-			}
+			$temp[$name] = json_decode((string) $rule);
 		}
 
 		return json_encode($temp);
