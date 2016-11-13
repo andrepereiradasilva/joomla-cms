@@ -135,21 +135,21 @@ class JAccessRules
 	 */
 	public function mergeAction($action, $identities)
 	{
-		// Don't use empty identities.
-		if ($identities === array())
-		{
-			return;
-		}
-
+		// If exists, merge the action.
 		if (isset($this->data[$action]))
 		{
-			// If exists, merge the action.
 			$this->data[$action]->mergeIdentities($identities);
 		}
-		else
+		// If new, and some identity exist, add the action.
+		elseif ($identities !== array())
 		{
-			// If new, add the action.
 			$this->data[$action] = new JAccessRule($identities);
+		}
+
+		// If this action rule as no identities we can clean it.
+		if (isset($this->data[$action]) && $this->data[$action] === array())
+		{
+			unset($this->data[$action]);
 		}
 	}
 
