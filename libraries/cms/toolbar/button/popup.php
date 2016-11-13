@@ -45,35 +45,31 @@ class JToolbarButtonPopup extends JToolbarButton
 	public function fetchButton($type = 'Modal', $name = '', $text = '', $url = '', $width = 640, $height = 480, $top = 0, $left = 0,
 		$onClose = '', $title = '', $footer = null)
 	{
-		// If no $title is set, use the $text element
-		if (strlen($title) == 0)
-		{
-			$title = $text;
-		}
-
 		// Store all data to the options array for use with JLayout
-		$options = array();
-		$options['name'] = $name;
-		$options['text'] = JText::_($text);
-		$options['title'] = JText::_($title);
-		$options['class'] = $this->fetchIconClass($name);
-		$options['doTask'] = $this->_getCommand($url);
-
-		// Instantiate a new JLayoutFile instance and render the layout
-		$layout = new JLayoutFile('joomla.toolbar.popup');
+		$options = array(
+			'text'    => JText::_($text),
+			'title'   => strlen($title) === 0 ? JText::_($text) : JText::_($title),
+			'name'    => $name,
+			'class'   => $this->fetchIconClass($name),
+			'doTask'  => $this->_getCommand($url),
+		);
 
 		$html = array();
-		$html[] = $layout->render($options);
+
+		// Render the layout
+		$html[] = JLayoutHelper::render('joomla.toolbar.popup', $options);
 
 		// Place modal div and scripts in a new div
 		$html[] = '<div class="btn-group" style="width: 0; margin: 0">';
 
 		// Build the options array for the modal
-		$params = array();
-		$params['title']  = $options['title'];
-		$params['url']    = $options['doTask'];
-		$params['height'] = $height;
-		$params['width']  = $width;
+		$params = array(
+			'title'  => $options['title'],
+			'url'    => $options['doTask'],
+			'height' => $height,
+			'width'  => $width,
+		
+		);
 
 		if (isset($footer))
 		{
@@ -123,7 +119,7 @@ class JToolbarButtonPopup extends JToolbarButton
 	{
 		if (substr($url, 0, 4) !== 'http')
 		{
-			$url = JUri::base() . $url;
+			return JUri::base() . $url;
 		}
 
 		return $url;

@@ -37,14 +37,13 @@ class JToolbarButtonHelp extends JToolbarButton
 	public function fetchButton($type = 'Help', $ref = '', $com = false, $override = null, $component = null)
 	{
 		// Store all data to the options array for use with JLayout
-		$options = array();
-		$options['text']   = JText::_('JTOOLBAR_HELP');
-		$options['doTask'] = $this->_getCommand($ref, $com, $override, $component);
+		$options = array(
+			'text'   => JText::_('JTOOLBAR_HELP'),
+			'doTask' => $this->_getCommand($ref, $com, $override, $component),
+		);
 
-		// Instantiate a new JLayoutFile instance and render the layout
-		$layout = new JLayoutFile('joomla.toolbar.help');
-
-		return $layout->render($options);
+		// Render the layout
+		return JLayoutHelper::render('joomla.toolbar.help', $options);
 	}
 
 	/**
@@ -77,9 +76,7 @@ class JToolbarButtonHelp extends JToolbarButton
 	{
 		// Get Help URL
 		$url = JHelp::createUrl($ref, $com, $override, $component);
-		$url = htmlspecialchars($url, ENT_QUOTES);
-		$cmd = "Joomla.popupWindow('$url', '" . JText::_('JHELP', true) . "', 700, 500, 1)";
 
-		return $cmd;
+		return 'Joomla.popupWindow(\'' . htmlspecialchars($url, ENT_QUOTES) . '\', \'' . JText::_('JHELP', true) . '\', 700, 500, 1)';
 	}
 }

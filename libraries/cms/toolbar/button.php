@@ -70,23 +70,17 @@ abstract class JToolbarButton
 		/*
 		 * Initialise some variables
 		 */
-		$id = call_user_func_array(array(&$this, 'fetchId'), $definition);
+		$id     = call_user_func_array(array(&$this, 'fetchId'), $definition);
 		$action = call_user_func_array(array(&$this, 'fetchButton'), $definition);
 
-		// Build id attribute
-		if ($id)
-		{
-			$id = ' id="' . $id . '"';
-		}
-
 		// Build the HTML Button
-		$options = array();
-		$options['id'] = $id;
-		$options['action'] = $action;
+		$options = array(
+			'id'     => $id ? ' id="' . $id . '"' : $id,
+			'action' => $action,
+		);
 
-		$layout = new JLayoutFile('joomla.toolbar.base');
+		return JLayoutHelper::render('joomla.toolbar.base', $options);
 
-		return $layout->render($options);
 	}
 
 	/**
@@ -102,10 +96,7 @@ abstract class JToolbarButton
 	 */
 	public function fetchIconClass($identifier)
 	{
-		// It's an ugly hack, but this allows templates to define the icon classes for the toolbar
-		$layout = new JLayoutFile('joomla.toolbar.iconclass');
-
-		return $layout->render(array('icon' => $identifier));
+		return JLayoutHelper::render('joomla.toolbar.iconclass', array('icon' => $identifier));
 	}
 
 	/**

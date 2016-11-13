@@ -43,24 +43,16 @@ class JToolbarButtonSlider extends JToolbarButton
 		JHtml::_('script', 'jui/cms.js', array('version' => 'auto', 'relative' => true));
 
 		// Store all data to the options array for use with JLayout
-		$options = array();
-		$options['text'] = JText::_($text);
-		$options['name'] = $name;
-		$options['class'] = $this->fetchIconClass($name);
-		$options['onClose'] = '';
+		$options = array(
+			'text'    => JText::_($text),
+			'name'    => $name,
+			'class'   => $this->fetchIconClass($name),
+			'doTask'  => 'Joomla.setcollapse(\'' . $this->_getCommand($url) . '\', \'' . $name . '\', \'' . $height . '\');',
+			'onClose' => $onClose ? ' rel="{onClose: function() {' . $onClose . '}}"' : '',
+		);
 
-		$doTask = $this->_getCommand($url);
-		$options['doTask'] = 'Joomla.setcollapse(\'' . $doTask . '\', \'' . $name . '\', \'' . $height . '\');';
-
-		if ($onClose)
-		{
-			$options['onClose'] = ' rel="{onClose: function() {' . $onClose . '}}"';
-		}
-
-		// Instantiate a new JLayoutFile instance and render the layout
-		$layout = new JLayoutFile('joomla.toolbar.slider');
-
-		return $layout->render($options);
+		// Render the layout
+		return JLayoutHelper::render('joomla.toolbar.slider', $options);
 	}
 
 	/**
@@ -91,7 +83,7 @@ class JToolbarButtonSlider extends JToolbarButton
 	{
 		if (substr($url, 0, 4) !== 'http')
 		{
-			$url = JUri::base() . $url;
+			return JUri::base() . $url;
 		}
 
 		return $url;

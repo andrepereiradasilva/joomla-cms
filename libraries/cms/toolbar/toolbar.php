@@ -155,22 +155,18 @@ class JToolbar
 		$html = array();
 
 		// Start toolbar div.
-		$layout = new JLayoutFile('joomla.toolbar.containeropen');
-
-		$html[] = $layout->render(array('id' => $this->_name));
+		$html = JLayoutHelper::render('joomla.toolbar.containeropen', array('id' => $this->_name));
 
 		// Render each button in the toolbar.
 		foreach ($this->_bar as $button)
 		{
-			$html[] = $this->renderButton($button);
+			$html .= $this->renderButton($button);
 		}
 
 		// End toolbar div.
-		$layout = new JLayoutFile('joomla.toolbar.containerclose');
+		$html .= JLayoutHelper::render('joomla.toolbar.containerclose', array());
 
-		$html[] = $layout->render(array());
-
-		return implode('', $html);
+		return $html;
 	}
 
 	/**
