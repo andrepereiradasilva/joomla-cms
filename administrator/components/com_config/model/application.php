@@ -482,41 +482,24 @@ class ConfigModelApplication extends ConfigModelForm
 		$asset = JTable::getInstance('Asset');
 		$asset->load(array('name' => $permission['component']));
 
-		// No asset found when editing? Problems with assets table... 
+		// There is no asset in the database, inform the user to save before trying to change permissions.
 		if (!$asset->id)
 		{
-			/**
-			 * We are trying to create an asset for a level upper than 1, inform the user to save permissions and then edit.
-			 * We do this because at this point we don't know if the asset is level 2 or more.
-			 * This way we don't store incorrect ACL rules.
-			 **/
-			if (strpos($asset->name, '.') === false)
-			{
-				$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'error');
+			$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'error');
 
-				return false;
-			}
-
-			// If is a component asset we can help by create a new asset.
-			$asset        = JTable::getInstance('Asset');
-			$asset->rules = (string) new JAccessRules(array($permission['action'] => array($permission['rule'] => $permission['value'])));
-			$asset->name  = (string) $permission['component'];
-			$asset->title = (string) $permission['title'];
-
-			$asset->setLocation($asset->getRootId(), 'last-child');
+			return false;
 		}
+
 		// Asset found, let's update it.
-		else
-		{
-			// Get the current asset rules.
-			$currentRules = new JAccessRules($asset->rules);
 
-			// Replace the action in the rules.
-			$currentRules->setAction($permission['action'], array($permission['rule'] => $permission['value']));
+		// Get the current asset rules.
+		$currentRules = new JAccessRules($asset->rules);
 
-			// set the new rules.
-			$asset->rules = (string) $currentRules;
-		}
+		// Replace the action in the rules.
+		$currentRules->setAction($permission['action'], array($permission['rule'] => $permission['value']));
+
+		// set the new rules.
+		$asset->rules = (string) $currentRules;
 
 		// Create/Update the asset rules.
 		if (!$asset->check() || !$asset->store())
