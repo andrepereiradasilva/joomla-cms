@@ -136,24 +136,6 @@ class JFormFieldRules extends JFormField
 	 */
 	protected function getInput()
 	{
-		JHtml::_('bootstrap.tooltip');
-
-		// Add Javascript for permission change
-		JHtml::_('script', 'system/permissions.js', array('version' => 'auto', 'relative' => true));
-
-		// Load JavaScript message titles
-		JText::script('ERROR');
-		JText::script('WARNING');
-		JText::script('NOTICE');
-		JText::script('MESSAGE');
-
-		// Add strings for JavaScript error translations.
-		JText::script('JLIB_JS_AJAX_ERROR_CONNECTION_ABORT');
-		JText::script('JLIB_JS_AJAX_ERROR_NO_CONTENT');
-		JText::script('JLIB_JS_AJAX_ERROR_OTHER');
-		JText::script('JLIB_JS_AJAX_ERROR_PARSE');
-		JText::script('JLIB_JS_AJAX_ERROR_TIMEOUT');
-
 		// Initialise some field attributes.
 		$section    = $this->section;
 		$assetField = $this->assetField;
@@ -180,52 +162,55 @@ class JFormFieldRules extends JFormField
 
 		// Get the asset id.
 		// Note that for global configuration, com_config injects asset_id = 1 into the form.
-		$assetId       = $this->form->getValue($assetField);
-		$newItem       = empty($assetId) && $isGlobalConfig === false && $section !== 'component';
-		$parentAssetId = null;
+		$assetId = $this->form->getValue($assetField);
+		$newItem = empty($assetId) && $isGlobalConfig === false && $section !== 'component';
 
-		// If the asset id is empty (component or new item).
-		if (empty($assetId))
+		// If it's a new item tell the user to save before changing permissions.
+		if ($newItem)
 		{
-			// Get the component asset id as fallback.
-			$db = JFactory::getDbo();
-			$query = $db->getQuery(true)
-				->select($db->quoteName('id'))
-				->from($db->quoteName('#__assets'))
-				->where($db->quoteName('name') . ' = ' . $db->quote($component));
+			$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'warning');
 
-			$db->setQuery($query);
-
-			$assetId = (int) $db->loadResult();
-
-			/**
-			 * @to do: incorrect info
-			 * When creating a new item (not saving) it uses the calculated permissions from the component (item <-> component <-> global config).
-			 * But if we have a section too (item <-> section(s) <-> component <-> global config) this is not correct.
-			 * Also, currently it uses the component permission, but should use the calculated permissions for achild of the component/section.
-			 */
+			return '';
 		}
 
-		// If not in global config we need the parent_id asset to calculate permissions.
-		if (!$isGlobalConfig)
+		// Load the asset.
+		$asset = JTable::getInstance('Asset');
+		$asset->load($assetId);
+
+		// There is no asset in the database, inform the user to save before trying to change permissions.
+		if (!$asset->id)
 		{
-			// In this case we need to get the component rules too.
-			$db = JFactory::getDbo();
+			$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'warning');
 
-			$query = $db->getQuery(true)
-				->select($db->quoteName('parent_id'))
-				->from($db->quoteName('#__assets'))
-				->where($db->quoteName('id') . ' = ' . $assetId);
-
-			$db->setQuery($query);
-
-			$parentAssetId = (int) $db->loadResult();
+			return '';
 		}
+
+		// Get the parent asset id.
+		$parentAssetId = (int) $asset->parent_id;
+
+		// Render the permisisons tabs.
+		JHtml::_('bootstrap.tooltip');
+
+		// Add Javascript for permission change
+		JHtml::_('script', 'system/permissions.js', array('version' => 'auto', 'relative' => true));
+
+		// Load JavaScript message titles
+		JText::script('ERROR');
+		JText::script('WARNING');
+		JText::script('NOTICE');
+		JText::script('MESSAGE');
+
+		// Add strings for JavaScript error translations.
+		JText::script('JLIB_JS_AJAX_ERROR_CONNECTION_ABORT');
+		JText::script('JLIB_JS_AJAX_ERROR_NO_CONTENT');
+		JText::script('JLIB_JS_AJAX_ERROR_OTHER');
+		JText::script('JLIB_JS_AJAX_ERROR_PARSE');
+		JText::script('JLIB_JS_AJAX_ERROR_TIMEOUT');
 
 		// Full width format.
 
 		// Get the rules for just this asset (non-recursive).
-		$assetRules = JAccess::getAssetRules($assetId, false, false);
+		$assetRules = JAccess::getAssetRules($asset->id, false, false);
 
 		// Get the available user groups.
 		$groups = $this->getUserGroups();
@@ -349,9 +334,9 @@ class JFormFieldRules extends JFormField
 				$result = array();
 
 				// Get the group, group parent id, and group global config recursive calculated permission for the chosen action.
-				$inheritedGroupRule            = JAccess::checkGroup((int) $group->value, $action->name, $assetId);
-				$inheritedGroupParentAssetRule = !empty($parentAssetId) ? JAccess::checkGroup($group->value, $action->name, $parentAssetId) : null;
-				$inheritedParentGroupRule      = !empty($group->parent_id) ? JAccess::checkGroup($group->parent_id, $action->name, $assetId) : null;
+				$inheritedGroupRule            = JAccess::checkGroup((int) $group->value, $action->name, $asset->id);
+				$inheritedGroupParentAssetRule = $asset->parent_id ? JAccess::checkGroup($group->value, $action->name, $asset->parent_id) : null;
+				$inheritedParentGroupRule      = $group->parent_id ? JAccess::checkGroup($group->parent_id, $action->name, $asset->id) : null;
 
 				// Current group is a Super User group, so calculated setting is "Allowed (Super User)".
 				if ($isSuperUserGroup)
@@ -431,16 +416,7 @@ class JFormFieldRules extends JFormField
 		$html[] = '</div></div>';
 		$html[] = '<div class="clr"></div>';
 		$html[] = '<div class="alert">';
-
-		if ($section === 'component' || $section === null)
-		{
-			$html[] = JText::_('JLIB_RULES_SETTING_NOTES');
-		}
-		else
-		{
-			$html[] = JText::_('JLIB_RULES_SETTING_NOTES_ITEM');
-		}
-
+		$html[] = $section === 'component' || $section === null ? JText::_('JLIB_RULES_SETTING_NOTES') : JText::_('JLIB_RULES_SETTING_NOTES_ITEM');
 		$html[] = '</div>';
 
 		return implode("\n", $html);
