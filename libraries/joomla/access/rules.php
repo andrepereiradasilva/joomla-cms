@@ -51,7 +51,7 @@ class JAccessRules
 			// Top level keys represent the actions.
 			foreach ($input as $action => $identities)
 			{
-				$this->mergeAction($action, $identities);
+				$this->setAction($action, $identities);
 			}
 		}
 	}
@@ -147,7 +147,37 @@ class JAccessRules
 		}
 
 		// If this action rule as no identities we can clean it.
-		if (isset($this->data[$action]) && $this->data[$action] === array())
+		if (isset($this->data[$action]) && (string) $this->data[$action] === '[]')
+		{
+			unset($this->data[$action]);
+		}
+	}
+
+	/**
+	 * Sets an array of identities for an action.
+	 *
+	 * @param   string  $action      The name of the action.
+	 * @param   array   $identities  An array of identities
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setAction($action, $identities)
+	{
+		// If exists, merge the action.
+		if (isset($this->data[$action]))
+		{
+			$this->data[$action]->setIdentities($identities);
+		}
+		// If new, and some identity exist, add the action.
+		elseif ($identities !== array())
+		{
+			$this->data[$action] = new JAccessRule($identities);
+		}
+
+		// If this action rule as no identities we can clean it.
+		if (isset($this->data[$action]) && (string) $this->data[$action] === '[]')
 		{
 			unset($this->data[$action]);
 		}

@@ -508,43 +508,14 @@ class ConfigModelApplication extends ConfigModelForm
 		// Asset found, let's update it.
 		else
 		{
-			// Decode the rule settings.
-			$temp = json_decode($asset->rules, true);
+			// Get the current asset rules.
+			$currentRules = new JAccessRules($asset->rules);
 
-			// Check if a new value is to be set.
-			if (!isset($permission['value']))
-			{
-				$asset->rules = '{}';
-			}
-			// There is a value, set it.
-			else
-			{
-				// Check if we already have an action entry.
-				if (!isset($temp[$permission['action']]))
-				{
-					$temp[$permission['action']] = array();
-				}
+			// Replace the action in the rules.
+			$currentRules->setAction($permission['action'], array($permission['rule'] => $permission['value']));
 
-				// Check if we already have a rule entry.
-				if (!isset($temp[$permission['action']][$permission['rule']]))
-				{
-					$temp[$permission['action']][$permission['rule']] = array();
-				}
-
-				// Check if we have an inherited setting.
-				if (strlen($permission['value']) === 0)
-				{
-					unset($temp[$permission['action']][$permission['rule']]);
-				}
-				// Set the new permission.
-				else
-				{
-					$temp[$permission['action']][$permission['rule']] = (int) $permission['value'];
-				}
-
-				// If the action as no rules, we use empty json, else we'll use them.
-				$asset->rules = count($temp[$permission['action']]) === 0 ? '{}' : json_encode($temp);
-			}
+			// set the new rules.
+			$asset->rules = (string) $currentRules;
 		}
 
 		// Create/Update the asset rules.
