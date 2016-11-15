@@ -397,25 +397,30 @@ class ConfigModelApplication extends ConfigModelForm
 	 *
 	 * @since   3.5
 	 */
-	public function storePermissions($permission = null)
+	public function storePermissions($data = null)
 	{
 		$app  = JFactory::getApplication();
 		$user = JFactory::getUser();
 
-		if (is_null($permission))
+		// Get data from input.
+		if (is_null($data))
 		{
-			// Get data from input.
-			$permission = array(
+			$data = array(
 				'component' => $app->input->get('comp'),
 				'action'    => $app->input->get('action'),
 				'rule'      => $app->input->get('rule'),
 				'value'     => $app->input->get('value'),
-				'title'     => $app->input->get('title', '', 'RAW')
+				'title'     => $app->input->get('title', '', 'RAW'),
 			);
 		}
 
+		$assetName  = $data['component'];
+		$action     = $data['action'];
+		$groupId    = (int) $data['rule'];
+		$permission = $data['value'];
+
 		// We are creating a new item so we don't have an item id so don't allow.
-		if (substr($permission['component'], -6) === '.false')
+		if (substr($data['component'], -6) === '.false')
 		{
 			$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'error');
 
@@ -423,23 +428,20 @@ class ConfigModelApplication extends ConfigModelForm
 		}
 
 		// Check if the user is authorized to do this.
-		if (!$user->authorise('core.admin', $permission['component']))
+		if (!$user->authorise('core.admin', $assetName))
 		{
 			$app->enqueueMessage(JText::_('JERROR_ALERTNOAUTHOR'), 'error');
 
 			return false;
 		}
 
-		$permission['component'] = empty($permission['component']) ? 'root.1' : $permission['component'];
-
-		// Current view is global config?
-		$isGlobalConfig = $permission['component'] === 'root.1';
+		$assetName = !$assetName ? 'root.1' : $assetName;
 
 		// Check if changed group has Super User permissions.
-		$isSuperUserGroupBefore = JAccess::checkGroup($permission['rule'], 'core.admin');
+		$isSuperUserGroupBefore = JAccess::checkGroup($groupId, 'core.admin');
 
 		// Check if current user belongs to changed group.
-		$currentUserBelongsToGroup = in_array((int) $permission['rule'], $user->groups) ? true : false;
+		$currentUserBelongsToGroup = in_array($groupId, $user->groups) ? true : false;
 
 		// Get current user groups tree.
 		$currentUserGroupsTree = JAccess::getGroupsByUser($user->id, true);
@@ -456,7 +458,7 @@ class ConfigModelApplication extends ConfigModelForm
 		}
 
 		// If user is not Super User cannot change the permissions of a group it belongs to.
-		if (!$currentUserSuperUser && in_array((int) $permission['rule'], $currentUserGroupsTree))
+		if (!$currentUserSuperUser && in_array($groupId, $currentUserGroupsTree))
 		{
 			$app->enqueueMessage(JText::_('JLIB_USER_ERROR_CANNOT_CHANGE_OWN_PARENT_GROUPS'), 'error');
 
@@ -472,7 +474,7 @@ class ConfigModelApplication extends ConfigModelForm
 		}
 
 		// If user is not Super User cannot change the Super User permissions in any group it belongs to.
-		if ($isSuperUserGroupBefore && $currentUserBelongsToGroup && $permission['action'] === 'core.admin')
+		if ($isSuperUserGroupBefore && $currentUserBelongsToGroup && $action === 'core.admin')
 		{
 			$app->enqueueMessage(JText::_('JLIB_USER_ERROR_CANNOT_DEMOTE_SELF'), 'error');
 
@@ -480,7 +482,7 @@ class ConfigModelApplication extends ConfigModelForm
 		}
 
 		$asset = JTable::getInstance('Asset');
-		$asset->load(array('name' => $permission['component']));
+		$asset->load(array('name' => $assetName));
 
 		// There is no asset in the database, inform the user to save before trying to change permissions.
 		if (!$asset->id)
@@ -496,7 +498,7 @@ class ConfigModelApplication extends ConfigModelForm
 		$currentRules = new JAccessRules($asset->rules);
 
 		// Replace the action in the rules.
-		$currentRules->setAction($permission['action'], array($permission['rule'] => $permission['value']));
+		$currentRules->setAction($action, array($groupId => $permission));
 
 		// set the new rules.
 		$asset->rules = (string) $currentRules;
@@ -513,38 +515,21 @@ class ConfigModelApplication extends ConfigModelForm
 		 * When we reach this point the asset is saved (new or updated).
 		 * We now need to send the new asset calculated permissions.
 		 */
-		$result = array(
-			'text'    => '',
-			'class'   => '',
-			'result'  => true,
-		);
-
-		$assetId = $asset->id;
-
-		// If not in global config we need the parent_id asset to calculate permissions.
-		$parentAssetId = !$isGlobalConfig ? $asset->parent_id : null;
-
-		/**
-		 * @to do: incorrect info
-		 * When creating a new item (not saving) it uses the calculated permissions from the component (item <-> component <-> global config).
-		 * But if we have a section too (item <-> section(s) <-> component <-> global config) this is not correct.
-		 * Also, currently it uses the component permission, but should use the calculated permissions for achild of the component/section.
-		 */
 		try
 		{
 			// Get the group parent id of the current group.
 			$query = $this->db->getQuery(true)
 				->select($this->db->quoteName('parent_id'))
 				->from($this->db->quoteName('#__usergroups'))
-				->where($this->db->quoteName('id') . ' = ' . (int) $permission['rule']);
+				->where($this->db->quoteName('id') . ' = ' . $groupId);
 
-			$parentGroupId = (int) $this->db->setQuery($query)->loadResult();
+			$groupParentId = (int) $this->db->setQuery($query)->loadResult();
 
 			// Count the number of child groups of the current group.
 			$query->clear()
 				->select('COUNT(' . $this->db->quoteName('id') . ')')
 				->from($this->db->quoteName('#__usergroups'))
-				->where($this->db->quoteName('parent_id') . ' = ' . (int) $permission['rule']);
+				->where($this->db->quoteName('parent_id') . ' = ' . $groupId);
 
 			$totalChildGroups = (int) $this->db->setQuery($query)->loadResult();
 		}
@@ -559,90 +544,7 @@ class ConfigModelApplication extends ConfigModelForm
 		JAccess::clearStatics();
 
 		// After current group permission is changed we need to check again if the group has Super User permissions.
-		$isSuperUserGroupAfter = JAccess::checkGroup($permission['rule'], 'core.admin');
-
-		// Get the rule for just this asset (non-recursive) and get the actual setting for the action for this group.
-		$assetRule = JAccess::getAssetRules($assetId, false, false)->allow($permission['action'], $permission['rule']);
-
-		// Get the group, group parent id, and group global config recursive calculated permission for the chosen action.
-		$inheritedGroupRule = JAccess::checkGroup($permission['rule'], $permission['action'], $assetId);
-
-		if (!empty($parentAssetId))
-		{
-			$inheritedGroupParentAssetRule = JAccess::checkGroup($permission['rule'], $permission['action'], $parentAssetId);
-		}
-		else
-		{
-			$inheritedGroupParentAssetRule = null;
-		}
-
-		$inheritedParentGroupRule = !empty($parentGroupId) ? JAccess::checkGroup($parentGroupId, $permission['action'], $assetId) : null;
-
-		// Current group is a Super User group, so calculated setting is "Allowed (Super User)".
-		if ($isSuperUserGroupAfter)
-		{
-			$result['class'] = 'label label-success';
-			$result['text'] = '<span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_ALLOWED_ADMIN');
-		}
-		// Not super user.
-		else
-		{
-			// First get the real recursive calculated setting and add (Inherited) to it.
-
-			// If recursive calculated setting is "Denied" or null. Calculated permission is "Not Allowed (Inherited)".
-			if ($inheritedGroupRule === null || $inheritedGroupRule === false)
-			{
-				$result['class'] = 'label label-important';
-				$result['text']  = JText::_('JLIB_RULES_NOT_ALLOWED_INHERITED');
-			}
-			// If recursive calculated setting is "Allowed". Calculated permission is "Allowed (Inherited)".
-			else
-			{
-				$result['class'] = 'label label-success';
-				$result['text']  = JText::_('JLIB_RULES_ALLOWED_INHERITED');
-			}
-
-			// Second part: Overwrite the calculated permissions labels if there is an explicity permission in the current group.
-
-			/**
-			 * @to do: incorect info
-			 * If a component as a permission that doesn't exists in global config (ex: frontend editing in com_modules) by default
-			 * we get "Not Allowed (Inherited)" when we should get "Not Allowed (Default)".
-			 */
-
-			// If there is an explicity permission "Not Allowed". Calculated permission is "Not Allowed".
-			if ($assetRule === false)
-			{
-				$result['class'] = 'label label-important';
-				$result['text']  = JText::_('JLIB_RULES_NOT_ALLOWED');
-			}
-			// If there is an explicity permission is "Allowed". Calculated permission is "Allowed".
-			elseif ($assetRule === true)
-			{
-				$result['class'] = 'label label-success';
-				$result['text']  = JText::_('JLIB_RULES_ALLOWED');
-			}
-
-			// Third part: Overwrite the calculated permissions labels for special cases.
-
-			// Global configuration with "Not Set" permission. Calculated permission is "Not Allowed (Default)".
-			if (empty($parentGroupId) && $isGlobalConfig === true && $assetRule === null)
-			{
-				$result['class'] = 'label label-important';
-				$result['text']  = JText::_('JLIB_RULES_NOT_ALLOWED_DEFAULT');
-			}
-
-			/**
-			 * Component/Item with explicit "Denied" permission at parent Asset (Category, Component or Global config) configuration.
-			 * Or some parent group has an explicit "Denied".
-			 * Calculated permission is "Not Allowed (Locked)".
-			 */
-			elseif ($inheritedGroupParentAssetRule === false || $inheritedParentGroupRule === false)
-			{
-				$result['class'] = 'label label-important';
-				$result['text']  = '<span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_NOT_ALLOWED_LOCKED');
-			}
-		}
+		$isSuperUserGroupAfter = JAccess::checkGroup($groupId, 'core.admin');
 
 		// If removed or added super user from group, we need to refresh the page to recalculate all settings.
 		if ($isSuperUserGroupBefore != $isSuperUserGroupAfter)
@@ -656,7 +558,16 @@ class ConfigModelApplication extends ConfigModelForm
 			$app->enqueueMessage(JText::_('JLIB_RULES_NOTICE_RECALCULATE_GROUP_CHILDS_PERMISSIONS'), 'notice');
 		}
 
-		return $result;
+		// Get the calculated permission data.
+		$calculated = JAccess::getCalculatedPermission($asset->id, $asset->parent_id, $groupId, $groupParentId, $action);
+		$locked     = $calculated['locked'] ? '<span class="icon-lock icon-white"></span>' : '';
+		$allowed    = $calculated['allowed'] ? 'label-success' : 'label-important';
+
+		return array(
+			'class'  => 'label ' . $allowed,
+			'text'   => $locked . $calculated['text'],
+			'result' => true,
+		);
 	}
 
 	/**

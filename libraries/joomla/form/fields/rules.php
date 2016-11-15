@@ -168,9 +168,7 @@ class JFormFieldRules extends JFormField
 		// If it's a new item tell the user to save before changing permissions.
 		if ($newItem)
 		{
-			$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'warning');
-
-			return '';
+			return '<div class="alert alert-info">' . JText::_('JLIB_RULES_NOTICE_SAVE_TO_EDIT_PERMISSIONS') . '</div>';
 		}
 
 		// Load the asset.
@@ -180,9 +178,7 @@ class JFormFieldRules extends JFormField
 		// There is no asset in the database, inform the user to save before trying to change permissions.
 		if (!$asset->id)
 		{
-			$app->enqueueMessage(JText::_('JLIB_RULES_SAVE_BEFORE_CHANGE_PERMISSIONS'), 'warning');
-
-			return '';
+			return '<div class="alert alert-warning">' . JText::_('JLIB_RULES_WARNING_ASSET_NOT_FOUND') . '</div>';
 		}
 
 		// Get the parent asset id.
@@ -283,9 +279,6 @@ class JFormFieldRules extends JFormField
 			$html[] = '</thead>';
 			$html[] = '<tbody>';
 
-			// Check if this group has super user permissions
-			$isSuperUserGroup = JAccess::checkGroup($group->value, 'core.admin');
-
 			foreach ($actions as $action)
 			{
 				$html[] = '<tr>';
@@ -311,16 +304,16 @@ class JFormFieldRules extends JFormField
 				 */
 
 				// Get the actual setting for the action for this group.
-				$assetRule = $newItem === false ? $assetRules->allow($action->name, $group->value) : null;
+				$ruleValue = $newItem === false ? $assetRules->allow($action->name, $group->value) : null;
 
 				// Build the dropdowns for the permissions sliders
 
 				// The parent group has "Not Set", all children can rightly "Inherit" from that.
-				$html[] = '<option value=""' . ($assetRule === null ? ' selected="selected"' : '') . '>'
+				$html[] = '<option value=""' . ($ruleValue === null ? ' selected="selected"' : '') . '>'
 					. JText::_(empty($group->parent_id) && $isGlobalConfig ? 'JLIB_RULES_NOT_SET' : 'JLIB_RULES_INHERITED') . '</option>';
-				$html[] = '<option value="1"' . ($assetRule === true ? ' selected="selected"' : '') . '>' . JText::_('JLIB_RULES_ALLOWED')
+				$html[] = '<option value="1"' . ($ruleValue === true ? ' selected="selected"' : '') . '>' . JText::_('JLIB_RULES_ALLOWED')
 					. '</option>';
-				$html[] = '<option value="0"' . ($assetRule === false ? ' selected="selected"' : '') . '>' . JText::_('JLIB_RULES_DENIED')
+				$html[] = '<option value="0"' . ($ruleValue === false ? ' selected="selected"' : '') . '>' . JText::_('JLIB_RULES_DENIED')
 					. '</option>';
 
 				$html[] = '</select>&#160; ';
@@ -331,80 +324,12 @@ class JFormFieldRules extends JFormField
 				// Build the Calculated Settings column.
 				$html[] = '<td headers="aclactionth' . $group->value . '">';
 
-				$result = array();
+				// Get the calculated permission data.
+				$calculated = JAccess::getCalculatedPermission($asset->id, $asset->parent_id, $group->value, $group->parent_id, $action->name);
+				$locked     = $calculated['locked'] ? '<span class="icon-lock icon-white"></span>' : '';
+				$allowed    = $calculated['allowed'] ? 'label-success' : 'label-important';
 
-				// Get the group, group parent id, and group global config recursive calculated permission for the chosen action.
-				$inheritedGroupRule            = JAccess::checkGroup((int) $group->value, $action->name, $asset->id);
-				$inheritedGroupParentAssetRule = $asset->parent_id ? JAccess::checkGroup($group->value, $action->name, $asset->parent_id) : null;
-				$inheritedParentGroupRule      = $group->parent_id ? JAccess::checkGroup($group->parent_id, $action->name, $asset->id) : null;
-
-				// Current group is a Super User group, so calculated setting is "Allowed (Super User)".
-				if ($isSuperUserGroup)
-				{
-					$result['class'] = 'label label-success';
-					$result['text'] = '<span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_ALLOWED_ADMIN');
-				}
-				// Not super user.
-				else
-				{
-					// First get the real recursive calculated setting and add (Inherited) to it.
-
-					// If recursive calculated setting is "Denied" or null. Calculated permission is "Not Allowed (Inherited)".
-					if ($inheritedGroupRule === null || $inheritedGroupRule === false)
-					{
-						$result['class'] = 'label label-important';
-						$result['text']  = JText::_('JLIB_RULES_NOT_ALLOWED_INHERITED');
-					}
-					// If recursive calculated setting is "Allowed". Calculated permission is "Allowed (Inherited)".
-					else
-					{
-						$result['class'] = 'label label-success';
-						$result['text']  = JText::_('JLIB_RULES_ALLOWED_INHERITED');
-					}
-
-					// Second part: Overwrite the calculated permissions labels if there is an explicit permission in the current group.
-
-					/**
-					 * @to do: incorrect info
-					 * If a component as a permission that doesn't exists in global config (ex: frontend editing in com_modules) by default
-					 * we get "Not Allowed (Inherited)" when we should get "Not Allowed (Default)".
-					 */
-
-					// If there is an explicit permission "Not Allowed". Calculated permission is "Not Allowed".
-					if ($assetRule === false)
-					{
-						$result['class'] = 'label label-important';
-						$result['text']  = JText::_('JLIB_RULES_NOT_ALLOWED');
-					}
-					// If there is an explicit permission is "Allowed". Calculated permission is "Allowed".
-					elseif ($assetRule === true)
-					{
-						$result['class'] = 'label label-success';
-						$result['text']  = JText::_('JLIB_RULES_ALLOWED');
-					}
-
-					// Third part: Overwrite the calculated permissions labels for special cases.
-
-					// Global configuration with "Not Set" permission. Calculated permission is "Not Allowed (Default)".
-					if (empty($group->parent_id) && $isGlobalConfig === true && $assetRule === null)
-					{
-						$result['class'] = 'label label-important';
-						$result['text']  = JText::_('JLIB_RULES_NOT_ALLOWED_DEFAULT');
-					}
-
-					/**
-					 * Component/Item with explicit "Denied" permission at parent Asset (Category, Component or Global config) configuration.
-					 * Or some parent group has an explicit "Denied".
-					 * Calculated permission is "Not Allowed (Locked)".
-					 */
-					elseif ($inheritedGroupParentAssetRule === false || $inheritedParentGroupRule === false)
-					{
-						$result['class'] = 'label label-important';
-						$result['text']  = '<span class="icon-lock icon-white"></span>' . JText::_('JLIB_RULES_NOT_ALLOWED_LOCKED');
-					}
-				}
-
-				$html[] = '<span class="' . $result['class'] . '">' . $result['text'] . '</span>';
+				$html[] = '<span class="label ' . $allowed . '">' . $locked . $calculated['text'] . '</span>';
 				$html[] = '</td>';
 				$html[] = '</tr>';
 			}
