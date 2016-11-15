@@ -137,12 +137,8 @@ class JFormFieldRules extends JFormField
 	protected function getInput()
 	{
 		// Initialise some field attributes.
-		$section    = $this->section;
-		$assetField = $this->assetField;
-		$component  = empty($this->component) ? 'root.1' : $this->component;
-
-		// Current view is global config?
-		$isGlobalConfig = $component === 'root.1';
+		$section   = $this->section;
+		$component = !$this->component ? 'root.1' : $this->component;
 
 		// Get the actions for the asset.
 		$actions = JAccess::getActions($component, $section);
@@ -162,27 +158,33 @@ class JFormFieldRules extends JFormField
 
 		// Get the asset id.
 		// Note that for global configuration, com_config injects asset_id = 1 into the form.
-		$assetId = $this->form->getValue($assetField);
-		$newItem = empty($assetId) && $isGlobalConfig === false && $section !== 'component';
+		$assetId = $this->form->getValue($this->assetField);
 
 		// If it's a new item tell the user to save before changing permissions.
-		if ($newItem)
+		if (!$assetId && $component !== 'root.1' && $section !== 'component')
 		{
 			return '<div class="alert alert-info">' . JText::_('JLIB_RULES_NOTICE_SAVE_TO_EDIT_PERMISSIONS') . '</div>';
 		}
 
 		// Load the asset.
 		$asset = JTable::getInstance('Asset');
-		$asset->load($assetId);
+
+		// For items.
+		if ($assetId)
+		{
+			$asset->load($assetId);
+		}
+		// For components and global config.
+		else
+		{
+			$asset->load(array('name' => $component));
+		}
 
 		// There is no asset in the database, inform the user to save before trying to change permissions.
 		if (!$asset->id)
 		{
 			return '<div class="alert alert-warning">' . JText::_('JLIB_RULES_WARNING_ASSET_NOT_FOUND') . '</div>';
 		}
-
-		// Get the parent asset id.
-		$parentAssetId = (int) $asset->parent_id;
 
 		// Render the permisisons tabs.
 		JHtml::_('bootstrap.tooltip');
@@ -209,7 +211,7 @@ class JFormFieldRules extends JFormField
 		$assetRules = JAccess::getAssetRules($asset->id, false, false);
 
 		// Get the available user groups.
-		$groups = $this->getUserGroups();
+		$groups = JHelperUsergroups::getInstance()->getAll();
 
 		// Ajax request data.
 		$ajaxUri = JRoute::_('index.php?option=com_config&task=config.store&format=json&' . JSession::getFormToken() . '=1');
@@ -231,14 +233,14 @@ class JFormFieldRules extends JFormField
 			// Initial Active Tab
 			$active = '';
 
-			if ((int) $group->value === 1)
+			if ((int) $group->id === 1)
 			{
 				$active = 'active';
 			}
 
 			$html[] = '<li class="' . $active . '">';
-			$html[] = '<a href="#permission-' . $group->value . '" data-toggle="tab">';
-			$html[] = JLayoutHelper::render('joomla.html.treeprefix', array('level' => $group->level + 1)) . $group->text;
+			$html[] = '<a href="#permission-' . $group->id . '" data-toggle="tab">';
+			$html[] = JLayoutHelper::render('joomla.html.treeprefix', array('level' => $group->level + 1)) . $group->title;
 			$html[] = '</a>';
 			$html[] = '</li>';
 		}
@@ -253,25 +255,25 @@ class JFormFieldRules extends JFormField
 			// Initial Active Pane
 			$active = '';
 
-			if ((int) $group->value === 1)
+			if ((int) $group->id === 1)
 			{
 				$active = ' active';
 			}
 
-			$html[] = '<div class="tab-pane' . $active . '" id="permission-' . $group->value . '">';
+			$html[] = '<div class="tab-pane' . $active . '" id="permission-' . $group->id . '">';
 			$html[] = '<table class="table table-striped">';
 			$html[] = '<thead>';
 			$html[] = '<tr>';
 
-			$html[] = '<th class="actions" id="actions-th' . $group->value . '">';
+			$html[] = '<th class="actions" id="actions-th' . $group->id . '">';
 			$html[] = '<span class="acl-action">' . JText::_('JLIB_RULES_ACTION') . '</span>';
 			$html[] = '</th>';
 
-			$html[] = '<th class="settings" id="settings-th' . $group->value . '">';
+			$html[] = '<th class="settings" id="settings-th' . $group->id . '">';
 			$html[] = '<span class="acl-action">' . JText::_('JLIB_RULES_SELECT_SETTING') . '</span>';
 			$html[] = '</th>';
 
-			$html[] = '<th id="aclactionth' . $group->value . '">';
+			$html[] = '<th id="aclactionth' . $group->id . '">';
 			$html[] = '<span class="acl-action">' . JText::_('JLIB_RULES_CALCULATED_SETTING') . '</span>';
 			$html[] = '</th>';
 
@@ -282,19 +284,19 @@ class JFormFieldRules extends JFormField
 			foreach ($actions as $action)
 			{
 				$html[] = '<tr>';
-				$html[] = '<td headers="actions-th' . $group->value . '">';
-				$html[] = '<label for="' . $this->id . '_' . $action->name . '_' . $group->value . '" class="hasTooltip" title="'
+				$html[] = '<td headers="actions-th' . $group->id . '">';
+				$html[] = '<label for="' . $this->id . '_' . $action->name . '_' . $group->id . '" class="hasTooltip" title="'
 					. JHtml::_('tooltipText', $action->title, $action->description) . '">';
 				$html[] = JText::_($action->title);
 				$html[] = '</label>';
 				$html[] = '</td>';
 
-				$html[] = '<td headers="settings-th' . $group->value . '">';
+				$html[] = '<td headers="settings-th' . $group->id . '">';
 
 				$html[] = '<select onchange="sendPermissions.call(this, event)" data-chosen="true" class="input-small novalidate"'
-					. ' name="' . $this->name . '[' . $action->name . '][' . $group->value . ']"'
-					. ' id="' . $this->id . '_' . $action->name	. '_' . $group->value . '"'
-					. ' title="' . strip_tags(JText::sprintf('JLIB_RULES_SELECT_ALLOW_DENY_GROUP', JText::_($action->title), trim($group->text))) . '">';
+					. ' name="' . $this->name . '[' . $action->name . '][' . $group->id . ']"'
+					. ' id="' . $this->id . '_' . $action->name	. '_' . $group->id . '"'
+					. ' title="' . strip_tags(JText::sprintf('JLIB_RULES_SELECT_ALLOW_DENY_GROUP', JText::_($action->title), trim($group->title))) . '">';
 
 				/**
 				 * Possible values:
@@ -304,13 +306,13 @@ class JFormFieldRules extends JFormField
 				 */
 
 				// Get the actual setting for the action for this group.
-				$ruleValue = $newItem === false ? $assetRules->allow($action->name, $group->value) : null;
+				$ruleValue = $assetRules->allow($action->name, $group->id);
 
 				// Build the dropdowns for the permissions sliders
 
 				// The parent group has "Not Set", all children can rightly "Inherit" from that.
 				$html[] = '<option value=""' . ($ruleValue === null ? ' selected="selected"' : '') . '>'
-					. JText::_(empty($group->parent_id) && $isGlobalConfig ? 'JLIB_RULES_NOT_SET' : 'JLIB_RULES_INHERITED') . '</option>';
+					. JText::_(empty($group->parent_id) && $asset->parent_id === 0 ? 'JLIB_RULES_NOT_SET' : 'JLIB_RULES_INHERITED') . '</option>';
 				$html[] = '<option value="1"' . ($ruleValue === true ? ' selected="selected"' : '') . '>' . JText::_('JLIB_RULES_ALLOWED')
 					. '</option>';
 				$html[] = '<option value="0"' . ($ruleValue === false ? ' selected="selected"' : '') . '>' . JText::_('JLIB_RULES_DENIED')
@@ -318,14 +320,14 @@ class JFormFieldRules extends JFormField
 
 				$html[] = '</select>&#160; ';
 
-				$html[] = '<span id="icon_' . $this->id . '_' . $action->name . '_' . $group->value . '"' . '></span>';
+				$html[] = '<span id="icon_' . $this->id . '_' . $action->name . '_' . $group->id . '"' . '></span>';
 				$html[] = '</td>';
 
 				// Build the Calculated Settings column.
-				$html[] = '<td headers="aclactionth' . $group->value . '">';
+				$html[] = '<td headers="aclactionth' . $group->id . '">';
 
 				// Get the calculated permission data.
-				$calculated = JAccess::getCalculatedPermission($asset->id, $asset->parent_id, $group->value, $group->parent_id, $action->name);
+				$calculated = JAccess::getCalculatedPermission($asset->id, $asset->parent_id, $group->id, $group->parent_id, $action->name);
 				$locked     = $calculated['locked'] ? '<span class="icon-lock icon-white"></span>' : '';
 				$allowed    = $calculated['allowed'] ? 'label-success' : 'label-important';
 
@@ -353,6 +355,7 @@ class JFormFieldRules extends JFormField
 	 * @return  array
 	 *
 	 * @since   11.1
+	 * @deprecated   __DEPLOY_VERSION__ no replacement. Use JHelperUsergroups::getInstance()->getAll() instead.
 	 */
 	protected function getUserGroups()
 	{
