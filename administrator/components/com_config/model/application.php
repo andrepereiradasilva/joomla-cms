@@ -414,7 +414,7 @@ class ConfigModelApplication extends ConfigModelForm
 			);
 		}
 
-		$assetName  = $data['component'];
+		$assetName  = !$data['component'] ? 'root.1' : $data['component'];
 		$action     = $data['action'];
 		$groupId    = (int) $data['rule'];
 		$permission = $data['value'];
@@ -434,8 +434,6 @@ class ConfigModelApplication extends ConfigModelForm
 
 			return false;
 		}
-
-		$assetName = !$assetName ? 'root.1' : $assetName;
 
 		// Check if changed group has Super User permissions.
 		$isSuperUserGroupBefore = JAccess::checkGroup($groupId, 'core.admin');
