@@ -48,6 +48,12 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<th class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_NAME', 'name', $listDirn, $listOrder); ?>
 						</th>
+						<th width="10%" class="hidden-phone hidden-tablet">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_LAST_CHECK', 'last_check_timestamp', $listDirn, $listOrder); ?>
+						</th>
+						<th width="1%" class="nowrap hidden-phone hidden-tablet">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FAILED_ATTEMPTS', 'failed_attempts', $listDirn, $listOrder); ?>
+						</th>
 						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_LOCATION', 'client_translated', $listDirn, $listOrder); ?>
 						</th>
@@ -56,9 +62,6 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						</th>
 						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FOLDER', 'folder_translated', $listDirn, $listOrder); ?>
-						</th>
-						<th width="1%" class="nowrap hidden-phone hidden-tablet">
-							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FAILED_ATTEMPTS', 'failed_attempts', $listDirn, $listOrder); ?>
 						</th>
 						<th width="1%" class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ID', 'update_site_id', $listDirn, $listOrder); ?>
@@ -104,6 +107,13 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							</span>
 						</td>
 						<td class="hidden-phone hidden-tablet">
+							<?php $date = new JDate($item->last_check_timestamp); ?>
+							<?php echo $date->format('Y-m-d H:i:s'); ?>
+						</td>						
+						<td class="hidden-phone hidden-tablet">
+							<?php echo $item->failed_attempts; ?>
+						</td>
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->client_translated; ?>
 						</td>
 						<td class="hidden-phone">
@@ -111,9 +121,6 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						</td>
 						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->folder_translated; ?>
-						</td>
-						<td class="hidden-phone hidden-tablet">
-							<?php echo $item->failed_attempts; ?>
 						</td>
 						<td class="hidden-phone">
 							<?php echo $item->update_site_id; ?>

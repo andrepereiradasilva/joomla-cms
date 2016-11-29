@@ -38,6 +38,7 @@ class InstallerModelUpdatesites extends InstallerModel
 				'status',
 				'type', 'type_translated',
 				'folder', 'folder_translated',
+				'last_check_timestamp',
 				'failed_attempts',
 				'update_site_id',
 				'enabled',
@@ -413,6 +414,9 @@ class InstallerModelUpdatesites extends InstallerModel
 					's.type AS update_site_type',
 					's.location',
 					's.enabled',
+					's.protected',
+					's.failed_attempts',
+					's.last_check_timestamp',
 					'e.extension_id',
 					'e.name',
 					'e.type',
@@ -420,8 +424,6 @@ class InstallerModelUpdatesites extends InstallerModel
 					'e.folder',
 					'e.client_id',
 					'e.state',
-					'e.protected',
-					'e.failed_attempts',
 					'e.manifest_cache',
 				)
 			)
