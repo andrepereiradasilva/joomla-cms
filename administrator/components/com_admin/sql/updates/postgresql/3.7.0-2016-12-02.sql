@@ -9,8 +9,8 @@ COMMENT ON COLUMN "#__update_sites"."failed_attempts" IS 'Counter with failed up
 UPDATE "#__update_sites"
 SET "enabled" = 1, "protected" = 1
 WHERE (
-		("name" = 'Joomla! Core' AND "type" = 'collection')
-		OR ("name" = 'Joomla! Extension Directory' AND "type" = 'collection')
-		OR ("name" = 'Joomla! Update Component Update Site' AND "type" = 'extension')
-		OR ("name" = 'Accredited Joomla! Translations' AND "type" = 'collection')
+	("name" = 'Joomla! Core' AND "type" = 'collection')
+	OR ("name" = 'Joomla! Extension Directory' AND "type" = 'collection')
+	OR ("name" = 'Joomla! Update Component Update Site' AND "type" = 'extension')
+	OR ("name" = 'Accredited Joomla! Translations' AND "type" = 'collection')
 );

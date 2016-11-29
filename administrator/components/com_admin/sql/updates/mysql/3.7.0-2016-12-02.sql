@@ -6,8 +6,8 @@ ALTER TABLE `#__update_sites` ADD COLUMN `failed_attempts` int(11) NOT NULL DEFA
 UPDATE `#__update_sites`
 SET `enabled` = 1, `protected` = 1
 WHERE (
-		(`name` = 'Joomla! Core' AND `type` = 'collection')
-		OR (`name` = 'Joomla! Extension Directory' AND `type` = 'collection')
-		OR (`name` = 'Joomla! Update Component Update Site' AND `type` = 'extension')
-		OR (`name` = 'Accredited Joomla! Translations' AND `type` = 'collection')
+	(`name` = 'Joomla! Core' AND `type` = 'collection')
+	OR (`name` = 'Joomla! Extension Directory' AND `type` = 'collection')
+	OR (`name` = 'Joomla! Update Component Update Site' AND `type` = 'extension')
+	OR (`name` = 'Accredited Joomla! Translations' AND `type` = 'collection')
 );
