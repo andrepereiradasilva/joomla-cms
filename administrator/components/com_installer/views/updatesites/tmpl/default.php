@@ -115,7 +115,11 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							<?php endif; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
-							<?php echo $item->failed_attempts; ?>
+							<?php if ($item->failed_attempts) : ?>
+								<span class="label label-important"><?php echo $item->failed_attempts; ?></span>
+							<?php else : ?>
+								<span class="label label-inverse"><?php echo $item->failed_attempts; ?></span>
+							<?php endif; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->client_translated; ?>
