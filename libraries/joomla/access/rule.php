@@ -42,7 +42,7 @@ class JAccessRule
 			$identities = json_decode($identities, true);
 		}
 
-		$this->mergeIdentities($identities);
+		$this->setIdentities($identities);
 	}
 
 	/**
@@ -109,6 +109,56 @@ class JAccessRule
 		else
 		{
 			$this->data[$identity] = $allow;
+		}
+	}
+
+	/**
+	 * Set identities, overwrites existing if needed.
+	 *
+	 * @param   mixed  $identities  An integer or array of integers representing the identities to check.
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setIdentities($identities)
+	{
+		if ($identities instanceof JAccessRule)
+		{
+			$identities = $identities->getData();
+		}
+
+		if (is_array($identities))
+		{
+			foreach ($identities as $identity => $value)
+			{
+				$this->setIdentity($identity, $value);
+			}
+		}
+	}
+
+	/**
+	 * Set the values for an identity, overwrites existing if needed.
+	 *
+	 * @param   integer  $identity  The identity.
+	 * @param   boolean  $value     The value for the identity (true == allow, false == deny, empty = remove).
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setIdentity($identity, $value = '')
+	{
+		$identity = (int) $identity;
+
+		// Check that the identity exists.
+		if ($value !== '')
+		{
+			$this->data[$identity] = $value;
+		}
+		elseif (isset($this->data[$identity]))
+		{
+			unset($this->data[$identity]);
 		}
 	}
 

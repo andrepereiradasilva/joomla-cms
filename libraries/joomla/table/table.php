@@ -838,6 +838,7 @@ abstract class JTable extends JObject implements JObservableInterface, JTableInt
 				$asset->name      = $name;
 				$asset->title     = $title;
 
+				// Convert rules to string, if needed.
 				if ($this->_rules instanceof JAccessRules)
 				{
 					$asset->rules = (string) $this->_rules;
