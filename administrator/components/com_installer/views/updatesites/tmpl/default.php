@@ -45,19 +45,19 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<th class="nowrap">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_UPDATESITE_NAME', 'update_site_name', $listDirn, $listOrder); ?>
 						</th>
-						<th class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_NAME', 'name', $listDirn, $listOrder); ?>
-						</th>
-						<th width="10%" class="hidden-phone hidden-tablet">
+						<th width="10%" class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_LAST_CHECK', 'last_check_timestamp', $listDirn, $listOrder); ?>
 						</th>
 						<th width="1%" class="nowrap hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FAILED_ATTEMPTS', 'failed_attempts', $listDirn, $listOrder); ?>
 						</th>
 						<th class="hidden-phone hidden-tablet">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_EXTENSION', 'name', $listDirn, $listOrder); ?>
+						</th>
+						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_LOCATION', 'client_translated', $listDirn, $listOrder); ?>
 						</th>
-						<th class="hidden-phone">
+						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_TYPE', 'type_translated', $listDirn, $listOrder); ?>
 						</th>
 						<th class="hidden-phone hidden-tablet">
@@ -102,11 +102,6 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							</label>
 						</td>
 						<td class="hidden-phone">
-							<span class="bold hasTooltip" title="<?php echo JHtml::tooltipText($item->name, $item->description, 0); ?>">
-								<?php echo $item->name; ?>
-							</span>
-						</td>
-						<td class="hidden-phone hidden-tablet">
 							<?php if (!$item->last_check_timestamp) : ?>
 								<?php echo JText::_('JNEVER'); ?>
 							<?php else : ?>
@@ -122,9 +117,14 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							<?php endif; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
+							<span class="bold hasTooltip" title="<?php echo JHtml::tooltipText($item->name, $item->description, 0); ?>">
+								<?php echo $item->name; ?>
+							</span>
+						</td>
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->client_translated; ?>
 						</td>
-						<td class="hidden-phone">
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->type_translated; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
