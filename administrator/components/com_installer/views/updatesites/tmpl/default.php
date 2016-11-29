@@ -107,8 +107,12 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							</span>
 						</td>
 						<td class="hidden-phone hidden-tablet">
-							<?php $date = new JDate($item->last_check_timestamp); ?>
-							<?php echo $date->format('Y-m-d H:i:s'); ?>
+							<?php if (!$item->last_check_timestamp) : ?>
+								<?php echo JText::_('JNEVER'); ?>
+							<?php else : ?>
+								<?php $date = new JDate($item->last_check_timestamp); ?>
+								<?php echo $date->format('Y-m-d H:i:s'); ?>
+							<?php endif; ?>
 						</td>						
 						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->failed_attempts; ?>
