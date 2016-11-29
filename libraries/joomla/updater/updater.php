@@ -134,14 +134,23 @@ class JUpdater extends JAdapter
 
 		foreach ($results as $result)
 		{
+			$updateSiteEarliestTime = $earliestTime;
+
+			/**
+			 * If there are previous failed attempts in this update site id, 
+			 * we remove a 1 day delay for each failed attempt to the earliest time to check.
+			 */
+			if (isset($result['failed_attempts']) && (int) $result['failed_attempts'] !== 0)
+			{
+				$updateSiteEarliestTime -= (int) $result['failed_attempts'] * 24 * 60 * 60;
+			}
+
 			/**
 			 * If we have already checked for updates within the cache timeout period we will report updates available
 			 * only if there are update records matching this update site. Then we skip processing of the update site
 			 * since it's already processed within the cache timeout period.
 			 */
-			if (($cacheTimeout > 0)
-				&& isset($result['last_check_timestamp'])
-				&& ($result['last_check_timestamp'] >= $earliestTime))
+			if ($cacheTimeout > 0 && isset($result['last_check_timestamp']) && $result['last_check_timestamp'] >= $updateSiteEarliestTime)
 			{
 				$retval = $retval || in_array($result['update_site_id'], $sitesWithUpdates);
 
@@ -206,7 +215,7 @@ class JUpdater extends JAdapter
 		$db    = $this->getDbo();
 		$query = $db->getQuery(true);
 
-		$query->select('DISTINCT a.update_site_id, a.type, a.location, a.last_check_timestamp, a.extra_query')
+		$query->select('DISTINCT a.update_site_id, a.type, a.location, a.last_check_timestamp, a.failed_attempts, a.extra_query')
 			->from($db->quoteName('#__update_sites', 'a'))
 			->where('a.enabled = 1');
 
