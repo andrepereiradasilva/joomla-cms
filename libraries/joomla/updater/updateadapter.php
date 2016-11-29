@@ -159,6 +159,53 @@ abstract class JUpdateAdapter extends JAdapterInstance
 	}
 
 	/**
+	 * Saves connection attempt information.
+	 *
+	 * @param   int   $updateSiteId  The numeric ID of the update site to mark.
+	 * @param   bool  $success       If the connection attempt had success, if false failed.
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	protected function saveUpdateSiteConnectionAttempt($updateSiteId, $success = true)
+	{
+		$updateSiteId = (int) $updateSiteId;
+		$success      = (bool) $success;
+
+		if (empty($updateSiteId))
+		{
+			return;
+		}
+
+		$db = $this->parent->getDbo();
+		$query = $db->getQuery(true)
+			->update($db->qn('#__update_sites'))
+			->where($db->qn('update_site_id') . ' = ' . $db->q($updateSiteId));
+		
+		if ($success)
+		{
+			$query->set($db->qn('failed_attempts') . ' = 0')
+				->where($db->qn('failed_attempts') . ' != 0');
+		}
+		else
+		{
+			$query->set($db->qn('failed_attempts') . ' = ' . $db->qn('failed_attempts') . ' + 1');
+		}
+
+		$db->setQuery($query);
+
+		try
+		{
+			$db->execute();
+		}
+		catch (RuntimeException $e)
+		{
+			// Do nothing
+		}
+	}
+
+	/**
 	 * Get the name of an update site. This is used in logging.
 	 *
 	 * @param   int  $updateSiteId  The numeric ID of the update site
@@ -233,25 +280,17 @@ abstract class JUpdateAdapter extends JAdapterInstance
 			$url .= 'extension.xml';
 		}
 
-		// Disable the update site. If the get() below fails with a fatal error (e.g. timeout) the faulty update
-		// site will remain disabled
-		$this->toggleUpdateSite($this->updateSiteId, false);
-
 		$startTime = microtime(true);
 
 		// JHttp transport throws an exception when there's no response.
 		try
 		{
-			$http = JHttpFactory::getHttp();
-			$response = $http->get($url, array(), 20);
+			$response = JHttpFactory::getHttp()->get($url, array(), 20);
 		}
 		catch (RuntimeException $e)
 		{
 			$response = null;
 		}
-
-		// Enable the update site. Since the get() returned the update site should remain enabled
-		$this->toggleUpdateSite($this->updateSiteId, true);
 
 		// Log the time it took to load this update site's information
 		$endTime = microtime(true);
@@ -276,8 +315,14 @@ abstract class JUpdateAdapter extends JAdapterInstance
 			$app = JFactory::getApplication();
 			$app->enqueueMessage(JText::sprintf('JLIB_UPDATER_ERROR_OPEN_UPDATE_SITE', $this->updateSiteId, $this->updateSiteName, $url), 'warning');
 
+			// Mark as failed attempt in the update site connection.
+			$this->saveUpdateSiteConnectionAttempt($this->updateSiteId, false);
+
 			return false;
 		}
+
+		// Mark as success attempt in the update site connection.
+		$this->saveUpdateSiteConnectionAttempt($this->updateSiteId, true);
 
 		return $response;
 	}
