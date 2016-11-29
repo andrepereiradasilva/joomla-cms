@@ -114,11 +114,11 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 								<?php echo $date->format('Y-m-d H:i:s'); ?>
 							<?php endif; ?>
 						</td>
-						<td class="hidden-phone hidden-tablet">
+						<td class="center hidden-phone hidden-tablet">
 							<?php if ($item->failed_attempts) : ?>
 								<span class="label label-important"><?php echo $item->failed_attempts; ?></span>
 							<?php else : ?>
-								<span class="label label-inverse"><?php echo $item->failed_attempts; ?></span>
+								<span class="label"><?php echo $item->failed_attempts; ?></span>
 							<?php endif; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
