@@ -57,6 +57,9 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FOLDER', 'folder_translated', $listDirn, $listOrder); ?>
 						</th>
+						<th width="1%" class="nowrap hidden-phone hidden-tablet">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FAILED_ATTEMPTS', 'failed_attempts', $listDirn, $listOrder); ?>
+						</th>
 						<th width="1%" class="nowrap hidden-phone">
 							<?php echo JHtml::_('searchtools.sort', 'JGRID_HEADING_ID', 'update_site_id', $listDirn, $listOrder); ?>
 						</th>
@@ -79,7 +82,11 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							<?php if (!$item->element) : ?>
 								<strong>X</strong>
 							<?php else : ?>
-								<?php echo JHtml::_('InstallerHtml.Updatesites.state', $item->enabled, $i, $item->enabled < 2, 'cb'); ?>
+								<?php if ($item->protected) : ?>
+									<a class="btn btn-micro disabled"><span class="icon-lock"></span></a>
+								<?php else : ?>
+									<?php echo JHtml::_('InstallerHtml.Updatesites.state', $item->enabled, $i, $item->enabled < 2, 'cb'); ?>
+								<?php endif; ?>
 							<?php endif; ?>
 						</td>
 						<td>
@@ -104,6 +111,9 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						</td>
 						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->folder_translated; ?>
+						</td>
+						<td class="hidden-phone hidden-tablet">
+							<?php echo $item->failed_attempts; ?>
 						</td>
 						<td class="hidden-phone">
 							<?php echo $item->update_site_id; ?>

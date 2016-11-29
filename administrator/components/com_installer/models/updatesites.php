@@ -38,6 +38,7 @@ class InstallerModelUpdatesites extends InstallerModel
 				'status',
 				'type', 'type_translated',
 				'folder', 'folder_translated',
+				'failed_attempts',
 				'update_site_id',
 				'enabled',
 			);
@@ -419,6 +420,8 @@ class InstallerModelUpdatesites extends InstallerModel
 					'e.folder',
 					'e.client_id',
 					'e.state',
+					'e.protected',
+					'e.failed_attempts',
 					'e.manifest_cache',
 				)
 			)
