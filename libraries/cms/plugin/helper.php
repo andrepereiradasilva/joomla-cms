@@ -9,6 +9,8 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Plugin helper class
  *
@@ -21,6 +23,7 @@ abstract class JPluginHelper
 	 *
 	 * @var    array
 	 * @since  1.7
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). No replacement.
 	 */
 	protected static $plugins = null;
 
@@ -59,54 +62,46 @@ abstract class JPluginHelper
 		{
 			return $tPath;
 		}
-		elseif (file_exists($bPath))
+
+		if (file_exists($bPath))
 		{
 			return $bPath;
 		}
-		else
-		{
-			return $dPath;
-		}
+
+		return $dPath;
 	}
 
 	/**
 	 * Get the plugin data of a specific type if no specific plugin is specified
 	 * otherwise only the specific plugin data is returned.
 	 *
-	 * @param   string  $type    The plugin type, relates to the subdirectory in the plugins directory.
-	 * @param   string  $plugin  The plugin name.
+	 * @param   string  $folder   The plugin type, relates to the subdirectory in the plugins directory.
+	 * @param   string  $element  The plugin name.
 	 *
 	 * @return  mixed  An array of plugin data objects, or a plugin data object.
 	 *
 	 * @since   1.5
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::getExtension('plugin', $type[, $plugin]) and do adjustements (if needed).
 	 */
-	public static function getPlugin($type, $plugin = null)
+	public static function getPlugin($folder, $element = null)
 	{
+		static::load();
+
 		$result = array();
-		$plugins = static::load();
 
 		// Find the correct plugin(s) to return.
-		if (!$plugin)
+		foreach (static::$plugins as $plugin)
 		{
-			foreach ($plugins as $p)
+			if ($element === null && $plugin->folder === $folder)
 			{
-				// Is this the right plugin?
-				if ($p->type == $type)
-				{
-					$result[] = $p;
-				}
+				$result[] = $plugin;
+				continue;
 			}
-		}
-		else
-		{
-			foreach ($plugins as $p)
+
+			if ($element !== null && $plugin->folder === $folder && $plugin->element == $element)
 			{
-				// Is this plugin in the right group?
-				if ($p->type == $type && $p->name == $plugin)
-				{
-					$result = $p;
-					break;
-				}
+				$result = $plugin;
+				break;
 			}
 		}
 
@@ -116,26 +111,25 @@ abstract class JPluginHelper
 	/**
 	 * Checks if a plugin is enabled.
 	 *
-	 * @param   string  $type    The plugin type, relates to the subdirectory in the plugins directory.
-	 * @param   string  $plugin  The plugin name.
+	 * @param   string  $folder   The plugin type, relates to the subdirectory in the plugins directory.
+	 * @param   string  $element  The plugin name.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   1.5
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::isEnabled('plugin', $type, $plugin) and do adjustements (if needed).
 	 */
-	public static function isEnabled($type, $plugin = null)
+	public static function isEnabled($folder, $element = null)
 	{
-		$result = static::getPlugin($type, $plugin);
-
-		return !empty($result);
+		return !empty(static::getPlugin($folder, $element));
 	}
 
 	/**
 	 * Loads all the plugin files for a particular type if no specific plugin is specified
 	 * otherwise only the specific plugin is loaded.
 	 *
-	 * @param   string            $type        The plugin type, relates to the subdirectory in the plugins directory.
-	 * @param   string            $plugin      The plugin name.
+	 * @param   string            $folder      The plugin folder, relates to the subdirectory in the plugins directory.
+	 * @param   string            $element     The plugin name.
 	 * @param   boolean           $autocreate  Autocreate the plugin.
 	 * @param   JEventDispatcher  $dispatcher  Optionally allows the plugin to use a different dispatcher.
 	 *
@@ -143,31 +137,31 @@ abstract class JPluginHelper
 	 *
 	 * @since   1.5
 	 */
-	public static function importPlugin($type, $plugin = null, $autocreate = true, JEventDispatcher $dispatcher = null)
+	public static function importPlugin($folder, $element = null, $autocreate = true, JEventDispatcher $dispatcher = null)
 	{
 		static $loaded = array();
 
 		// Check for the default args, if so we can optimise cheaply
 		$defaults = false;
 
-		if (is_null($plugin) && $autocreate == true && is_null($dispatcher))
+		if (is_null($element) && $autocreate == true && is_null($dispatcher))
 		{
 			$defaults = true;
 		}
 
-		if (!isset($loaded[$type]) || !$defaults)
+		if (!isset($loaded[$folder]) || !$defaults)
 		{
 			$results = null;
 
 			// Load the plugins from the database.
-			$plugins = static::load();
+			static::load();
 
 			// Get the specified plugin(s).
-			for ($i = 0, $t = count($plugins); $i < $t; $i++)
+			foreach (static::$plugins as $plugin)
 			{
-				if ($plugins[$i]->type == $type && ($plugin === null || $plugins[$i]->name == $plugin))
+				if ($plugin->folder === $folder && ($element === null || $plugin->element == $element))
 				{
-					static::import($plugins[$i], $autocreate, $dispatcher);
+					static::import($plugin, $autocreate, $dispatcher);
 					$results = true;
 				}
 			}
@@ -178,10 +172,10 @@ abstract class JPluginHelper
 				return $results;
 			}
 
-			$loaded[$type] = $results;
+			$loaded[$folder] = $results;
 		}
 
-		return $loaded[$type];
+		return $loaded[$folder];
 	}
 
 	/**
@@ -216,10 +210,10 @@ abstract class JPluginHelper
 	{
 		static $paths = array();
 
-		$plugin->type = preg_replace('/[^A-Z0-9_\.-]/i', '', $plugin->type);
-		$plugin->name = preg_replace('/[^A-Z0-9_\.-]/i', '', $plugin->name);
+		$plugin->folder  = preg_replace('/[^A-Z0-9_\.-]/i', '', $plugin->folder);
+		$plugin->element = preg_replace('/[^A-Z0-9_\.-]/i', '', $plugin->element);
 
-		$path = JPATH_PLUGINS . '/' . $plugin->type . '/' . $plugin->name . '/' . $plugin->name . '.php';
+		$path = JPATH_PLUGINS . '/' . $plugin->folder . '/' . $plugin->element . '/' . $plugin->element . '.php';
 
 		if (!isset($paths[$path]))
 		{
@@ -240,19 +234,19 @@ abstract class JPluginHelper
 						$dispatcher = JEventDispatcher::getInstance();
 					}
 
-					$className = 'Plg' . $plugin->type . $plugin->name;
+					$className = 'Plg' . $plugin->folder . $plugin->element;
 
 					if (class_exists($className))
 					{
-						// Load the plugin from the database.
+						// Load the plugin from the database. This if will be removed in 4.0.
 						if (!isset($plugin->params))
 						{
 							// Seems like this could just go bye bye completely
-							$plugin = static::getPlugin($plugin->type, $plugin->name);
+							$plugin = static::getPlugin($plugin->folder, $plugin->element);
 						}
 
 						// Instantiate and register the plugin.
-						new $className($dispatcher, (array) ($plugin));
+						new $className($dispatcher, (array) $plugin);
 					}
 				}
 			}
@@ -290,31 +284,34 @@ abstract class JPluginHelper
 			return static::$plugins;
 		}
 
-		$levels = implode(',', JFactory::getUser()->getAuthorisedViewLevels());
-
 		/** @var JCacheControllerCallback $cache */
-		$cache = JFactory::getCache('com_plugins', 'callback');
+		$cache    = JFactory::getCache('com_plugins', '');
+		$levels   = JFactory::getUser()->getAuthorisedViewLevels();
+		$cacheKey = 'plugins-' . md5(implode(',', $levels));
 
-		static::$plugins = $cache->get(
-			function () use ($levels)
+		// Get all the extensions.
+		if (!static::$plugins = $cache->get($cacheKey))
+		{
+			foreach (JExtensionHelper::getExtensions('plugin') as $pluginFolder)
 			{
-				$db = JFactory::getDbo();
-				$query = $db->getQuery(true)
-					->select(array($db->quoteName('folder', 'type'), $db->quoteName('element', 'name'), $db->quoteName('params')))
-					->from('#__extensions')
-					->where('enabled = 1')
-					->where('type = ' . $db->quote('plugin'))
-					->where('state IN (0,1)')
-					->where('access IN (' . $levels . ')')
-					->order('ordering');
-				$db->setQuery($query);
+				foreach ($pluginFolder as $plugin)
+				{
+					if (in_array($plugin->access, $levels))
+					{
+						// B/C Plugins can be using this old type and name properties.
+						$plugin->type = $plugin->folder;
+						$plugin->name = $plugin->element;
 
-				return $db->loadObjectList();
-			},
-			array(),
-			md5($levels),
-			false
-		);
+						static::$plugins[] = $plugin;
+					}
+				}
+			}
+
+			// Order the plugins.
+			static::$plugins = ArrayHelper::sortObjects(static::$plugins, 'ordering', 1, true, true);
+
+			$cache->store(static::$plugins, $cacheKey);
+		}
 
 		return static::$plugins;
 	}

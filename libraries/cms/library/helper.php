@@ -15,6 +15,7 @@ use Joomla\Registry\Registry;
  * Library helper class
  *
  * @since  3.2
+ * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::isEnabled('library', null, ...) and do adjustements (if needed).
  */
 class JLibraryHelper
 {
@@ -23,6 +24,7 @@ class JLibraryHelper
 	 *
 	 * @var    array
 	 * @since  3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). No replacement.
 	 */
 	protected static $libraries = array();
 
@@ -35,6 +37,7 @@ class JLibraryHelper
 	 * @return  stdClass   An object with the library's information.
 	 *
 	 * @since   3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::getExtension('library', null, $element) and do adjustements (if needed).
 	 */
 	public static function getLibrary($element, $strict = false)
 	{
@@ -66,12 +69,11 @@ class JLibraryHelper
 	 * @return  boolean
 	 *
 	 * @since   3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::isEnabled('library', null, $element) and do adjustements (if needed).
 	 */
 	public static function isEnabled($element)
 	{
-		$result = static::getLibrary($element, true);
-
-		return $result->enabled;
+		return JExtensionHelper::isEnabled('library', null, $element);
 	}
 
 	/**
@@ -84,12 +86,11 @@ class JLibraryHelper
 	 *
 	 * @see     Registry
 	 * @since   3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::getParams('library', null, $element) and do adjustements (if needed).
 	 */
 	public static function getParams($element, $strict = false)
 	{
-		$library = static::getLibrary($element, $strict);
-
-		return $library->params;
+		return JExtensionHelper::getParams('library', null, $element);
 	}
 
 	/**
@@ -102,6 +103,7 @@ class JLibraryHelper
 	 *
 	 * @see     Registry
 	 * @since   3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::saveParams('library', null, $element, $params).
 	 */
 	public static function saveParams($element, $params)
 	{
@@ -138,46 +140,56 @@ class JLibraryHelper
 	 * @return  boolean  True on success
 	 *
 	 * @since   3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). No replacement.
 	 */
 	protected static function _load($element)
 	{
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select($db->quoteName(array('extension_id', 'element', 'params', 'enabled'), array('id', 'option', null, null)))
-			->from($db->quoteName('#__extensions'))
-			->where($db->quoteName('type') . ' = ' . $db->quote('library'))
-			->where($db->quoteName('element') . ' = ' . $db->quote($element));
-		$db->setQuery($query);
-
-		$cache = JFactory::getCache('_system', 'callback');
-
-		try
+		// Already loaded no need to do anything more.
+		if (static::$libraries !== array())
 		{
-			static::$libraries[$element] = $cache->get(array($db, 'loadObject'), null, $element, false);
-		}
-		catch (RuntimeException $e)
-		{
-			// Fatal error.
-			JLog::add(JText::sprintf('JLIB_APPLICATION_ERROR_LIBRARY_NOT_LOADING', $element, $e->getMessage()), JLog::WARNING, 'jerror');
-
-			return false;
+			return true;
 		}
 
-		if (empty(static::$libraries[$element]))
-		{
-			// Fatal error.
-			$error = JText::_('JLIB_APPLICATION_ERROR_LIBRARY_NOT_FOUND');
-			JLog::add(JText::sprintf('JLIB_APPLICATION_ERROR_LIBRARY_NOT_LOADING', $element, $error), JLog::WARNING, 'jerror');
+		/** @var JCacheControllerCallback $cache */
+		$cache = JFactory::getCache('_system', '');
 
-			return false;
+		// Load all libraries, first try to laod them from cache, fallback to use JExtensionHelper::getExtensions('library').
+		if (!static::$libraries = $cache->get('libraries'))
+		{
+			foreach (JExtensionHelper::getExtensions('library') as $library)
+			{
+				// B/C Library is using option.
+				$library->option = $library->element;
+
+				static::$libraries[$library->element] = $library;
+			}
+
+			$cache->store(static::$libraries, 'libraries');
 		}
 
-		// Convert the params to an object.
-		if (is_string(static::$libraries[$element]->params))
+		// Loaded with success.
+		if (static::$libraries && static::$libraries !== array())
 		{
-			static::$libraries[$element]->params = new Registry(static::$libraries[$element]->params);
+			return true;
 		}
 
-		return true;
+		/*
+		 * Fatal error
+		 *
+		 * It is possible for this error to be reached before the global JLanguage instance has been loaded so we check for its presence
+		 * before logging the error to ensure a human friendly message is always given
+		 */
+		if (JFactory::$language)
+		{
+			$msg = JText::sprintf('JLIB_APPLICATION_ERROR_LIBRARY_NOT_LOADING', $element, JText::_('JLIB_APPLICATION_ERROR_LIBRARY_NOT_FOUND'));
+		}
+		else
+		{
+			$msg = sprintf('Error loading library: %1$s, %2$s', $element, 'Component not found.');
+		}
+
+		JLog::add($msg, JLog::WARNING, 'jerror');
+
+		return false;
 	}
 }

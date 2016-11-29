@@ -23,6 +23,7 @@ class JComponentHelper
 	 *
 	 * @var    array
 	 * @since  1.6
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). No replacement.
 	 */
 	protected static $components = array();
 
@@ -35,6 +36,7 @@ class JComponentHelper
 	 * @return  stdClass   An object with the information for the component.
 	 *
 	 * @since   1.5
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::getExtension('component', null, $option) and do adjustements (if needed).
 	 */
 	public static function getComponent($option, $strict = false)
 	{
@@ -72,12 +74,11 @@ class JComponentHelper
 	 * @return  boolean
 	 *
 	 * @since   1.5
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::isEnabled('component', null, $option) and do adjustements (if needed).
 	 */
 	public static function isEnabled($option)
 	{
-		$result = static::getComponent($option, true);
-
-		return $result->enabled;
+		return JExtensionHelper::isEnabled('component', null, $option);
 	}
 
 	/**
@@ -88,18 +89,11 @@ class JComponentHelper
 	 * @return  integer
 	 *
 	 * @since   3.4
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::isInstalled('component', null, $option) and do adjustements (if needed).
 	 */
 	public static function isInstalled($option)
 	{
-		$db = JFactory::getDbo();
-
-		return (int) $db->setQuery(
-			$db->getQuery(true)
-				->select('COUNT(' . $db->quoteName('extension_id') . ')')
-				->from($db->quoteName('#__extensions'))
-				->where($db->quoteName('element') . ' = ' . $db->quote($option))
-				->where($db->quoteName('type') . ' = ' . $db->quote('component'))
-		)->loadResult();
+		return (int) JExtensionHelper::isInstalled('component', null, $option);
 	}
 
 	/**
@@ -112,6 +106,7 @@ class JComponentHelper
 	 *
 	 * @see     Registry
 	 * @since   1.5
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::getParams('component', null, $option) and do adjustements (if needed).
 	 */
 	public static function getParams($option, $strict = false)
 	{
@@ -135,11 +130,8 @@ class JComponentHelper
 		$text = JFilterInput::getInstance()->emailToPunycode($text);
 
 		// Filter settings
-		$config     = static::getParams('com_config');
-		$user       = JFactory::getUser();
-		$userGroups = JAccess::getGroupsByUser($user->get('id'));
-
-		$filters = $config->get('filters');
+		$userGroups = JAccess::getGroupsByUser(JFactory::getUser()->get('id'));
+		$filters    = JExtensionHelper::getParams('component', null, 'com_config')->get('filters');
 
 		$blackListTags       = array();
 		$blackListAttributes = array();
@@ -363,7 +355,7 @@ class JComponentHelper
 		$path = JPATH_COMPONENT . '/' . $file . '.php';
 
 		// If component is disabled throw error
-		if (!static::isEnabled($option) || !file_exists($path))
+		if (!JExtensionHelper::isEnabled('component', null, $option) || !file_exists($path))
 		{
 			throw new Exception(JText::_('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'), 404);
 		}
@@ -414,7 +406,7 @@ class JComponentHelper
 	 * @return  boolean  True on success
 	 *
 	 * @since   1.5
-	 * @deprecated  4.0  Use JComponentHelper::load() instead
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). No replacement.
 	 */
 	protected static function _load($option)
 	{
@@ -429,82 +421,57 @@ class JComponentHelper
 	 * @return  boolean  True on success
 	 *
 	 * @since   3.2
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). No replacement.
 	 */
 	protected static function load($option)
 	{
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select($db->quoteName(array('extension_id', 'element', 'params', 'enabled'), array('id', 'option', null, null)))
-			->from($db->quoteName('#__extensions'))
-			->where($db->quoteName('type') . ' = ' . $db->quote('component'));
-		$db->setQuery($query);
-
-		$cache = JFactory::getCache('_system', 'callback');
-
-		try
+		// Already loaded no need to do anything more.
+		if (static::$components !== array())
 		{
-			$components = $cache->get(array($db, 'loadObjectList'), array('option'), $option, false);
-
-			/**
-			 * Verify $components is an array, some cache handlers return an object even though
-			 * the original was a single object array.
-			 */
-			if (!is_array($components))
-			{
-				static::$components[$option] = $components;
-			}
-			else
-			{
-				static::$components = $components;
-			}
-		}
-		catch (RuntimeException $e)
-		{
-			/*
-			 * Fatal error
-			 *
-			 * It is possible for this error to be reached before the global JLanguage instance has been loaded so we check for its presence
-			 * before logging the error to ensure a human friendly message is always given
-			 */
-
-			if (JFactory::$language)
-			{
-				$msg = JText::sprintf('JLIB_APPLICATION_ERROR_COMPONENT_NOT_LOADING', $option, $e->getMessage());
-			}
-			else
-			{
-				$msg = sprintf('Error loading component: %1$s, %2$s', $option, $e->getMessage());
-			}
-
-			JLog::add($msg, JLog::WARNING, 'jerror');
-
-			return false;
+			return true;
 		}
 
-		if (empty(static::$components[$option]))
+		/** @var JCacheControllerCallback $cache */
+		$cache = JFactory::getCache('_system', '');
+
+		// Get all the extensions.
+		if (!static::$components = $cache->get('components'))
 		{
-			/*
-			 * Fatal error
-			 *
-			 * It is possible for this error to be reached before the global JLanguage instance has been loaded so we check for its presence
-			 * before logging the error to ensure a human friendly message is always given
-			 */
+			foreach (JExtensionHelper::getExtensions('component') as $component)
+			{
+				// B/C Component is using option.
+				$component->option = $component->element;
 
-			if (JFactory::$language)
-			{
-				$msg = JText::sprintf('JLIB_APPLICATION_ERROR_COMPONENT_NOT_LOADING', $option, JText::_('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'));
-			}
-			else
-			{
-				$msg = sprintf('Error loading component: %1$s, %2$s', $option, 'Component not found.');
+				static::$components[$component->element] = $component;
 			}
 
-			JLog::add($msg, JLog::WARNING, 'jerror');
-
-			return false;
+			$cache->store(static::$components, 'components');
 		}
 
-		return true;
+		// Loaded with success.
+		if (static::$components && static::$components !== array())
+		{
+			return true;
+		}
+
+		/*
+		 * Fatal error
+		 *
+		 * It is possible for this error to be reached before the global JLanguage instance has been loaded so we check for its presence
+		 * before logging the error to ensure a human friendly message is always given
+		 */
+		if (JFactory::$language)
+		{
+			$msg = JText::sprintf('JLIB_APPLICATION_ERROR_COMPONENT_NOT_LOADING', $option, JText::_('JLIB_APPLICATION_ERROR_COMPONENT_NOT_FOUND'));
+		}
+		else
+		{
+			$msg = sprintf('Error loading component: %1$s, %2$s', $option, 'Component not found.');
+		}
+
+		JLog::add($msg, JLog::WARNING, 'jerror');
+
+		return false;
 	}
 
 	/**
@@ -513,6 +480,7 @@ class JComponentHelper
 	 * @return  array  The components property
 	 *
 	 * @since   3.6.3
+	 * @deprecated  __DEPLOY_VERSION__ (removed in 4.0). Use JExtensionHelper::getExtensions('component') and do adjustements (if needed).
 	 */
 	public static function getComponents()
 	{
