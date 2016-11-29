@@ -113,7 +113,7 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 								<?php $date = new JDate($item->last_check_timestamp); ?>
 								<?php echo $date->format('Y-m-d H:i:s'); ?>
 							<?php endif; ?>
-						</td>						
+						</td>
 						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->failed_attempts; ?>
 						</td>
