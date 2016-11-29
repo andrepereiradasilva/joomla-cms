@@ -2844,6 +2844,7 @@ CREATE TABLE [#__update_sites](
 	[enabled] [int] NULL DEFAULT 0,
 	[last_check_timestamp] [int] NULL DEFAULT 0,
 	[extra_query] [nvarchar](1000) NULL DEFAULT '',
+	[failed_attempts] [int] DEFAULT 0 NOT NULL,
  CONSTRAINT [PK_#__update_sites_update_site_id] PRIMARY KEY CLUSTERED
 (
 	[update_site_id] ASC
@@ -2852,14 +2853,14 @@ CREATE TABLE [#__update_sites](
 
 SET IDENTITY_INSERT [#__update_sites] ON;
 
-INSERT INTO [#__update_sites] ([update_site_id], [name], [type], [location], [enabled], [last_check_timestamp])
-SELECT 1, 'Joomla! Core', 'collection', 'https://update.joomla.org/core/list.xml', 1, 0
+INSERT INTO [#__update_sites] ([update_site_id], [name], [type], [location], [enabled], [last_check_timestamp], [failed_attempts])
+SELECT 1, 'Joomla! Core', 'collection', 'https://update.joomla.org/core/list.xml', 1, 0, 0
 UNION ALL
-SELECT 2, 'Joomla! Extension Directory', 'collection', 'https://update.joomla.org/jed/list.xml', 1, 0
+SELECT 2, 'Joomla! Extension Directory', 'collection', 'https://update.joomla.org/jed/list.xml', 1, 0, 0
 UNION ALL
-SELECT 3, 'Accredited Joomla! Translations', 'collection', 'https://update.joomla.org/language/translationlist_3.xml', 1, 0
+SELECT 3, 'Accredited Joomla! Translations', 'collection', 'https://update.joomla.org/language/translationlist_3.xml', 1, 0, 0
 UNION ALL
-SELECT 4, 'Joomla! Update Component Update Site', 'extension', 'https://update.joomla.org/core/extensions/com_joomlaupdate.xml', 1, 0;
+SELECT 4, 'Joomla! Update Component Update Site', 'extension', 'https://update.joomla.org/core/extensions/com_joomlaupdate.xml', 1, 0, 0;
 
 SET IDENTITY_INSERT [#__update_sites] OFF;
 
