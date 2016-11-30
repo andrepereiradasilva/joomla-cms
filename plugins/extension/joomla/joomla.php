@@ -39,65 +39,48 @@ class PlgExtensionJoomla extends JPlugin
 	/**
 	 * Adds an update site to the table if it doesn't exist.
 	 *
-	 * @param   string   $name      The friendly name of the site
-	 * @param   string   $type      The type of site (e.g. collection or extension)
-	 * @param   string   $location  The URI for the site
-	 * @param   boolean  $enabled   If this site is enabled
+	 * @param   string   $name       The friendly name of the site.
+	 * @param   string   $type       The type of site (e.g. collection or extension).
+	 * @param   string   $location   The URI for the site.
+	 * @param   boolean  $enabled    If this site is enabled.
+	 * @param   boolean  $protected  If this site is protected.
 	 *
 	 * @return  void
 	 *
 	 * @since   1.6
 	 */
-	private function addUpdateSite($name, $type, $location, $enabled)
+	private function addUpdateSite($name, $type, $location, $enabled = true, $protected = false)
 	{
 		$db = JFactory::getDbo();
 
-		// Look if the location is used already; doesn't matter what type you can't have two types at the same address, doesn't make sense
+		// Check if an update site for this extension with the same type and same location or name already exists.
 		$query = $db->getQuery(true)
-			->select('update_site_id')
-			->from('#__update_sites')
-			->where('location = ' . $db->quote($location));
-		$db->setQuery($query);
-		$update_site_id = (int) $db->loadResult();
+			->select($db->qn('us.update_site_id'))
+			->from($db->qn('#__update_sites', 'us'))
+			->join('LEFT', $db->qn('#__update_sites_extensions', 'use') . ' ON ' . $db->qn('use.update_site_id') . ' = ' . $db->qn('us.update_site_id'))
+			->where($db->qn('use.extension_id') . ' = ' . $this->eid)
+			->where($db->qn('us.type') . ' = ' . $db->quote($type))
+			->where('(' . $db->qn('us.location') . ' = ' . $db->quote($location) . ' OR ' . $db->qn('us.name') . ' = ' . $db->quote($name) . ')');
 
-		// If it doesn't exist, add it!
-		if (!$update_site_id)
+		$updateSiteId = (int) $db->setQuery($query)->loadResult();
+
+		// Prepare update site data.
+		$data = array(
+			'update_site_id' => $updateSiteId ? $updateSiteId : null,
+			'name'           => $name,
+			'type'           => $type,
+			'location'       => $location,
+			'enabled'        => (int) $enabled,
+			'protected'      => (int) $protected,
+		);
+
+		// Get the table object for the update site.
+		$table = JTable::getInstance('Updatesite');
+		$table->setExtensionId($this->eid);
+
+		if (!$table->bind($data) || !$table->check() || !$table->store())
 		{
-			$query->clear()
-				->insert('#__update_sites')
-				->columns(array($db->quoteName('name'), $db->quoteName('type'), $db->quoteName('location'), $db->quoteName('enabled')))
-				->values($db->quote($name) . ', ' . $db->quote($type) . ', ' . $db->quote($location) . ', ' . (int) $enabled);
-			$db->setQuery($query);
-
-			if ($db->execute())
-			{
-				// Link up this extension to the update site
-				$update_site_id = $db->insertid();
-			}
-		}
-
-		// Check if it has an update site id (creation might have faileD)
-		if ($update_site_id)
-		{
-			// Look for an update site entry that exists
-			$query->clear()
-				->select('update_site_id')
-				->from('#__update_sites_extensions')
-				->where('update_site_id = ' . $update_site_id)
-				->where('extension_id = ' . $this->eid);
-			$db->setQuery($query);
-			$tmpid = (int) $db->loadResult();
-
-			if (!$tmpid)
-			{
-				// Link this extension to the relevant update site
-				$query->clear()
-					->insert('#__update_sites_extensions')
-					->columns(array($db->quoteName('update_site_id'), $db->quoteName('extension_id')))
-					->values($update_site_id . ', ' . $this->eid);
-				$db->setQuery($query);
-				$db->execute();
-			}
+			 throw new RuntimeException($table->getError());
 		}
 	}
 
@@ -111,7 +94,7 @@ class PlgExtensionJoomla extends JPlugin
 	 *
 	 * @since   1.6
 	 */
-	public function onExtensionAfterInstall($installer, $eid )
+	public function onExtensionAfterInstall($installer, $eid)
 	{
 		if ($eid)
 		{
@@ -247,7 +230,7 @@ class PlgExtensionJoomla extends JPlugin
 			foreach ($children as $child)
 			{
 				$attrs = $child->attributes();
-				$this->addUpdateSite($attrs['name'], $attrs['type'], trim($child), true);
+				$this->addUpdateSite($attrs['name'], $attrs['type'], trim($child), true, false);
 			}
 		}
 		else
@@ -257,7 +240,7 @@ class PlgExtensionJoomla extends JPlugin
 			if (strlen($data))
 			{
 				// We have a single entry in the update server line, let us presume this is an extension line
-				$this->addUpdateSite(JText::_('PLG_EXTENSION_JOOMLA_UNKNOWN_SITE'), 'extension', $data, true);
+				$this->addUpdateSite(JText::_('PLG_EXTENSION_JOOMLA_UNKNOWN_SITE'), 'extension', $data, true, false);
 			}
 		}
 	}

@@ -20,6 +20,14 @@ defined('JPATH_PLATFORM') or die;
 class JTableUpdatesite extends JTable
 {
 	/**
+	 * The update site extension id.
+	 *
+	 * @var    integer
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $extensionId = 0;
+
+	/**
 	 * Constructor
 	 *
 	 * @param   JDatabaseDriver  $db  Database driver object.
@@ -50,5 +58,51 @@ class JTableUpdatesite extends JTable
 		}
 
 		return true;
+	}
+
+	/**
+	 * Overloaded check function
+	 *
+	 * @param   boolean  $updateNulls  True to update fields even if they are null.
+	 *
+	 * @return  boolean  True on success.
+	 *
+	 * @see     JTable::store()
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function store($updateNulls = false)
+	{
+		// Check if update site already exists.
+		$newUpdateSite = $table->update_site_id ? true : false;
+
+		// Check for valid name
+		$result = parent::store($updateNulls);
+
+		// If it's a new update site we create the update site extension.
+		if ($newUpdateSite)
+		{
+			$query = $this->_db->getQuery(true)
+				->insert($this->_db->qn('#__update_sites_extensions'))
+				->columns(array($this->_db->qn('update_site_id'), $this->_db->qn('extension_id')))
+				->values($this->update_site_id . ', ' . $this->extensionId);
+
+			$this->_db-setQuery($query)->execute();
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Set extension id
+	 *
+	 * @param   integer  $extensionId  The extension Id.
+	 *
+	 * @return  void.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function setExtensionId($extensionId = 0)
+	{
+		$this->extensionId = (int) $extensionId;
 	}
 }
