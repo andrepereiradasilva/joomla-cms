@@ -71,10 +71,10 @@ class InstallerModelUpdatesites extends InstallerModel
 	}
 
 	/**
-	 * Enable/Disable an extension.
+	 * Enable/Disable update sites.
 	 *
-	 * @param   array  &$eid   Extension ids to un/publish
-	 * @param   int    $value  Publish value
+	 * @param   array  $extensionIds  Update site ids to un/publish
+	 * @param   int    $value         Publish value
 	 *
 	 * @return  boolean  True on success
 	 *
@@ -82,44 +82,49 @@ class InstallerModelUpdatesites extends InstallerModel
 	 *
 	 * @throws  Exception on ACL error
 	 */
-	public function publish(&$eid = array(), $value = 1)
+	public function publish($updateSiteIds = array(), $value = 1)
 	{
 		if (!JFactory::getUser()->authorise('core.edit.state', 'com_installer'))
 		{
 			throw new Exception(JText::_('JLIB_APPLICATION_ERROR_EDITSTATE_NOT_PERMITTED'), 403);
 		}
 
-		$result = true;
-
-		// Ensure eid is an array of extension ids
-		if (!is_array($eid))
+		// Ensure is an array.
+		if (!is_array($updateSiteIds))
 		{
-			$eid = array($eid);
+			$updateSiteIds = array($updateSiteIds);
 		}
 
-		// Get a table object for the extension type
+		$value = (int) $value;
+		$data  = array('enabled' => $value);
 		$table = JTable::getInstance('Updatesite');
 
-		// Enable the update site in the table and store it in the database
-		foreach ($eid as $i => $id)
+		// Update the update site.
+		foreach ($updateSiteIds as $updateSiteId)
 		{
-			$table->load($id);
-			$table->enabled = $value;
-
-			if (!$table->store())
+			if (!$table->load($updateSiteId) || !$table->bind($data) || !$table->check() || !$table->store())
 			{
-				$this->setError($table->getError());
-				$result = false;
+				JLog::add($table->getError(), JLog::WARNING, 'jerror');
+
+				continue;
 			}
+
+			$count++;
 		}
 
-		return $result;
+		if ($count > 0)
+		{
+			$languageVar = ($value === 0 ? 'UN' : '') . 'PUBLISHED';
+			JFactory::getApplication()->enqueueMessage(JText::plural('COM_INSTALLER_N_UPDATESITES_' . $languageVar, $count), 'message');
+		}
+
+		return count($updateSiteIds) === $count;
 	}
 
 	/**
-	 * Deletes an update site.
+	 * Deletes a update sites.
 	 *
-	 * @param   array  $ids  Extension ids to delete.
+	 * @param   array  $updateSiteIds  Update site ids to delete.
 	 *
 	 * @return  void
 	 *
@@ -127,77 +132,60 @@ class InstallerModelUpdatesites extends InstallerModel
 	 *
 	 * @throws  Exception on ACL error
 	 */
-	public function delete($ids = array())
+	public function delete($updateSiteIds = array())
 	{
 		if (!JFactory::getUser()->authorise('core.delete', 'com_installer'))
 		{
 			throw new Exception(JText::_('JLIB_APPLICATION_ERROR_DELETE_NOT_PERMITTED'), 403);
 		}
 
-		// Ensure eid is an array of extension ids
-		if (!is_array($ids))
+		// Ensure is an array.
+		if (!is_array($updateSiteIds))
 		{
-			$ids = array($ids);
+			$updateSiteIds = array($updateSiteIds);
 		}
 
-		$db  = JFactory::getDbo();
-		$app = JFactory::getApplication();
+		$db = JFactory::getDbo();
 
-		$count = 0;
-
-		// Gets the update site names.
+		// Preload the update site names.
 		$query = $db->getQuery(true)
 			->select($db->qn(array('update_site_id', 'name')))
 			->from($db->qn('#__update_sites'))
-			->where($db->qn('update_site_id') . ' IN (' . implode(', ', $ids) . ')');
-		$db->setQuery($query);
-		$updateSitesNames = $db->loadObjectList('update_site_id');
+			->where($db->qn('update_site_id') . ' IN (' . implode(', ', $updateSiteIds) . ')');
+
+		$updateSitesNames = $db->setQuery($query)->loadObjectList('update_site_id');
 
 		// Gets Joomla core update sites Ids.
 		$joomlaUpdateSitesIds = $this->getJoomlaUpdateSitesIds(0);
 
+		// Get a table object for the update site.
+		$table = JTable::getInstance('Updatesite');
+		$count = 0;
+
 		// Enable the update site in the table and store it in the database
-		foreach ($ids as $i => $id)
+		foreach ($updateSiteIds as $updateSiteId)
 		{
 			// Don't allow to delete Joomla Core update sites.
-			if (in_array((int) $id, $joomlaUpdateSitesIds))
+			if (in_array((int) $updateSiteId, $joomlaUpdateSitesIds))
 			{
-				$app->enqueueMessage(JText::sprintf('COM_INSTALLER_MSG_UPDATESITES_DELETE_CANNOT_DELETE', $updateSitesNames[$id]->name), 'error');
+				JLog::add(JText::sprintf('COM_INSTALLER_MSG_UPDATESITES_DELETE_CANNOT_DELETE', $updateSitesNames[$updateSiteId]->name), JLog::WARNING, 'jerror');
+
 				continue;
 			}
 
-			// Delete the update site from all tables.
-			try
+			if (!$table->delete($updateSiteId))
 			{
-				$query = $db->getQuery(true)
-					->delete($db->qn('#__update_sites'))
-					->where($db->qn('update_site_id') . ' = ' . (int) $id);
-				$db->setQuery($query);
-				$db->execute();
+				JLog::add(JText::sprintf('COM_INSTALLER_MSG_UPDATESITES_DELETE_ERROR', $updateSitesNames[$updateSiteId]->name, $table->getError()), JLog::WARNING, 'jerror');
 
-				$query = $db->getQuery(true)
-					->delete($db->qn('#__update_sites_extensions'))
-					->where($db->qn('update_site_id') . ' = ' . (int) $id);
-				$db->setQuery($query);
-				$db->execute();
-
-				$query = $db->getQuery(true)
-					->delete($db->qn('#__updates'))
-					->where($db->qn('update_site_id') . ' = ' . (int) $id);
-				$db->setQuery($query);
-				$db->execute();
-
-				$count++;
+				continue;
 			}
-			catch (RuntimeException $e)
-			{
-				$app->enqueueMessage(JText::sprintf('COM_INSTALLER_MSG_UPDATESITES_DELETE_ERROR', $updateSitesNames[$id]->name, $e->getMessage()), 'error');
-			}
+
+			$count++;
 		}
 
 		if ($count > 0)
 		{
-			$app->enqueueMessage(JText::plural('COM_INSTALLER_MSG_UPDATESITES_N_DELETE_UPDATESITES_DELETED', $count), 'message');
+			JFactory::getApplication()->enqueueMessage(JText::plural('COM_INSTALLER_MSG_UPDATESITES_N_DELETE_UPDATESITES_DELETED', $count), 'message');
 		}
 	}
 
@@ -338,15 +326,12 @@ class InstallerModelUpdatesites extends InstallerModel
 
 						if ($eid && $manifest->updateservers)
 						{
-							// Set the manifest object and path
-							$tmpInstaller->manifest = $manifest;
-							$tmpInstaller->setPath('manifest', $file);
+							// Get the table object for the update site.
+							$table = JTable::getInstance('Updatesite');
 
-							// Load the extension plugin (if not loaded yet).
-							JPluginHelper::importPlugin('extension', 'joomla');
-
-							// Fire the onExtensionAfterUpdate
-							JEventDispatcher::getInstance()->trigger('onExtensionAfterUpdate', array('installer' => $tmpInstaller, 'eid' => $eid));
+							// Set the extension Id for this update site and them add the update servers.
+							$table->setExtensionId($eid);
+							$table->addUpdateSites($manifest->updateservers);
 
 							$count++;
 						}

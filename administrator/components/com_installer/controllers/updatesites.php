@@ -52,28 +52,16 @@ class InstallerControllerUpdatesites extends JControllerLegacy
 		// Check for request forgeries.
 		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		$ids    = $this->input->get('cid', array(), 'array');
-		$values = array('publish' => 1, 'unpublish' => 0);
-		$task   = $this->getTask();
-		$value  = ArrayHelper::getValue($values, $task, 0, 'int');
+		$updateSitesIds = $this->input->get('cid', array(), 'array');
+		$value          = ArrayHelper::getValue(array('publish' => 1, 'unpublish' => 0), $this->getTask(), 0, 'int');
 
-		if (empty($ids))
+		if (empty($updateSitesIds))
 		{
 			throw new Exception(JText::_('COM_INSTALLER_ERROR_NO_UPDATESITES_SELECTED'), 500);
 		}
 
 		// Get the model.
-		$model = $this->getModel('Updatesites');
-
-		// Change the state of the records.
-		if (!$model->publish($ids, $value))
-		{
-			throw new Exception(implode('<br />', $model->getErrors()), 500);
-		}
-
-		$ntext = ($value == 0) ? 'COM_INSTALLER_N_UPDATESITES_UNPUBLISHED' : 'COM_INSTALLER_N_UPDATESITES_PUBLISHED';
-
-		$this->setMessage(JText::plural($ntext, count($ids)));
+		$this->getModel('Updatesites')->publish($updateSitesIds, $value);
 
 		$this->setRedirect(JRoute::_('index.php?option=com_installer&view=updatesites', false));
 	}
@@ -92,15 +80,15 @@ class InstallerControllerUpdatesites extends JControllerLegacy
 		// Check for request forgeries.
 		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
-		$ids = $this->input->get('cid', array(), 'array');
+		$updateSitesIds = $this->input->get('cid', array(), 'array');
 
-		if (empty($ids))
+		if (empty($updateSitesIds))
 		{
 			throw new Exception(JText::_('COM_INSTALLER_ERROR_NO_UPDATESITES_SELECTED'), 500);
 		}
 
 		// Delete the records.
-		$this->getModel('Updatesites')->delete($ids);
+		$this->getModel('Updatesites')->delete($updateSitesIds);
 
 		$this->setRedirect(JRoute::_('index.php?option=com_installer&view=updatesites', false));
 	}
