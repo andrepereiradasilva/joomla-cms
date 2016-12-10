@@ -45,13 +45,19 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<th class="nowrap">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_UPDATESITE_NAME', 'update_site_name', $listDirn, $listOrder); ?>
 						</th>
-						<th class="nowrap hidden-phone">
-							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_NAME', 'name', $listDirn, $listOrder); ?>
+						<th width="10%" class="nowrap hidden-phone">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_LAST_CHECK', 'last_check_timestamp', $listDirn, $listOrder); ?>
+						</th>
+						<th width="1%" class="nowrap hidden-phone hidden-tablet">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_FAILED_ATTEMPTS', 'failed_attempts', $listDirn, $listOrder); ?>
+						</th>
+						<th class="hidden-phone hidden-tablet">
+							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_EXTENSION', 'name', $listDirn, $listOrder); ?>
 						</th>
 						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_LOCATION', 'client_translated', $listDirn, $listOrder); ?>
 						</th>
-						<th class="hidden-phone">
+						<th class="hidden-phone hidden-tablet">
 							<?php echo JHtml::_('searchtools.sort', 'COM_INSTALLER_HEADING_TYPE', 'type_translated', $listDirn, $listOrder); ?>
 						</th>
 						<th class="hidden-phone hidden-tablet">
@@ -64,7 +70,7 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 				</thead>
 				<tfoot>
 					<tr>
-						<td colspan="8">
+						<td colspan="10">
 							<?php echo $this->pagination->getListFooter(); ?>
 						</td>
 					</tr>
@@ -79,7 +85,11 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							<?php if (!$item->element) : ?>
 								<strong>X</strong>
 							<?php else : ?>
-								<?php echo JHtml::_('InstallerHtml.Updatesites.state', $item->enabled, $i, $item->enabled < 2, 'cb'); ?>
+								<?php if ($item->protected) : ?>
+									<a class="btn btn-micro disabled"><span class="icon-lock"></span></a>
+								<?php else : ?>
+									<?php echo JHtml::_('InstallerHtml.Updatesites.state', $item->enabled, $i, $item->enabled < 2, 'cb'); ?>
+								<?php endif; ?>
 							<?php endif; ?>
 						</td>
 						<td>
@@ -92,6 +102,21 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 							</label>
 						</td>
 						<td class="hidden-phone">
+							<?php if (!$item->last_check_timestamp) : ?>
+								<?php echo JText::_('JNEVER'); ?>
+							<?php else : ?>
+								<?php $date = new JDate($item->last_check_timestamp); ?>
+								<?php echo $date->format('Y-m-d H:i:s'); ?>
+							<?php endif; ?>
+						</td>
+						<td class="center hidden-phone hidden-tablet">
+							<?php if ($item->failed_attempts) : ?>
+								<span class="label label-important"><?php echo $item->failed_attempts; ?></span>
+							<?php else : ?>
+								<span class="label"><?php echo $item->failed_attempts; ?></span>
+							<?php endif; ?>
+						</td>
+						<td class="hidden-phone hidden-tablet">
 							<span class="bold hasTooltip" title="<?php echo JHtml::tooltipText($item->name, $item->description, 0); ?>">
 								<?php echo $item->name; ?>
 							</span>
@@ -99,7 +124,7 @@ $listDirn  = $this->escape($this->state->get('list.direction'));
 						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->client_translated; ?>
 						</td>
-						<td class="hidden-phone">
+						<td class="hidden-phone hidden-tablet">
 							<?php echo $item->type_translated; ?>
 						</td>
 						<td class="hidden-phone hidden-tablet">
