@@ -9,6 +9,8 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Registry\Registry;
+
 /**
  * Extension class
  *
@@ -33,6 +35,11 @@ class JExtension extends JObject
 
 		foreach ($options as $option => $value)
 		{
+			if ($option === 'params')
+			{
+				$value = new Registry($value);
+			}
+
 			$this->$option = $value;
 		}
 	}
@@ -52,14 +59,14 @@ class JExtension extends JObject
 	/**
 	 * Gets the parameter object for the extension.
 	 *
-	 * @return  Registry  A Registry object.
+	 * @return  Registry  The params Registry object.
 	 *
 	 * @see     Registry
 	 * @since   __DEPLOY_VERSION__
 	 */
 	public function getParams()
 	{
-		return new Joomla\Registry\Registry($this->params);
+		return $this->params;
 	}
 
 	/**
@@ -98,6 +105,6 @@ class JExtension extends JObject
 
 		$db->setQuery($query)->execute();
 
-		$this->params = $params;
+		$this->params = new Registry($params);
 	}
 }

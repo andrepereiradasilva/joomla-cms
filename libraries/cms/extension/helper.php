@@ -33,28 +33,28 @@ class JExtensionHelper
 	 * @param   string  $element  The extension element.
 	 * @param   string  $folder   The extension folder (if any).
 	 *
-	 * @return  stdClass|boolean  Extension object if exists. False otherwise.
+	 * @return  JExtension  Extension object if exists. Empty extension object otherwise.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
 	public static function getExtension($type, $element, $folder = null)
 	{
-		static::preload();
+		self::preload();
 
-		// Getting an specific plugin.
+		// For plugins.
 		if ($type === 'plugin' && isset(static::$extensions[$type], static::$extensions[$type][$folder], static::$extensions[$type][$folder][$element]))
 		{
 			return static::$extensions[$type][$folder][$element];
 		}
 
-		// Getting an specific component, library or language.
+		// For other extension types.
 		if ($folder === null && isset(static::$extensions[$type], static::$extensions[$type][$element]))
 		{
 			return static::$extensions[$type][$element];
 		}
 
-		// Extension doesn't exist.
-		return false;
+		// This exception is not translated because the extensions (including languages have not been loaded yet).
+		throw new RuntimeException('Extension does not exist.', 500);
 	}
 
 	/**
@@ -70,9 +70,16 @@ class JExtensionHelper
 	 */
 	public static function isEnabled($type, $element, $folder = null)
 	{
-		static::preload();
+		self::preload();
 
-		return (boolean) static::getExtension($type, $folder, $element)->isEnabled();
+		try
+		{
+			return (boolean) self::getExtension($type, $element, $folder)->isEnabled();
+		}
+		catch (Exception $e)
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -88,9 +95,18 @@ class JExtensionHelper
 	 */
 	public static function isInstalled($type, $element, $folder = null)
 	{
-		static::preload();
+		self::preload();
 
-		return (boolean) static::getExtension($type, $folder, $element);
+		try
+		{
+			self::getExtension($type, $element, $folder);
+
+			return true;
+		}
+		catch (Exception $e)
+		{
+			return false;
+		}
 	}
 
 	/**
@@ -107,9 +123,16 @@ class JExtensionHelper
 	 */
 	public static function getParams($type, $element, $folder = null)
 	{
-		static::preload();
+		self::preload();
 
-		return static::getExtension($type, $folder, $element)->getParams();
+		try
+		{
+			return self::getExtension($type, $element, $folder)->getParams();
+		}
+		catch (Exception $e)
+		{
+			return new Registry;
+		}
 	}
 
 	/**
@@ -120,28 +143,45 @@ class JExtensionHelper
 	 * @param   string           $folder   The extension folder (if any).
 	 * @param   string|Registry  $params   Params to save
 	 *
-	 * @return  void
+	 * @return  boolean   True if params saved, false otherwhise.
 	 *
 	 * @see     Registry
 	 * @since   __DEPLOY_VERSION__
 	 */
 	public static function saveParams($type, $element, $folder = null, $params)
 	{
-		static::preload();
+		self::preload();
 
 		// No extension installed, or invalid parameters sent. Return false.
-		if (!$extension || !$type || !$element || !$params)
+		if (!$params)
 		{
-			return;
+			return false;
 		}
 
-		static::getExtension($type, $folder, $element)->saveParams($params);
+		try
+		{
+			self::getExtension($type, $element, $folder)->saveParams($params);
+		}
+		catch (Exception $e)
+		{
+			return false;
+		}
 
-		// Reset static array.
-		static::$extensions = array();
+		// Update the static cache.
 
-		// Rebuild extensions static cache.
-		static::preload();
+		// For plugins.
+		if ($type === 'plugin' && isset(static::$extensions[$type], static::$extensions[$type][$folder], static::$extensions[$type][$folder][$element]))
+		{
+			static::$extensions[$type][$folder][$element]->params = !is_string($params) ?: new Registry($params);
+		}
+
+		// For other extension types.
+		if ($folder === null && isset(static::$extensions[$type], static::$extensions[$type][$element]))
+		{
+			static::$extensions[$type][$element] = !is_string($params) ?: new Registry($params);
+		}
+
+		return true;
 	}
 
 	/**
@@ -167,14 +207,14 @@ class JExtensionHelper
 		// Get all the extensions.
 		if (!static::$extensions = $cache->get('extensions'))
 		{
-			$db    = JFactory::getDbo();
+			$db = JFactory::getDbo();
+
+			$validExtensions = array($db->q('component'), $db->q('library'), $db->q('plugin'), $db->q('language'));
+
 			$query = $db->getQuery(true)
-				->select($db->qn('extension_id', 'id'))
-				->select($db->qn(array('name', 'element', 'type', 'folder', 'enabled', 'params', 'access', 'state', 'client_id', 'ordering')))
+				->select($db->qn(array('extension_id', 'name', 'element', 'type', 'folder', 'enabled', 'params', 'access', 'state', 'client_id', 'ordering')))
 				->from($db->qn('#__extensions'))
-				->where($db->qn('type') . ' IN (' . $db->q('component') . ',' . $db->q('language') . ',' . $db->q('library') . ')')
-				->orWhere($db->qn('type') . ' = ' . $db->q('template') . ' AND ' . $db->qn('enabled') . ' = 1')
-				->orWhere($db->qn('type') . ' = ' . $db->q('plugin') . ' AND ' . $db->qn('enabled') . ' = 1 AND ' . $db->qn('state') . ' IN (0, 1)');
+				->where($db->qn('type') . ' IN (' . implode(', ', $validExtensions) . ')');
 
 			$extensions = $db->setQuery($query)->loadAssocList();
 
@@ -218,7 +258,7 @@ class JExtensionHelper
 	 */
 	public static function getExtensions($type = null, $folder = null)
 	{
-		static::preload();
+		self::preload();
 
 		// Return all.
 		if ($type === null)

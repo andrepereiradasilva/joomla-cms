@@ -267,7 +267,7 @@ final class JVersion
 		if ($mediaVersion === null)
 		{
 			// Get the joomla library params
-			$params = JLibraryHelper::getParams('joomla');
+			$params = JExtensionHelper::getParams('library', 'joomla');
 
 			// Get the media version
 			$mediaVersion = $params->get('mediaversion', '');
@@ -313,12 +313,12 @@ final class JVersion
 		if (!empty($mediaVersion))
 		{
 			// Get library parameters
-			$params = JLibraryHelper::getParams('joomla');
+			$params = JExtensionHelper::getParams('library', 'joomla');
 
 			$params->set('mediaversion', $mediaVersion);
 
 			// Save modified params
-			JLibraryHelper::saveParams('joomla', $params);
+			JExtensionHelper::saveParams('library', 'joomla', null, $params);
 		}
 
 		return $this;
