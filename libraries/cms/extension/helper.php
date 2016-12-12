@@ -49,12 +49,12 @@ class JExtensionHelper
 				continue;
 			}
 
-			if ($extension->folder !== $folder)
+			if ($extension->element !== $element)
 			{
 				continue;
 			}
 
-			if ($element !== null && $extension->element !== $element)
+			if ($folder !== null && $extension->folder !== $folder)
 			{
 				continue;
 			}
@@ -89,7 +89,7 @@ class JExtensionHelper
 
 		try
 		{
-			return (boolean) self::getExtension($type, $element, $folder, $clientId)->isEnabled();
+			return (boolean) static::getExtension($type, $element, $folder, $clientId)->isEnabled();
 		}
 		catch (Exception $e)
 		{
@@ -115,7 +115,7 @@ class JExtensionHelper
 
 		try
 		{
-			self::getExtension($type, $element, $folder, $clientId);
+			static::getExtension($type, $element, $folder, $clientId);
 
 			return true;
 		}
@@ -144,7 +144,7 @@ class JExtensionHelper
 
 		try
 		{
-			return self::getExtension($type, $element, $folder, $clientId)->getParams();
+			return static::getExtension($type, $element, $folder, $clientId)->getParams();
 		}
 		catch (Exception $e)
 		{
@@ -178,7 +178,8 @@ class JExtensionHelper
 
 		try
 		{
-			$extension = self::getExtension($type, $element, $folder, $clientId)->saveParams($params);
+			$extension = static::getExtension($type, $element, $folder, $clientId);
+			$extension->saveParams($params);
 		}
 		catch (Exception $e)
 		{
