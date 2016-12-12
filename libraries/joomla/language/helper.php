@@ -183,22 +183,20 @@ class JLanguageHelper
 
 		if ($installedLanguages === null)
 		{
-			$cache = JFactory::getCache('com_languages', '');
+			// Load all languages.
+			$languagesExtensions = JExtensionHelper::getExtensions('language');
 
-			if (!$installedLanguages = $cache->get('installedlanguages'))
+			$installedLanguages = array();
+
+			foreach ($languagesExtensions as $languageExtension)
 			{
-				$db = JFactory::getDbo();
+				// Use only enabled languages with state 0.
+				if ((int) $languageExtension->enabled !== 1 && (int) $languageExtension->state !== 0)
+				{
+					continue;
+				}
 
-				$query = $db->getQuery(true)
-					->select($db->quoteName(array('element', 'name', 'client_id', 'extension_id')))
-					->from($db->quoteName('#__extensions'))
-					->where($db->quoteName('type') . ' = ' . $db->quote('language'))
-					->where($db->quoteName('state') . ' = 0')
-					->where($db->quoteName('enabled') . ' = 1');
-
-				$installedLanguages = $db->setQuery($query)->loadObjectList();
-
-				$cache->store($installedLanguages, 'installedlanguages');
+				$installedLanguages[] = $languageExtension;
 			}
 		}
 

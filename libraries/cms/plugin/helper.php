@@ -298,25 +298,22 @@ abstract class JPluginHelper
 		static::$plugins = array();
 
 		// Get the specified plugin(s).
-		foreach ($plugins as $folder)
+		foreach ($plugins as $plugin)
 		{
-			foreach ($folder as $plugin)
+			// Exclude disabled plugins, with other access levels and with other states.
+			if ((int) $plugin->enabled !== 1 || !in_array((int) $plugin->access, $levels) || !in_array((int) $plugin->state, array(0, 1)))
 			{
-				// Exlude disabled plugins, with other access levels and with other states.
-				if ((int) $plugin->enabled !== 1 || !in_array((int) $plugin->access, $levels) || !in_array((int) $plugin->state, array(0, 1)))
-				{
-					continue;
-				}
-
-				// Use the already used terms.
-				$plugin->type   = $plugin->folder;
-				$plugin->name   = $plugin->element;
-
-				// Convert params to string since is already used this way in plugins.
-				$plugin->params = $plugin->params->toString();
-
-				static::$plugins[] = $plugin;
+				continue;
 			}
+
+			// Use the already used terms.
+			$plugin->type   = $plugin->folder;
+			$plugin->name   = $plugin->element;
+
+			// Convert params to string since is already used this way in plugins.
+			$plugin->params = $plugin->params->toString();
+
+			static::$plugins[] = $plugin;
 		}
 
 		// Order the plugins.
