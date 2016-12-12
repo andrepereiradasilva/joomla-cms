@@ -40,7 +40,7 @@ class JExtensionHelper
 	 */
 	public static function getExtension($type, $element, $folder = null, $clientId = null)
 	{
-		self::preload();
+		static::preload();
 
 		foreach (static::$extensions as $extension)
 		{
@@ -85,7 +85,7 @@ class JExtensionHelper
 	 */
 	public static function isEnabled($type, $element, $folder = null, $clientId = null)
 	{
-		self::preload();
+		static::preload();
 
 		try
 		{
@@ -111,7 +111,7 @@ class JExtensionHelper
 	 */
 	public static function isInstalled($type, $element, $folder = null, $clientId = null)
 	{
-		self::preload();
+		static::preload();
 
 		try
 		{
@@ -140,7 +140,7 @@ class JExtensionHelper
 	 */
 	public static function getParams($type, $element, $folder = null, $clientId = null)
 	{
-		self::preload();
+		static::preload();
 
 		try
 		{
@@ -168,7 +168,7 @@ class JExtensionHelper
 	 */
 	public static function saveParams($type, $element, $folder = null, $clientId = null, $params)
 	{
-		self::preload();
+		static::preload();
 
 		// No extension installed, or invalid parameters sent. Return false.
 		if (!$params)
@@ -260,7 +260,7 @@ class JExtensionHelper
 	 */
 	public static function getExtensions($type = null, $folder = null, $clientId = null)
 	{
-		self::preload();
+		static::preload();
 
 		if ($type === null && $folder === null && $clientId === null)
 		{
