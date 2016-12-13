@@ -38,22 +38,16 @@ class JLibraryHelper
 	 */
 	public static function getLibrary($element, $strict = false)
 	{
-		// Is already cached ?
+		static::load();
+
 		if (isset(static::$libraries[$element]))
 		{
 			return static::$libraries[$element];
 		}
 
-		if (static::_load($element))
-		{
-			$result = static::$libraries[$element];
-		}
-		else
-		{
-			$result = new stdClass;
-			$result->enabled = $strict ? false : true;
-			$result->params = new Registry;
-		}
+		$result = new stdClass;
+		$result->enabled = $strict ? false : true;
+		$result->params = new Registry;
 
 		return $result;
 	}
@@ -69,9 +63,7 @@ class JLibraryHelper
 	 */
 	public static function isEnabled($element)
 	{
-		$result = static::getLibrary($element, true);
-
-		return $result->enabled;
+		return JExtensionHelper::isEnabled('library', $element);
 	}
 
 	/**
@@ -85,11 +77,9 @@ class JLibraryHelper
 	 * @see     Registry
 	 * @since   3.2
 	 */
-	public static function getParams($element, $strict = false)
+	public static function getParams($element)
 	{
-		$library = static::getLibrary($element, $strict);
-
-		return $library->params;
+		return JExtensionHelper::getParams('library', $element);
 	}
 
 	/**
@@ -98,36 +88,14 @@ class JLibraryHelper
 	 * @param   string    $element  Element of the library in the extensions table.
 	 * @param   Registry  $params   Params to save
 	 *
-	 * @return  Registry  A Registry object.
+	 * @return  boolean   True if params saved, false otherwhise.
 	 *
 	 * @see     Registry
 	 * @since   3.2
 	 */
 	public static function saveParams($element, $params)
 	{
-		if (static::isEnabled($element))
-		{
-			// Save params in DB
-			$db = JFactory::getDbo();
-			$query = $db->getQuery(true)
-				->update($db->quoteName('#__extensions'))
-				->set($db->quoteName('params') . ' = ' . $db->quote($params->toString()))
-				->where($db->quoteName('type') . ' = ' . $db->quote('library'))
-				->where($db->quoteName('element') . ' = ' . $db->quote($element));
-			$db->setQuery($query);
-
-			$result = $db->execute();
-
-			// Update params in libraries cache
-			if ($result && isset(static::$libraries[$element]))
-			{
-				static::$libraries[$element]->params = $params;
-			}
-
-			return $result;
-		}
-
-		return false;
+		return JExtensionHelper::saveParams('library', $element, null, null, $params);
 	}
 
 	/**
@@ -138,44 +106,39 @@ class JLibraryHelper
 	 * @return  boolean  True on success
 	 *
 	 * @since   3.2
+	 * @deprecated  4.0  Use JLibraryHelper::load() instead
 	 */
 	protected static function _load($element)
 	{
-		$db = JFactory::getDbo();
-		$query = $db->getQuery(true)
-			->select($db->quoteName(array('extension_id', 'element', 'params', 'enabled'), array('id', 'option', null, null)))
-			->from($db->quoteName('#__extensions'))
-			->where($db->quoteName('type') . ' = ' . $db->quote('library'))
-			->where($db->quoteName('element') . ' = ' . $db->quote($element));
-		$db->setQuery($query);
+		return static::load();
+	}
 
-		$cache = JFactory::getCache('_system', 'callback');
-
-		try
+	/**
+	 * Load the installed components into the components property.
+	 *
+	 * @return  boolean  True on success
+	 *
+	 * @since   3.2
+	 */
+	protected static function load()
+	{
+		if (static::$libraries !== null)
 		{
-			static::$libraries[$element] = $cache->get(array($db, 'loadObject'), null, $element, false);
-		}
-		catch (RuntimeException $e)
-		{
-			// Fatal error.
-			JLog::add(JText::sprintf('JLIB_APPLICATION_ERROR_LIBRARY_NOT_LOADING', $element, $e->getMessage()), JLog::WARNING, 'jerror');
-
-			return false;
+			return static::$libraries;
 		}
 
-		if (empty(static::$libraries[$element]))
-		{
-			// Fatal error.
-			$error = JText::_('JLIB_APPLICATION_ERROR_LIBRARY_NOT_FOUND');
-			JLog::add(JText::sprintf('JLIB_APPLICATION_ERROR_LIBRARY_NOT_LOADING', $element, $error), JLog::WARNING, 'jerror');
+		// Load all components.
+		$libraries = JExtensionHelper::getExtensions('library');
 
-			return false;
-		}
+		static::$libraries = array();
 
-		// Convert the params to an object.
-		if (is_string(static::$libraries[$element]->params))
+		foreach ($libraries as $library)
 		{
-			static::$libraries[$element]->params = new Registry(static::$libraries[$element]->params);
+			// Use the already used terms.
+			$library->id     = $library->extension_id;
+			$library->option = $library->element;
+
+			static::$libraries[$library->option] = $library;
 		}
 
 		return true;

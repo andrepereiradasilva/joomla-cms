@@ -9,6 +9,8 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\Utilities\ArrayHelper;
+
 /**
  * Plugin helper class
  *
@@ -116,26 +118,24 @@ abstract class JPluginHelper
 	/**
 	 * Checks if a plugin is enabled.
 	 *
-	 * @param   string  $type    The plugin type, relates to the subdirectory in the plugins directory.
-	 * @param   string  $plugin  The plugin name.
+	 * @param   string  $folder   The plugin folder, relates to the subdirectory in the plugins directory.
+	 * @param   string  $element  The element name.
 	 *
 	 * @return  boolean
 	 *
 	 * @since   1.5
 	 */
-	public static function isEnabled($type, $plugin = null)
+	public static function isEnabled($folder, $element = null)
 	{
-		$result = static::getPlugin($type, $plugin);
-
-		return !empty($result);
+		return JExtensionHelper::isEnabled('plugin', $element, $folder);
 	}
 
 	/**
 	 * Loads all the plugin files for a particular type if no specific plugin is specified
 	 * otherwise only the specific plugin is loaded.
 	 *
-	 * @param   string            $type        The plugin type, relates to the subdirectory in the plugins directory.
-	 * @param   string            $plugin      The plugin name.
+	 * @param   string            $folder      The plugin folder, relates to the subdirectory in the plugins directory.
+	 * @param   string            $element     The plugin name.
 	 * @param   boolean           $autocreate  Autocreate the plugin.
 	 * @param   JEventDispatcher  $dispatcher  Optionally allows the plugin to use a different dispatcher.
 	 *
@@ -143,19 +143,19 @@ abstract class JPluginHelper
 	 *
 	 * @since   1.5
 	 */
-	public static function importPlugin($type, $plugin = null, $autocreate = true, JEventDispatcher $dispatcher = null)
+	public static function importPlugin($folder, $element = null, $autocreate = true, JEventDispatcher $dispatcher = null)
 	{
 		static $loaded = array();
 
 		// Check for the default args, if so we can optimise cheaply
 		$defaults = false;
 
-		if (is_null($plugin) && $autocreate == true && is_null($dispatcher))
+		if (is_null($element) && $autocreate == true && is_null($dispatcher))
 		{
 			$defaults = true;
 		}
 
-		if (!isset($loaded[$type]) || !$defaults)
+		if (!isset($loaded[$folder]) || !$defaults)
 		{
 			$results = null;
 
@@ -165,7 +165,7 @@ abstract class JPluginHelper
 			// Get the specified plugin(s).
 			for ($i = 0, $t = count($plugins); $i < $t; $i++)
 			{
-				if ($plugins[$i]->type == $type && ($plugin === null || $plugins[$i]->name == $plugin))
+				if ($plugins[$i]->type == $folder && ($element === null || $plugins[$i]->name == $element))
 				{
 					static::import($plugins[$i], $autocreate, $dispatcher);
 					$results = true;
@@ -178,10 +178,10 @@ abstract class JPluginHelper
 				return $results;
 			}
 
-			$loaded[$type] = $results;
+			$loaded[$folder] = $results;
 		}
 
-		return $loaded[$type];
+		return $loaded[$folder];
 	}
 
 	/**
@@ -290,31 +290,34 @@ abstract class JPluginHelper
 			return static::$plugins;
 		}
 
-		$levels = implode(',', JFactory::getUser()->getAuthorisedViewLevels());
+		$levels = JFactory::getUser()->getAuthorisedViewLevels();
 
-		/** @var JCacheControllerCallback $cache */
-		$cache = JFactory::getCache('com_plugins', 'callback');
+		// Load all the plugins.
+		$plugins = JExtensionHelper::getExtensions('plugin');
 
-		static::$plugins = $cache->get(
-			function () use ($levels)
+		static::$plugins = array();
+
+		// Get the specified plugin(s).
+		foreach ($plugins as $plugin)
+		{
+			// Exclude disabled plugins, with other access levels and with other states.
+			if ((int) $plugin->enabled !== 1 || !in_array((int) $plugin->access, $levels) || !in_array((int) $plugin->state, array(0, 1)))
 			{
-				$db = JFactory::getDbo();
-				$query = $db->getQuery(true)
-					->select(array($db->quoteName('folder', 'type'), $db->quoteName('element', 'name'), $db->quoteName('params')))
-					->from('#__extensions')
-					->where('enabled = 1')
-					->where('type = ' . $db->quote('plugin'))
-					->where('state IN (0,1)')
-					->where('access IN (' . $levels . ')')
-					->order('ordering');
-				$db->setQuery($query);
+				continue;
+			}
 
-				return $db->loadObjectList();
-			},
-			array(),
-			md5($levels),
-			false
-		);
+			// Use the already used terms.
+			$plugin->type   = $plugin->folder;
+			$plugin->name   = $plugin->element;
+
+			// Convert params to string since is already used this way in plugins.
+			$plugin->params = $plugin->params->toString();
+
+			static::$plugins[] = $plugin;
+		}
+
+		// Order the plugins.
+		static::$plugins = ArrayHelper::sortObjects(static::$plugins, 'ordering', 1, true, true);
 
 		return static::$plugins;
 	}
