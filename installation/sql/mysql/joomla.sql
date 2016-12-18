@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `#__assets` (
   `rules` varchar(5120) NOT NULL COMMENT 'JSON encoded access control.',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_asset_name` (`name`),
+  UNIQUE KEY `idx_name_parent_id` (`name`, `parent_id`),
   KEY `idx_lft_rgt` (`lft`,`rgt`),
   KEY `idx_parent_id` (`parent_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE=utf8mb4_unicode_ci;

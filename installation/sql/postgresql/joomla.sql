@@ -11,7 +11,8 @@ CREATE TABLE "#__assets" (
   "title" varchar(100) NOT NULL,
   "rules" varchar(5120) NOT NULL,
   PRIMARY KEY ("id"),
-  CONSTRAINT "#__assets_idx_asset_name" UNIQUE ("name")
+  CONSTRAINT "#__assets_idx_asset_name" UNIQUE ("name"),
+  CONSTRAINT "#__assets_idx_name_parent_id" UNIQUE ("name", "parent_id")
 );
 CREATE INDEX "#__assets_idx_lft_rgt" ON "#__assets" ("lft", "rgt");
 CREATE INDEX "#__assets_idx_parent_id" ON "#__assets" ("parent_id");
