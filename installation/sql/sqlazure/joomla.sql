@@ -18,7 +18,7 @@ CREATE TABLE [#__assets](
 (
 	[name] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY],
- CONSTRAINT [PK_#__assets$idx_name_parent_id] PRIMARY KEY CLUSTERED
+ CONSTRAINT [#__assets$idx_name_parent_id] UNIQUE CLUSTERED
 (
 	[name] ASC,
 	[parent_id] ASC
