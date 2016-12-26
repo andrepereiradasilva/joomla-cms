@@ -476,6 +476,12 @@ abstract class JInstallerAdapter extends JAdapterInstance
 
 				return false;
 			}
+
+			// If installing with success and there is an uninstall script, add a installer rollback step to rollback if needed
+			if ($route === 'install' && isset($this->getManifest()->uninstall->sql))
+			{
+				$this->parent->pushStep(array('type' => 'query', 'script' => $this->getManifest()->uninstall->sql));
+			}
 		}
 
 		return true;
@@ -1078,5 +1084,31 @@ abstract class JInstallerAdapter extends JAdapterInstance
 
 		// Now jump into the install method to run the update
 		return $this->install();
+	}
+
+	/**
+	 * Add a rollback step to parent installer.
+	 *
+	 * @param   array  $step  The step to rollback.
+	 *
+	 * @return  null
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function addStepToInstaller(array $step = array())
+	{
+		// We only add rollback step on new installs.
+		if ($this->currentExtensionId)
+		{
+			return null;
+		}
+
+		// The rollback step need something.
+		if ($step === array())
+		{
+			return null;
+		}
+
+		$this->parent->pushStep($step);
 	}
 }
