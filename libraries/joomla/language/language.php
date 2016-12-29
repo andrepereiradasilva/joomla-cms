@@ -185,57 +185,59 @@ class JLanguage
 	 */
 	public function __construct($lang = null, $debug = false)
 	{
-		$this->strings = array();
-
-		if ($lang == null)
+		if ($debug !== false)
 		{
-			$lang = $this->default;
+			$this->setDebug($debug);
 		}
 
-		$this->lang = $lang;
+		$this->lang     = $lang !== null ? $lang : $this->default;
 		$this->metadata = $this->getMetadata($this->lang);
-		$this->setDebug($debug);
 
-		$filename = JPATH_BASE . "/language/overrides/$lang.override.ini";
+		$filename = JPATH_BASE . '/language/overrides/' . $this->lang . '.override.ini';
 
 		if (file_exists($filename) && $contents = $this->parse($filename))
 		{
-			if (is_array($contents))
-			{
-				// Sort the underlying heap by key values to optimize merging
-				ksort($contents, SORT_STRING);
-				$this->override = $contents;
-			}
-
-			unset($contents);
+			$this->override = $contents;
 		}
 
 		// Look for a language specific localise class
-		$class = str_replace('-', '_', $lang . 'Localise');
-		$paths = array();
+		$class = str_replace('-', '_', $this->lang . 'Localise');
 
-		if (defined('JPATH_SITE'))
+		if (!class_exists($class))
 		{
-			// Note: Manual indexing to enforce load order.
-			$paths[0] = JPATH_SITE . "/language/overrides/$lang.localise.php";
-			$paths[2] = JPATH_SITE . "/language/$lang/$lang.localise.php";
-		}
+			$searchPaths = array(
+				'/language/overrides/' . $this->lang . '.localise.php',
+				'/language/' . $this->lang . '/' . $this->lang . '.localise.php',
+			);
+			$clientPaths = array();
 
-		if (defined('JPATH_ADMINISTRATOR'))
-		{
-			// Note: Manual indexing to enforce load order.
-			$paths[1] = JPATH_ADMINISTRATOR . "/language/overrides/$lang.localise.php";
-			$paths[3] = JPATH_ADMINISTRATOR . "/language/$lang/$lang.localise.php";
-		}
+			if (defined('JPATH_SITE'))
+			{
+				$clientPaths[] = JPATH_SITE;
+			}
 
-		ksort($paths);
-		$path = reset($paths);
+			if (defined('JPATH_ADMINISTRATOR'))
+			{
+				$clientPaths[] = JPATH_ADMINISTRATOR;
+			}
 
-		while (!class_exists($class) && $path)
-		{
-			JLoader::register($class, $path);
+			foreach ($searchPaths as $searchPath)
+			{
+				foreach ($clientPaths as $clientPath)
+				{
+					if (!file_exists($clientPath . $searchPath))
+					{
+						continue;
+					}
 
-			$path = next($paths);
+					JLoader::register($class, $clientPath . $searchPath);
+
+					if (class_exists($class))
+					{
+						break 2;
+					}
+				}
+			}
 		}
 
 		if (class_exists($class))
@@ -318,60 +320,48 @@ class JLanguage
 	public function _($string, $jsSafe = false, $interpretBackSlashes = true)
 	{
 		// Detect empty string
-		if ($string == '')
+		if (empty($string))
 		{
 			return '';
 		}
 
-		$key = strtoupper($string);
+		$key    = strtoupper($string);
+		$string = isset($this->strings[$key]) ? $this->strings[$key] : $string;
 
-		if (isset($this->strings[$key]))
+		if ($this->debug)
 		{
-			$string = $this->debug ? '**' . $this->strings[$key] . '**' : $this->strings[$key];
-
-			// Store debug information
-			if ($this->debug)
+			if (isset($this->strings[$key]))
 			{
-				$caller = $this->getCallerInfo();
-
-				if (!array_key_exists($key, $this->used))
-				{
-					$this->used[$key] = array();
-				}
-
-				$this->used[$key][] = $caller;
+				$boundary   = '**';
+				$property   = 'used';
+				$additional = array();
 			}
-		}
-		else
-		{
-			if ($this->debug)
+			else
 			{
-				$caller = $this->getCallerInfo();
-				$caller['string'] = $string;
-
-				if (!array_key_exists($key, $this->orphans))
-				{
-					$this->orphans[$key] = array();
-				}
-
-				$this->orphans[$key][] = $caller;
-
-				$string = '??' . $string . '??';
+				$boundary   = '??';
+				$property   = 'orphans';
+				$additional = array('string' => $string);
 			}
+
+			if (!isset($this->$property[$key]))
+			{
+				$this->$property[$key] = array();
+			}
+
+			$this->$property[$key][] = array_replace($this->getCallerInfo(), $additional);
+
+			$string = $boundary . $string . $boundary;
 		}
 
+		// Javascript filter
 		if ($jsSafe)
 		{
-			// Javascript filter
-			$string = addslashes($string);
+			return addslashes($string);
 		}
-		elseif ($interpretBackSlashes)
+		// Interpret \n and \t characters
+		elseif ($interpretBackSlashes && strpos($string, '\\') !== false)
 		{
-			if (strpos($string, '\\') !== false)
-			{
-				// Interpret \n and \t characters
-				$string = str_replace(array('\\\\', '\t', '\n'), array("\\", "\t", "\n"), $string);
-			}
+			return str_replace(array('\\\\', '\t', '\n'), array("\\", "\t", "\n"), $string);
 		}
 
 		return $string;
@@ -396,10 +386,7 @@ class JLanguage
 			return call_user_func($this->transliterator, $string);
 		}
 
-		$string = JLanguageTransliterate::utf8_latin_to_ascii($string);
-		$string = StringHelper::strtolower($string);
-
-		return $string;
+		return StringHelper::strtolower(JLanguageTransliterate::utf8_latin_to_ascii($string));
 	}
 
 	/**
@@ -442,14 +429,7 @@ class JLanguage
 	 */
 	public function getPluralSuffixes($count)
 	{
-		if ($this->pluralSuffixesCallback !== null)
-		{
-			return call_user_func($this->pluralSuffixesCallback, $count);
-		}
-		else
-		{
-			return array((string) $count);
-		}
+		return $this->pluralSuffixesCallback !== null ? call_user_func($this->pluralSuffixesCallback, $count) : array((string) $count);
 	}
 
 	/**
@@ -490,14 +470,7 @@ class JLanguage
 	 */
 	public function getIgnoredSearchWords()
 	{
-		if ($this->ignoredSearchWordsCallback !== null)
-		{
-			return call_user_func($this->ignoredSearchWordsCallback);
-		}
-		else
-		{
-			return array();
-		}
+		return $this->ignoredSearchWordsCallback !== null ? call_user_func($this->ignoredSearchWordsCallback) : array();
 	}
 
 	/**
@@ -538,14 +511,7 @@ class JLanguage
 	 */
 	public function getLowerLimitSearchWord()
 	{
-		if ($this->lowerLimitSearchWordCallback !== null)
-		{
-			return call_user_func($this->lowerLimitSearchWordCallback);
-		}
-		else
-		{
-			return 3;
-		}
+		return $this->lowerLimitSearchWordCallback !== null ? call_user_func($this->lowerLimitSearchWordCallback) : 3;
 	}
 
 	/**
@@ -632,14 +598,7 @@ class JLanguage
 	 */
 	public function getSearchDisplayedCharactersNumber()
 	{
-		if ($this->searchDisplayedCharactersNumberCallback !== null)
-		{
-			return call_user_func($this->searchDisplayedCharactersNumberCallback);
-		}
-		else
-		{
-			return 200;
-		}
+		return $this->searchDisplayedCharactersNumberCallback !== null ? call_user_func($this->searchDisplayedCharactersNumberCallback) : 200;
 	}
 
 	/**
@@ -790,32 +749,22 @@ class JLanguage
 	{
 		$this->counter++;
 
-		$result = false;
-		$strings = false;
-
-		if (file_exists($filename))
-		{
-			$strings = $this->parse($filename);
-		}
-
-		if ($strings)
-		{
-			if (is_array($strings) && count($strings))
-			{
-				$this->strings = array_replace($this->strings, $strings, $this->override);
-				$result = true;
-			}
-		}
-
 		// Record the result of loading the extension's file.
 		if (!isset($this->paths[$extension]))
 		{
 			$this->paths[$extension] = array();
 		}
 
-		$this->paths[$extension][$filename] = $result;
+		$this->paths[$extension][$filename] = false;
+		$strings                            = file_exists($filename) ? $this->parse($filename) : array();
 
-		return $result;
+		if ($strings !== array())
+		{
+			$this->strings                      = array_replace($this->strings, $strings, $this->override);
+			$this->paths[$extension][$filename] = true;
+		}
+
+		return $this->paths[$extension][$filename];
 	}
 
 	/**
@@ -829,32 +778,24 @@ class JLanguage
 	 */
 	protected function parse($filename)
 	{
+		// Capture hidden PHP errors from the parsing.
 		if ($this->debug)
 		{
-			// Capture hidden PHP errors from the parsing.
-			$php_errormsg = null;
-			$track_errors = ini_get('track_errors');
+			$trackErrors = ini_get('track_errors');
 			ini_set('track_errors', true);
 		}
 
-		$contents = file_get_contents($filename);
-		$contents = str_replace('_QQ_', '"\""', $contents);
-		$strings = @parse_ini_string($contents);
+		$strings = @parse_ini_file($filename);
 
-		if (!is_array($strings))
-		{
-			$strings = array();
-		}
-
+		// Restore error tracking to what it was before.
 		if ($this->debug)
 		{
-			// Restore error tracking to what it was before.
-			ini_set('track_errors', $track_errors);
+			ini_set('track_errors', $trackErrors);
 
 			$this->debugFile($filename);
 		}
 
-		return $strings;
+		return is_array($strings) ? $strings : array();
 	}
 
 	/**
@@ -971,12 +912,7 @@ class JLanguage
 	 */
 	public function get($property, $default = null)
 	{
-		if (isset($this->metadata[$property]))
-		{
-			return $this->metadata[$property];
-		}
-
-		return $default;
+		return isset($this->metadata[$property]) ? $this->metadata[$property] : $default;
 	}
 
 	/**
@@ -1046,19 +982,12 @@ class JLanguage
 	 */
 	public function getPaths($extension = null)
 	{
-		if (isset($extension))
-		{
-			if (isset($this->paths[$extension]))
-			{
-				return $this->paths[$extension];
-			}
-
-			return;
-		}
-		else
+		if ($extension === null)
 		{
 			return $this->paths;
 		}
+
+		return isset($this->paths[$extension]) ? $this->paths[$extension] : array();
 	}
 
 	/**
@@ -1094,14 +1023,7 @@ class JLanguage
 	 */
 	public function getCalendar()
 	{
-		if (isset($this->metadata['calendar']))
-		{
-			return $this->metadata['calendar'];
-		}
-		else
-		{
-			return 'gregorian';
-		}
+		return isset($this->metadata['calendar']) ? $this->metadata['calendar'] : 'gregorian';
 	}
 
 	/**
@@ -1127,7 +1049,7 @@ class JLanguage
 	 */
 	public function setDebug($debug)
 	{
-		$previous = $this->debug;
+		$previous    = $this->debug;
 		$this->debug = (boolean) $debug;
 
 		return $previous;
@@ -1168,7 +1090,7 @@ class JLanguage
 	 */
 	public function setDefault($lang)
 	{
-		$previous = $this->default;
+		$previous      = $this->default;
 		$this->default = $lang;
 
 		return $previous;
@@ -1211,9 +1133,7 @@ class JLanguage
 	 */
 	public function hasKey($string)
 	{
-		$key = strtoupper($string);
-
-		return isset($this->strings[$key]);
+		return isset($this->strings[strtoupper($string)]);
 	}
 
 	/**
@@ -1227,22 +1147,14 @@ class JLanguage
 	 */
 	public static function getMetadata($lang)
 	{
-		$path = self::getLanguagePath(JPATH_BASE, $lang);
-		$file = $lang . '.xml';
+		$filename = self::getLanguagePath(JPATH_BASE, $lang) . $lang . '.xml';
 
-		$result = null;
-
-		if (is_file("$path/$file"))
+		if (is_file($filename))
 		{
-			$result = self::parseXMLLanguageFile("$path/$file");
+			$result = self::parseXMLLanguageFile($filename);
 		}
 
-		if (empty($result))
-		{
-			return;
-		}
-
-		return $result;
+		return !empty($result) ? $result : null;
 	}
 
 	/**
@@ -1256,10 +1168,7 @@ class JLanguage
 	 */
 	public static function getKnownLanguages($basePath = JPATH_BASE)
 	{
-		$dir = self::getLanguagePath($basePath);
-		$knownLanguages = self::parseLanguageFiles($dir);
-
-		return $knownLanguages;
+		return self::parseLanguageFiles(self::getLanguagePath($basePath));
 	}
 
 	/**
@@ -1274,14 +1183,7 @@ class JLanguage
 	 */
 	public static function getLanguagePath($basePath = JPATH_BASE, $language = null)
 	{
-		$dir = $basePath . '/language';
-
-		if (!empty($language))
-		{
-			$dir .= '/' . $language;
-		}
-
-		return $dir;
+		return $basePath . '/language' . (!empty($language) ? '/' . $language : '');
 	}
 
 	/**
@@ -1354,7 +1256,7 @@ class JLanguage
 	 */
 	public function getWeekEnd()
 	{
-		return (isset($this->metadata['weekEnd']) && $this->metadata['weekEnd']) ? $this->metadata['weekEnd'] : '0,6';
+		return isset($this->metadata['weekEnd']) && $this->metadata['weekEnd'] ? $this->metadata['weekEnd'] : '0,6';
 	}
 
 	/**
