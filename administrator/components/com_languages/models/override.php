@@ -181,7 +181,7 @@ class LanguagesModelOverride extends JModelAdmin
 
 		foreach ($strings as $key => $string)
 		{
-			$strings[$key] = str_replace('"', '"_QQ_"', $string);
+			$strings[$key] = addcslashes($string, '"');
 		}
 
 		// Write override.ini file with the strings.
