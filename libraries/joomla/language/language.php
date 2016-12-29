@@ -13,6 +13,8 @@ use Joomla\String\StringHelper;
 
 /**
  * Allows for quoting in language .ini files.
+ *
+ * @deprecated __DEPLOY_VERSION__ _QQ_ constant support in ini fiels will be removed in 4.0. Use escaped double quotes (\") instead.
  */
 define('_QQ_', '"');
 
