@@ -71,24 +71,13 @@ class LanguagesHelper
 	 * @return  array   Array of strings found in the file, the array indices will be the keys. On failure an empty array will be returned.
 	 *
 	 * @since   2.5
+	 * @deprecated   __DEPLOY_VERSION__ Use JLanguageHelper::parseIniFile() instead.
 	 */
 	public static function parseFile($filename)
 	{
-		if (!is_file($filename))
-		{
-			return array();
-		}
+		JLog::add(__METHOD__ . ' is deprecated, Use JLanguageHelper::parseIniFile().', JLog::WARNING, 'deprecated');
 
-		$contents = file_get_contents($filename);
-		$contents = str_replace('_QQ_', '"\""', $contents);
-		$strings  = @parse_ini_string($contents);
-
-		if ($strings === false)
-		{
-			return array();
-		}
-
-		return $strings;
+		return JLanguageHelper::parseIniFile($filename);
 	}
 
 	/**
