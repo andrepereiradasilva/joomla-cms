@@ -380,4 +380,27 @@ class JLanguageHelper
 
 		return $languages;
 	}
+
+	/**
+	 * Parses a language file.
+	 *
+	 * @param   string   $filename  The language ini file path.
+	 *
+	 * @return  array  The array of parsed strings.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function parseIniFile($filename)
+	{
+		// @deprecated __DEPLOY_VERSION__ _QQ_ constant support in ini fiels will be removed in 4.0.
+		// Use escaped double quotes (\") instead.
+		if (!defined('_QQ_'))
+		{
+			define('_QQ_', '"');
+		}
+
+		$strings = @parse_ini_file($filename);
+
+		return is_array($strings) ? $strings : array();
+	}
 }
