@@ -12,11 +12,6 @@ defined('JPATH_PLATFORM') or die;
 use Joomla\String\StringHelper;
 
 /**
- * Allows for quoting in language .ini files.
- */
-define('_QQ_', '"');
-
-/**
  * Languages/translation handler class
  *
  * @since  11.1
@@ -196,19 +191,7 @@ class JLanguage
 		$this->metadata = $this->getMetadata($this->lang);
 		$this->setDebug($debug);
 
-		$filename = JPATH_BASE . "/language/overrides/$lang.override.ini";
-
-		if (file_exists($filename) && $contents = $this->parse($filename))
-		{
-			if (is_array($contents))
-			{
-				// Sort the underlying heap by key values to optimize merging
-				ksort($contents, SORT_STRING);
-				$this->override = $contents;
-			}
-
-			unset($contents);
-		}
+		$this->override = $this->parse(JPATH_BASE . '/language/overrides/' . $lang . '.override.ini');
 
 		// Look for a language specific localise class
 		$class = str_replace('-', '_', $lang . 'Localise');
@@ -790,21 +773,13 @@ class JLanguage
 	{
 		$this->counter++;
 
-		$result = false;
-		$strings = false;
+		$result  = false;
+		$strings = $this->parse($filename);
 
-		if (file_exists($filename))
+		if ($strings !== array())
 		{
-			$strings = $this->parse($filename);
-		}
-
-		if ($strings)
-		{
-			if (is_array($strings) && count($strings))
-			{
-				$this->strings = array_replace($this->strings, $strings, $this->override);
-				$result = true;
-			}
+			$this->strings = array_replace($this->strings, $strings, $this->override);
+			$result = true;
 		}
 
 		// Record the result of loading the extension's file.
@@ -821,35 +796,24 @@ class JLanguage
 	/**
 	 * Parses a language file.
 	 *
-	 * @param   string  $filename  The name of the file.
+	 * @param   string  $fileName  The name of the file.
 	 *
 	 * @return  array  The array of parsed strings.
 	 *
 	 * @since   11.1
 	 */
-	protected function parse($filename)
+	protected function parse($fileName)
 	{
-		// Capture hidden PHP errors from the parsing.
-		if ($this->debug)
-		{
-			// See https://secure.php.net/manual/en/reserved.variables.phperrormsg.php
-			$php_errormsg = null;
+		$strings = JLanguageHelper::parseIniFile($fileName, $this->debug);
 
-			$trackErrors = ini_get('track_errors');
-			ini_set('track_errors', true);
+		// Debug the ini file if needed.
+		// @todo Debugging an ini file should not be coupled with the language object
+		if ($this->debug === true && file_exists($fileName))
+		{
+			$this->debugFile($fileName);
 		}
 
-		$strings = @parse_ini_file($filename);
-
-		// Restore error tracking to what it was before.
-		if ($this->debug)
-		{
-			ini_set('track_errors', $trackErrors);
-
-			$this->debugFile($filename);
-		}
-
-		return is_array($strings) ? $strings : array();
+		return $strings;
 	}
 
 	/**
@@ -861,6 +825,7 @@ class JLanguage
 	 *
 	 * @since   3.6.3
 	 * @throws  InvalidArgumentException
+	 * @todo    Debugging an ini file should not be coupled with the language object
 	 */
 	public function debugFile($filename)
 	{
