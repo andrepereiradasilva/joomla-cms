@@ -36,16 +36,14 @@ class JToolbarButtonLink extends JToolbarButton
 	 */
 	public function fetchButton($type = 'Link', $name = 'back', $text = '', $url = null)
 	{
-		// Store all data to the options array for use with JLayout
-		$options = array();
-		$options['text'] = JText::_($text);
-		$options['class'] = $this->fetchIconClass($name);
-		$options['doTask'] = $this->_getCommand($url);
+		$options = array(
+			'text'   => JText::_($text),
+			'class'  => $this->fetchIconClass($name),
+			'doTask' => $this->_getCommand($url),
+		);
 
-		// Instantiate a new JLayoutFile instance and render the layout
-		$layout = new JLayoutFile('joomla.toolbar.link');
-
-		return $layout->render($options);
+		// Render the layout
+		return JLayoutHelper::render('joomla.toolbar.link', $options);
 	}
 
 	/**

@@ -39,25 +39,21 @@ class JToolbarButtonStandard extends JToolbarButton
 	public function fetchButton($type = 'Standard', $name = '', $text = '', $task = '', $list = true)
 	{
 		// Store all data to the options array for use with JLayout
-		$options = array();
-		$options['text'] = JText::_($text);
-		$options['class'] = $this->fetchIconClass($name);
-		$options['doTask'] = $this->_getCommand($options['text'], $task, $list);
+		$options = array(
+			'text'     => JText::_($text),
+			'class'    => $this->fetchIconClass($name),
+			'doTask'   => $this->_getCommand(JText::_($text), $task, $list),
+			'btnClass' => 'btn btn-small',
+		);
 
-		if ($name == 'apply' || $name == 'new')
+		if ($name === 'apply' || $name === 'new')
 		{
-			$options['btnClass'] = 'btn btn-small btn-success';
-			$options['class'] .= ' icon-white';
-		}
-		else
-		{
-			$options['btnClass'] = 'btn btn-small';
+			$options['btnClass'] .= ' btn-success';
+			$options['class']    .= ' icon-white';
 		}
 
-		// Instantiate a new JLayoutFile instance and render the layout
-		$layout = new JLayoutFile('joomla.toolbar.standard');
-
-		return $layout->render($options);
+		// Render the layout
+		return JLayoutHelper::render('joomla.toolbar.standard', $options);
 	}
 
 	/**
@@ -92,16 +88,13 @@ class JToolbarButtonStandard extends JToolbarButton
 	 */
 	protected function _getCommand($name, $task, $list)
 	{
-		$message = JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
-		$message = addslashes($message);
+		$cmd = 'Joomla.submitbutton(\'' . $task . '\');';
 
 		if ($list)
 		{
-			$cmd = "if (document.adminForm.boxchecked.value==0){alert('$message');}else{ Joomla.submitbutton('$task')}";
-		}
-		else
-		{
-			$cmd = "Joomla.submitbutton('$task')";
+			$message = addslashes(JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST'));
+
+			return 'if (document.adminForm.boxchecked.value==0){alert(\'' . $message . '\');}else{' . $cmd . '}';
 		}
 
 		return $cmd;

@@ -41,16 +41,15 @@ class JToolbarButtonConfirm extends JToolbarButton
 	public function fetchButton($type = 'Confirm', $msg = '', $name = '', $text = '', $task = '', $list = true, $hideMenu = false)
 	{
 		// Store all data to the options array for use with JLayout
-		$options = array();
-		$options['text'] = JText::_($text);
-		$options['msg'] = JText::_($msg, true);
-		$options['class'] = $this->fetchIconClass($name);
-		$options['doTask'] = $this->_getCommand($options['msg'], $name, $task, $list);
+		$options = array(
+			'text'    => JText::_($text),
+			'msg'     => JText::_($msg, true),
+			'class'   => $this->fetchIconClass($name),
+			'doTask'  => $this->_getCommand(JText::_($msg, true), $name, $task, $list),
+		);
 
-		// Instantiate a new JLayoutFile instance and render the layout
-		$layout = new JLayoutFile('joomla.toolbar.confirm');
-
-		return $layout->render($options);
+		// Render the layout
+		return JLayoutHelper::render('joomla.toolbar.confirm', $options);
 	}
 
 	/**
@@ -87,16 +86,13 @@ class JToolbarButtonConfirm extends JToolbarButton
 	 */
 	protected function _getCommand($msg, $name, $task, $list)
 	{
-		$message = JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST');
-		$message = addslashes($message);
+		$cmd = 'if (confirm(\'' . $msg . '\')){Joomla.submitbutton(\'' . $task . '\');}';
 
 		if ($list)
 		{
-			$cmd = "if (document.adminForm.boxchecked.value==0){alert('$message');}else{if (confirm('$msg')){Joomla.submitbutton('$task');}}";
-		}
-		else
-		{
-			$cmd = "if (confirm('$msg')){Joomla.submitbutton('$task');}";
+			$message = addslashes(JText::_('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST'));
+
+			return 'if (document.adminForm.boxchecked.value==0){alert(\'' . $message . '\');}else{' . $cmd . '}';
 		}
 
 		return $cmd;
