@@ -59,7 +59,7 @@ JFactory::getDocument()->addScriptDeclaration(
 					<?php $dataAttributes = array(); ?>
 					<?php if (!empty($fieldSet->showon)) : ?>
 						<?php JHtml::_('behavior.showon'); ?>
-						<?php $dataAttributes = array('showon' => JFormHelper::parseShowOnConditions($this->formControl, $fieldSet->showon)); ?>
+						<?php $dataAttributes = array('showon' => JFormHelper::parseShowOnConditions($this->formControl, null, $fieldSet->showon)); ?>
 					<?php endif; ?>
 					<?php $label = empty($fieldSet->label) ? 'COM_CONFIG_' . $name . '_FIELDSET_LABEL' : $fieldSet->label; ?>
 					<li<?php echo JFormHelper::renderDataAttributes($dataAttributes); ?>><a data-toggle="tab" href="#<?php echo $name; ?>"><?php echo JText::_($label); ?></a></li>
