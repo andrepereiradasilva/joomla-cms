@@ -320,19 +320,35 @@ class JFormHelper
 	/**
 	 * Parse the show on conditions
 	 *
-	 * @param   string  $formControl  Field name.
+	 * @param   string  $formControl  Field form name.
+	 * @param   string  $formGroup    Field group name.
 	 * @param   string  $showOn       Show on conditions.
 	 *
 	 * @return  array   Array with show on conditions.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function parseShowOnConditions($formControl, $showOn)
+	public static function parseShowOnConditions($formControl, $formGroup, $showOn)
 	{
 		// Process the showon data.
 		if (!$showOn)
 		{
 			return array();
+		}
+
+		$formControl = (string) $formControl;
+		$formGroup   = (string) $formGroup;
+		$pattern     = $formControl . '[' . $formGroup . '][{field}]';
+
+		// Empty form contol use only the field
+		if ($formControl === '')
+		{
+			$pattern = '{field}';
+		}
+		// Empty form group
+		elseif ($formGroup === '')
+		{
+			$pattern = $formControl . '[{field}]';
 		}
 
 		$showOnData  = array();
@@ -344,7 +360,7 @@ class JFormHelper
 			$showOnPartBlocks = explode(($compareEqual ? ':' : '!:'), $showOnPart, 2);
 
 			$showOnData[] = array(
-				'field'  => $formControl ? $formControl . '[' . $showOnPartBlocks[0] . ']' : $showOnPartBlocks[0],
+				'field'  => str_replace('{field}', $showOnPartBlocks[0], $pattern),
 				'values' => explode(',', $showOnPartBlocks[1]),
 				'sign'   => $compareEqual === true ? '=' : '!=',
 				'op'     => preg_match('#^\[(AND|OR)\]#', $showOnPart, $matches) ? $matches[1] : '',
@@ -367,17 +383,17 @@ class JFormHelper
 	public static function getGlobalValue($form, $fieldName)
 	{
 		$component          = JFactory::getApplication()->input->getCmd('option');
-		$precessedComponent = $component;
+		$processedComponent = $component;
 
 		// Get correct component for menu items
 		if ($component === 'com_menus')
 		{
 			$link               = $form->getData()->get('link');
 			$uri                = new JUri($link);
-			$precessedComponent = $uri->getVar('option', $component);
+			$processedComponent = $uri->getVar('option', $component);
 		}
 
-		$value = JComponentHelper::getParams($precessedComponent)->get($fieldName);
+		$value = JComponentHelper::getParams($processedComponent)->get($fieldName);
 
 		// Try with global configuration
 		if ($value === null)
@@ -404,7 +420,7 @@ class JFormHelper
 
 		foreach ($dataAttributes as $key => $value)
 		{
-			$html .= ' data-' . $key . '=\'' . htmlspecialchars(!is_scalar($value) ? json_encode($value) : $value, ENT_COMPAT, 'UTF-8') . '\'';
+			$html .= ' data-' . $key . '="' . htmlspecialchars(!is_scalar($value) ? json_encode($value) : $value, ENT_COMPAT, 'UTF-8') . '"';
 		}
 
 		return $html;
