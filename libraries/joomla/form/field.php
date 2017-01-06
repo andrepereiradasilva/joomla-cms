@@ -290,6 +290,22 @@ abstract class JFormField
 	protected $onclick;
 
 	/**
+	 * The conditions to show/hide the field.
+	 *
+	 * @var    string
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $showon;
+
+	/**
+	 * The data values array.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $dataAttributes = array();
+
+	/**
 	 * The count value for generated name field
 	 *
 	 * @var    integer
@@ -396,6 +412,8 @@ abstract class JFormField
 			case 'autofocus':
 			case 'autocomplete':
 			case 'spellcheck':
+			case 'showon':
+			case 'dataAttributes':
 				return $this->$name;
 
 			case 'input':
@@ -451,6 +469,7 @@ abstract class JFormField
 			case 'validate':
 			case 'pattern':
 			case 'group':
+			case 'showon':
 			case 'default':
 				$this->$name = (string) $value;
 				break;
@@ -508,6 +527,10 @@ abstract class JFormField
 
 			case 'size':
 				$this->$name = (int) $value;
+				break;
+
+			case 'dataAttributes':
+				$this->$name = (array) $value;
 				break;
 
 			default:
@@ -573,7 +596,7 @@ abstract class JFormField
 		$attributes = array(
 			'multiple', 'name', 'id', 'hint', 'class', 'description', 'labelclass', 'onchange', 'onclick', 'validate', 'pattern', 'default',
 			'required', 'disabled', 'readonly', 'autofocus', 'hidden', 'autocomplete', 'spellcheck', 'translateHint', 'translateLabel',
-			'translate_label', 'translateDescription', 'translate_description', 'size');
+			'translate_label', 'translateDescription', 'translate_description', 'size', 'showon');
 
 		$this->default = isset($element['value']) ? (string) $element['value'] : $this->default;
 
@@ -600,6 +623,11 @@ abstract class JFormField
 			$this->class = trim($this->class . ' required');
 		}
 
+		if ($this->showon)
+		{
+			$this->addDataAttribute('showon', JFormHelper::parseShowOnConditions($this->formControl, $this->showon));
+		}
+
 		return true;
 	}
 
@@ -615,6 +643,46 @@ abstract class JFormField
 	public function setValue($value)
 	{
 		$this->value = $value;
+	}
+
+	/**
+	 * Add a value to html5 data array.
+	 *
+	 * @param   string        $name   The name of the html5 data element.
+	 * @param   array|string  $value  Value to set.
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function addDataAttribute($type, $value)
+	{
+		$this->dataAttributes = array_replace($this->dataAttributes, array($type => $value));
+	}
+
+	/**
+	 * Add a value to html5 data array.
+	 *
+	 * @param   string  $name   The name of the html5 data element.
+	 * @param   mixed   $value  Value to set.
+	 *
+	 * @return  array|string|null  If type is null returns all the data. The value of the type or null if not found.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getDataAttribute($type = null)
+	{
+		if ($type === null)
+		{
+			return $this->dataAttributes;
+		}
+
+		if (!isset($this->dataAttributes[$type]))
+		{
+			return null;
+		}
+
+		return $this->dataAttributes[$type];
 	}
 
 	/**
@@ -940,23 +1008,14 @@ abstract class JFormField
 			$options['hiddenLabel'] = true;
 		}
 
-		if ($showonstring = $this->getAttribute('showon'))
+		$globalValue = JFormHelper::getGlobalValue($this->form, $this->fieldname);
+
+		if ($globalValue !== null)
 		{
-			$showonarr = array();
-
-			foreach (preg_split('%\[AND\]|\[OR\]%', $showonstring) as $showonfield)
-			{
-				$showon   = explode(':', $showonfield, 2);
-				$showonarr[] = array(
-					'field'  => str_replace('[]', '', $this->getName($showon[0])),
-					'values' => explode(',', $showon[1]),
-					'op'     => (preg_match('%\[(AND|OR)\]' . $showonfield . '%', $showonstring, $matches)) ? $matches[1] : '',
-				);
-			}
-
-			$options['rel'] = ' data-showon=\'' . json_encode($showonarr) . '\'';
-			$options['showonEnabled'] = true;
+			$this->addDataAttribute('global-value', $globalValue);
 		}
+
+		$options['dataAttributes'] = $this->dataAttributes;
 
 		$data = array(
 			'input'   => $this->getInput(),
@@ -987,30 +1046,30 @@ abstract class JFormField
 		$alt = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $this->fieldname);
 
 		return array(
-			'autocomplete' => $this->autocomplete,
-			'autofocus'    => $this->autofocus,
-			'class'        => $this->class,
-			'description'  => $description,
-			'disabled'     => $this->disabled,
-			'field'        => $this,
-			'group'        => $this->group,
-			'hidden'       => $this->hidden,
-			'hint'         => $this->translateHint ? JText::alt($this->hint, $alt) : $this->hint,
-			'id'           => $this->id,
-			'label'        => $label,
-			'labelclass'   => $this->labelclass,
-			'multiple'     => $this->multiple,
-			'name'         => $this->name,
-			'onchange'     => $this->onchange,
-			'onclick'      => $this->onclick,
-			'pattern'      => $this->pattern,
-			'readonly'     => $this->readonly,
-			'repeat'       => $this->repeat,
-			'required'     => (bool) $this->required,
-			'size'         => $this->size,
-			'spellcheck'   => $this->spellcheck,
-			'validate'     => $this->validate,
-			'value'        => $this->value,
+			'autocomplete'   => $this->autocomplete,
+			'autofocus'      => $this->autofocus,
+			'class'          => $this->class,
+			'description'    => $description,
+			'disabled'       => $this->disabled,
+			'field'          => $this,
+			'group'          => $this->group,
+			'hidden'         => $this->hidden,
+			'hint'           => $this->translateHint ? JText::alt($this->hint, $alt) : $this->hint,
+			'id'             => $this->id,
+			'label'          => $label,
+			'labelclass'     => $this->labelclass,
+			'multiple'       => $this->multiple,
+			'name'           => $this->name,
+			'onchange'       => $this->onchange,
+			'onclick'        => $this->onclick,
+			'pattern'        => $this->pattern,
+			'readonly'       => $this->readonly,
+			'repeat'         => $this->repeat,
+			'required'       => (bool) $this->required,
+			'size'           => $this->size,
+			'spellcheck'     => $this->spellcheck,
+			'validate'       => $this->validate,
+			'value'          => $this->value,
 		);
 	}
 

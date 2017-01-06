@@ -19,16 +19,15 @@ extract($displayData);
  * 	$input           : (string) The input field html code
  */
 
-if (!empty($options['showonEnabled']))
+if (!empty($options['dataAttributes']['showon']))
 {
-	JHtml::_('jquery.framework');
-	JHtml::_('script', 'jui/cms.js', array('version' => 'auto', 'relative' => true));
+	JHtml::_('behavior.showon');
 }
 
 $class = empty($options['class']) ? '' : ' ' . $options['class'];
 $rel   = empty($options['rel']) ? '' : ' ' . $options['rel'];
 ?>
-<div class="control-group<?php echo $class; ?>"<?php echo $rel; ?>>
+<div class="control-group<?php echo $class; ?>"<?php echo $rel; ?><?php echo JFormHelper::renderDataAttributes($options['dataAttributes']); ?>>
 	<?php if (empty($options['hiddenLabel'])) : ?>
 		<div class="control-label"><?php echo $label; ?></div>
 	<?php endif; ?>

@@ -902,4 +902,17 @@ abstract class JHtmlBehavior
 			static::$loaded[__METHOD__][$sig] = true;
 		}
 	}
+
+	/**
+	 * Method to load the showon javascript
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function showon()
+	{
+		JHtml::_('jquery.framework');
+		JHtml::_('script', 'jui/cms.js', array('version' => 'auto', 'relative' => true));
+	}
 }

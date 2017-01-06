@@ -149,49 +149,27 @@ abstract class JFormAbstractlist extends JFormField
 
 		if ($this->element['useglobal'])
 		{
-			$tmp        = new stdClass;
-			$tmp->value = '';
-			$tmp->text  = JText::_('JGLOBAL_USE_GLOBAL');
-			$component  = JFactory::getApplication()->input->getCmd('option');
+			$tmp         = new stdClass;
+			$tmp->value  = '';
+			$tmp->text   = JText::_('JGLOBAL_USE_GLOBAL');
+			$globalValue = JFormHelper::getGlobalValue($this->form, $this->fieldname);
 
-			// Get correct component for menu items
-			if ($component == 'com_menus')
+			if ($globalValue !== null)
 			{
-				$link      = $this->form->getData()->get('link');
-				$uri       = new JUri($link);
-				$component = $uri->getVar('option', 'com_menus');
-			}
-
-			$params = JComponentHelper::getParams($component);
-			$value  = $params->get($this->fieldname);
-
-			// Try with global configuration
-			if (is_null($value))
-			{
-				$value = JFactory::getConfig()->get($this->fieldname);
-			}
-
-			// Try with menu configuration
-			if (is_null($value) && JFactory::getApplication()->input->getCmd('option') == 'com_menus')
-			{
-				$value = JComponentHelper::getParams('com_menus')->get($this->fieldname);
-			}
-
-			if (!is_null($value))
-			{
-				$value = (string) $value;
+				$globalValue     = (string) $globalValue;
+				$globalValueText = '';
 
 				foreach ($options as $option)
 				{
-					if ($option->value === $value)
+					if ($option->value === $globalValue)
 					{
-						$value = $option->text;
+						$globalValueText = $option->text;
 
 						break;
 					}
 				}
 
-				$tmp->text = JText::sprintf('JGLOBAL_USE_GLOBAL_VALUE', $value);
+				$tmp->text = JText::sprintf('JGLOBAL_USE_GLOBAL_VALUE', $globalValueText);
 			}
 
 			array_unshift($options, $tmp);
