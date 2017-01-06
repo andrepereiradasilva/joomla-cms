@@ -23,12 +23,12 @@ defined('JPATH_BASE') or die;
 			<?php if ($field->showon) : ?>
 				<?php JHtml::_('behavior.showon'); ?>
 			<?php endif; ?>	
-			<div class="control-group"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes); ?>>
+			<div class="control-group"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['container']); ?>>
 				<?php if (!isset($displayData->showlabel) || $displayData->showlabel) : ?>
-					<div class="control-label"><?php echo $field->label; ?></div>
+					<div class="control-label"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['label']); ?>><?php echo $field->label; ?></div>
 				<?php endif; ?>
 
-				<div class="controls"><?php echo $field->input; ?></div>
+				<div class="controls"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['field']); ?>><?php echo $field->input; ?></div>
 			</div>
 		<?php endforeach; ?>
 	<?php endforeach; ?>
