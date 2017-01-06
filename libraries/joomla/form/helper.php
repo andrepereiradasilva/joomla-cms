@@ -320,7 +320,7 @@ class JFormHelper
 	/**
 	 * Parse the show on conditions
 	 *
-	 * @param   string  $formControl  Form name.
+	 * @param   string  $formControl  Field name.
 	 * @param   string  $showOn       Show on conditions.
 	 *
 	 * @return  array   Array with show on conditions.
@@ -366,19 +366,18 @@ class JFormHelper
 	 */
 	public static function getGlobalValue($form, $fieldName)
 	{
-		$app             = JFactory::getApplication();
-		$component       = $app->input->getCmd('option');
-		$valuesComponent = $component;
+		$component          = JFactory::getApplication()->input->getCmd('option');
+		$precessedComponent = $component;
 
 		// Get correct component for menu items
 		if ($component === 'com_menus')
 		{
-			$link      = $form->getData()->get('link');
-			$uri       = new JUri($link);
-			$valuesComponent = $uri->getVar('option', 'com_menus');
+			$link               = $form->getData()->get('link');
+			$uri                = new JUri($link);
+			$precessedComponent = $uri->getVar('option', $component);
 		}
 
-		$value = JComponentHelper::getParams($valuesComponent)->get($fieldName);
+		$value = JComponentHelper::getParams($precessedComponent)->get($fieldName);
 
 		// Try with global configuration
 		if ($value === null)
