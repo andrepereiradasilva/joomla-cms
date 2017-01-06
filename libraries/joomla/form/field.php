@@ -303,7 +303,11 @@ abstract class JFormField
 	 * @var    array
 	 * @since  __DEPLOY_VERSION__
 	 */
-	protected $dataAttributes = array();
+	protected $dataAttributes = array(
+		'container' => array(),
+		'field'     => array(),
+		'label'     => array(),
+	);
 
 	/**
 	 * The count value for generated name field
@@ -625,7 +629,8 @@ abstract class JFormField
 
 		if ($this->showon)
 		{
-			$this->addDataAttribute('showon', JFormHelper::parseShowOnConditions($this->formControl, $this->showon));
+			$formControl = $this->group ? $this->formControl . '[' .$this->group . ']' : $this->formControl;
+			$this->addDataAttribute('container', 'showon', JFormHelper::parseShowOnConditions($formControl, $this->showon));
 		}
 
 		return true;
@@ -648,41 +653,61 @@ abstract class JFormField
 	/**
 	 * Add a value to html5 data array.
 	 *
-	 * @param   string        $name   The name of the html5 data element.
-	 * @param   array|string  $value  Value to set.
+	 * @param   string        $element  The element to apply the data-attribute: container, field, label
+	 * @param   string        $name     The name of the html5 data element.
+	 * @param   array|string  $value    Value to set.
 	 *
 	 * @return  void
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function addDataAttribute($type, $value)
+	public function addDataAttribute($element = null, $attribute, $value)
 	{
-		$this->dataAttributes = array_replace($this->dataAttributes, array($type => $value));
+		if ($element === null || !isset($this->dataAttributes[$element]) || !in_array($element, array('field', 'label', 'container')))
+		{
+			throw new UnexpectedValueException('JField::addDataAttribute only supports adding data attributes to field, label or container.');
+		}
+
+		$attribute = (string) $attribute;
+
+		if ($attribute === '')
+		{
+			throw new UnexpectedValueException('JField::addDataAttribute doesn\'t support empty data attributes.');
+		}
+		
+		$this->dataAttributes[$element] = array_replace($this->dataAttributes, array($attribute => $value));
 	}
 
 	/**
-	 * Add a value to html5 data array.
+	 * Return data from the data-* attributes array.
 	 *
-	 * @param   string  $name   The name of the html5 data element.
-	 * @param   mixed   $value  Value to set.
+	 * @param   string  $element    The element to apply the data-* attribute: container, field, label
+	 * @param   mixed   $attribute  Value to set. Can be a string, an integer or an array of value.
 	 *
-	 * @return  array|string|null  If type is null returns all the data. The value of the type or null if not found.
+	 * @return  mixed  If element is null returns array with all the data-* attribures for all elements.
+	 *                 If element is not null and attribute is null returns array with all the data-* attributes for the element.
+	 *                 If element is not null and attribute is not null returns the value data-* attribute for the element/attribute.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public function getDataAttribute($type = null)
+	public function getDataAttribute($element = null, $attribute = null)
 	{
-		if ($type === null)
+		if ($element === null)
 		{
-			return $this->dataAttributes;
+			return $attribute->dataAttributes;
 		}
 
-		if (!isset($this->dataAttributes[$type]))
+		if ($attribute === null)
+		{
+			return $attribute->dataAttributes[$element];
+		}
+
+		if (!isset($this->dataAttributes[$element][$type]))
 		{
 			return null;
 		}
 
-		return $this->dataAttributes[$type];
+		return $this->dataAttributes[$element][$type];
 	}
 
 	/**
@@ -1012,7 +1037,7 @@ abstract class JFormField
 
 		if ($globalValue !== null)
 		{
-			$this->addDataAttribute('global-value', $globalValue);
+			$this->addDataAttribute('field', 'global-value', $globalValue);
 		}
 
 		$options['dataAttributes'] = $this->dataAttributes;
