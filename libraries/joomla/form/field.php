@@ -675,7 +675,7 @@ abstract class JFormField
 			throw new UnexpectedValueException('JField::addDataAttribute doesn\'t support empty data attributes.');
 		}
 		
-		$this->dataAttributes[$element] = array_replace($this->dataAttributes, array($attribute => $value));
+		$this->dataAttributes[$element] = array_replace($this->dataAttributes[$element], array($attribute => $value));
 	}
 
 	/**
