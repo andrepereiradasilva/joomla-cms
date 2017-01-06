@@ -59,7 +59,7 @@ JFactory::getDocument()->addScriptDeclaration(
 					<?php $dataAttributes = array(); ?>
 					<?php if (!empty($fieldSet->showon)) : ?>
 						<?php JHtml::_('behavior.showon'); ?>
-						<?php $dataAttributes = array('showon' => JFormHelper::parseShowOnConditions($fieldSet->formControl, $fieldSet->showon)); ?>
+						<?php $dataAttributes = array('showon' => JFormHelper::parseShowOnConditions($this->formControl, $fieldSet->showon)); ?>
 					<?php endif; ?>
 					<?php $label = empty($fieldSet->label) ? 'COM_CONFIG_' . $name . '_FIELDSET_LABEL' : $fieldSet->label; ?>
 					<li<?php echo JFormHelper::renderDataAttributes($dataAttributes); ?>><a data-toggle="tab" href="#<?php echo $name; ?>"><?php echo JText::_($label); ?></a></li>
@@ -81,13 +81,13 @@ JFactory::getDocument()->addScriptDeclaration(
 								<?php if ($field->showon) : ?>
 									<?php JHtml::_('behavior.showon'); ?>
 								<?php endif; ?>								
-								<div class="control-group"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes); ?>>
+								<div class="control-group"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['container']); ?>>
 									<?php if ($name != 'permissions') : ?>
-										<div class="control-label">
+										<div class="control-label"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['label']); ?>>
 											<?php echo $field->label; ?>
 										</div>
 									<?php endif; ?>
-									<div class="<?php if ($name != 'permissions') : ?>controls<?php endif; ?>">
+									<div class="<?php if ($name != 'permissions') : ?>controls<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['field']); ?><?php endif; ?>">
 										<?php echo $field->input; ?>
 									</div>
 								</div>
