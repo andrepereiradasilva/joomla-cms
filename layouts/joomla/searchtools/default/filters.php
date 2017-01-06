@@ -20,7 +20,7 @@ $filters = $data['view']->filterForm->getGroup('filter');
 			<?php if ($field->showon) : ?>
 				<?php JHtml::_('behavior.showon'); ?>
 			<?php endif; ?>	
-			<div class="js-stools-field-filter"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes); ?>>
+			<div class="js-stools-field-filter"<?php echo JFormHelper::renderDataAttributes($field->dataAttributes['container']); ?>>
 				<?php echo $field->input; ?>
 			</div>
 		<?php endif; ?>
