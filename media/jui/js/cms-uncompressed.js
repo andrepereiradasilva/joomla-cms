@@ -58,8 +58,8 @@ if (!Array.prototype.indexOf)
 		 * @param {Boolean} animate
 		 */
 		function linkedoptions (target, animate) {
-			var showfield = true,
-				jsondata  = target.data('showon') || [],
+			var showfield   = true,
+				jsondata    = target.data('showon') || [],
 				itemval, condition, fieldName, $fields;
 
 			// Check if target conditions are satisfied
@@ -72,7 +72,7 @@ if (!Array.prototype.indexOf)
 
 				// Test in each of the elements in the field array if condition is valid
 				$fields.each(function() {
-					var $field = $(this);
+					var $field = $(this), globalValue = $field.parent().data('global-value') || null;
 
 					// If checkbox or radio box the value is read from proprieties
 					if (['checkbox','radio'].indexOf($field.attr('type')) !== -1)
@@ -94,9 +94,15 @@ if (!Array.prototype.indexOf)
 					// Test if any of the values of the field exists in showon conditions
 					for (var i in itemval)
 					{
-						if (condition['values'].indexOf(itemval[i]) !== -1)
+						// ":" Equal to one or more of the values condition
+						if (jsondata[j]['sign'] == '=' && ((globalValue != null && itemval[i] == globalValue) || jsondata[j]['values'].indexOf(itemval[i]) !== -1))
 						{
-							condition['valid'] = 1;
+							jsondata[j]['valid'] = 1;
+						}
+						// "!:" Not equal to one or more of the values condition
+						if (jsondata[j]['sign'] == '!=' && ((globalValue != null && itemval[i] != globalValue) && jsondata[j]['values'].indexOf(itemval[i]) === -1))
+						{
+							jsondata[j]['valid'] = 1;
 						}
 					}
 				});
