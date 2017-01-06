@@ -629,8 +629,12 @@ abstract class JFormField
 
 		if ($this->showon)
 		{
-			$formControl = $this->group ? $this->formControl . '[' .$this->group . ']' : $this->formControl;
-			$this->addDataAttribute('container', 'showon', JFormHelper::parseShowOnConditions($formControl, $this->showon));
+			// If there is no form control (ex: searchtools)
+			$formControl = !$this->formControl ? '' : $this->formControl;
+			$formControl = !$this->formControl ? '' : $this->formControl;
+			
+			($this->group ? $this->formControl . '[' .$this->group . ']' : $this->formControl);
+			$this->addDataAttribute('container', 'showon', JFormHelper::parseShowOnConditions($this->formControl, $this->group, $this->showon));
 		}
 
 		return true;
