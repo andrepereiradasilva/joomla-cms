@@ -182,6 +182,7 @@
 				label="JGLOBAL_LINKED_TITLES_LABEL"
 				description="JGLOBAL_LINKED_TITLES_DESC"
 				useglobal="true"
+				showon="show_title:1"
 				>
 				<option	value="0">JNO</option>
 				<option value="1">JYES</option>
@@ -252,6 +253,7 @@
 				label="JGLOBAL_LINK_CATEGORY_LABEL"
 				description="JGLOBAL_LINK_CATEGORY_DESC"
 				useglobal="true"
+				showon="show_category:1"
 				>
 				<option	value="0">JNO</option>
 				<option	value="1">JYES</option>
@@ -276,11 +278,12 @@
 				label="JGLOBAL_LINK_PARENT_CATEGORY_LABEL"
 				description="JGLOBAL_LINK_PARENT_CATEGORY_DESC"
 				useglobal="true"
+				showon="show_parent_category:1"
 				>
 				<option	value="0">JNO</option>
 				<option	value="1">JYES</option>
 			</field>
-			
+
 			<field
 				name="show_associations"
 				type="list"
@@ -291,6 +294,19 @@
 				>
 				<option value="1">JSHOW</option>
 				<option value="0">JHIDE</option>
+			</field>
+
+			<field
+				name="flags"
+				type="list"
+				class="btn-group btn-group-yesno"
+				label="JGLOBAL_SHOW_FLAG_LABEL"
+				description="JGLOBAL_SHOW_FLAG_DESC"
+				useglobal="true"
+				showon="show_associations:1"
+				>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
 			</field>
 
 			<field
@@ -312,6 +328,7 @@
 				label="JGLOBAL_LINK_AUTHOR_LABEL"
 				description="JGLOBAL_LINK_AUTHOR_DESC"
 				useglobal="true"
+				showon="show_author:1"
 				>
 				<option	value="0">JNO</option>
 				<option	value="1">JYES</option>
@@ -677,7 +694,7 @@
 		description="JFIELD_KEY_REFERENCE_DESC"
 		size="20" />
 
-	<fields name="images" label="COM_CONTENT_FIELD_IMAGE_OPTIONS">
+	<fields name="images" label="COM_CONTENT_FIELD_IMAGE_OPTIONS" showon="show_urls_images_backend:1[OR]show_urls_images_frontend:1">
 		<field
 			name="image_intro"
 			type="media"
@@ -736,7 +753,7 @@
 			description="COM_CONTENT_FIELD_IMAGE_CAPTION_DESC"
 			size="20"/>
 	</fields>
-	<fields name="urls" label="COM_CONTENT_FIELD_URLS_OPTIONS">
+	<fields name="urls" label="COM_CONTENT_FIELD_URLS_OPTIONS" showon="show_urls_images_backend:1[OR]show_urls_images_frontend:1">
 		<field
 			name="urla"
 			type="url"
@@ -744,12 +761,14 @@
 			filter="url"
 			relative="true"
 			label="COM_CONTENT_FIELD_URLA_LABEL"
-			description="COM_CONTENT_FIELD_URL_DESC" />
+			description="COM_CONTENT_FIELD_URL_DESC"
+			/>
 		<field name="urlatext"
 			type="text"
 			label="COM_CONTENT_FIELD_URLA_LINK_TEXT_LABEL"
 			description="COM_CONTENT_FIELD_URL_LINK_TEXT_DESC"
-			size="20"/>
+			size="20"
+		/>
 		<field
 			name="targeta"
 			type="list"
