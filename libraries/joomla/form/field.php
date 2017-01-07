@@ -290,6 +290,26 @@ abstract class JFormField
 	protected $onclick;
 
 	/**
+	 * The conditions to show/hide the field.
+	 *
+	 * @var    string
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $showon;
+
+	/**
+	 * The data values array.
+	 *
+	 * @var    array
+	 * @since  __DEPLOY_VERSION__
+	 */
+	protected $dataAttributes = array(
+		'container' => array(),
+		'field'     => array(),
+		'label'     => array(),
+	);
+
+	/**
 	 * The count value for generated name field
 	 *
 	 * @var    integer
@@ -396,6 +416,8 @@ abstract class JFormField
 			case 'autofocus':
 			case 'autocomplete':
 			case 'spellcheck':
+			case 'showon':
+			case 'dataAttributes':
 				return $this->$name;
 
 			case 'input':
@@ -451,6 +473,7 @@ abstract class JFormField
 			case 'validate':
 			case 'pattern':
 			case 'group':
+			case 'showon':
 			case 'default':
 				$this->$name = (string) $value;
 				break;
@@ -508,6 +531,10 @@ abstract class JFormField
 
 			case 'size':
 				$this->$name = (int) $value;
+				break;
+
+			case 'dataAttributes':
+				$this->$name = (array) $value;
 				break;
 
 			default:
@@ -573,7 +600,7 @@ abstract class JFormField
 		$attributes = array(
 			'multiple', 'name', 'id', 'hint', 'class', 'description', 'labelclass', 'onchange', 'onclick', 'validate', 'pattern', 'default',
 			'required', 'disabled', 'readonly', 'autofocus', 'hidden', 'autocomplete', 'spellcheck', 'translateHint', 'translateLabel',
-			'translate_label', 'translateDescription', 'translate_description', 'size');
+			'translate_label', 'translateDescription', 'translate_description', 'size', 'showon');
 
 		$this->default = isset($element['value']) ? (string) $element['value'] : $this->default;
 
@@ -600,6 +627,16 @@ abstract class JFormField
 			$this->class = trim($this->class . ' required');
 		}
 
+		if ($this->showon)
+		{
+			// If there is no form control (ex: searchtools)
+			$formControl = !$this->formControl ? '' : $this->formControl;
+			$formControl = !$this->formControl ? '' : $this->formControl;
+			
+			($this->group ? $this->formControl . '[' .$this->group . ']' : $this->formControl);
+			$this->addDataAttribute('container', 'showon', JFormHelper::parseShowOnConditions($this->formControl, $this->group, $this->showon));
+		}
+
 		return true;
 	}
 
@@ -615,6 +652,66 @@ abstract class JFormField
 	public function setValue($value)
 	{
 		$this->value = $value;
+	}
+
+	/**
+	 * Add a value to html5 data array.
+	 *
+	 * @param   string        $element  The element to apply the data-attribute: container, field, label
+	 * @param   string        $name     The name of the html5 data element.
+	 * @param   array|string  $value    Value to set.
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function addDataAttribute($element = null, $attribute, $value)
+	{
+		if ($element === null || !isset($this->dataAttributes[$element]) || !in_array($element, array('field', 'label', 'container')))
+		{
+			throw new UnexpectedValueException('JField::addDataAttribute only supports adding data attributes to field, label or container.');
+		}
+
+		$attribute = (string) $attribute;
+
+		if ($attribute === '')
+		{
+			throw new UnexpectedValueException('JField::addDataAttribute doesn\'t support empty data attributes.');
+		}
+		
+		$this->dataAttributes[$element] = array_replace($this->dataAttributes[$element], array($attribute => $value));
+	}
+
+	/**
+	 * Return data from the data-* attributes array.
+	 *
+	 * @param   string  $element    The element to apply the data-* attribute: container, field, label
+	 * @param   mixed   $attribute  Value to set. Can be a string, an integer or an array of value.
+	 *
+	 * @return  mixed  If element is null returns array with all the data-* attribures for all elements.
+	 *                 If element is not null and attribute is null returns array with all the data-* attributes for the element.
+	 *                 If element is not null and attribute is not null returns the value data-* attribute for the element/attribute.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function getDataAttribute($element = null, $attribute = null)
+	{
+		if ($element === null)
+		{
+			return $attribute->dataAttributes;
+		}
+
+		if ($attribute === null)
+		{
+			return $attribute->dataAttributes[$element];
+		}
+
+		if (!isset($this->dataAttributes[$element][$type]))
+		{
+			return null;
+		}
+
+		return $this->dataAttributes[$element][$type];
 	}
 
 	/**
@@ -940,23 +1037,14 @@ abstract class JFormField
 			$options['hiddenLabel'] = true;
 		}
 
-		if ($showonstring = $this->getAttribute('showon'))
+		$globalValue = JFormHelper::getGlobalValue($this->form, $this->fieldname);
+
+		if ($globalValue !== null)
 		{
-			$showonarr = array();
-
-			foreach (preg_split('%\[AND\]|\[OR\]%', $showonstring) as $showonfield)
-			{
-				$showon   = explode(':', $showonfield, 2);
-				$showonarr[] = array(
-					'field'  => str_replace('[]', '', $this->getName($showon[0])),
-					'values' => explode(',', $showon[1]),
-					'op'     => (preg_match('%\[(AND|OR)\]' . $showonfield . '%', $showonstring, $matches)) ? $matches[1] : '',
-				);
-			}
-
-			$options['rel'] = ' data-showon=\'' . json_encode($showonarr) . '\'';
-			$options['showonEnabled'] = true;
+			$this->addDataAttribute('field', 'global-value', $globalValue);
 		}
+
+		$options['dataAttributes'] = $this->dataAttributes;
 
 		$data = array(
 			'input'   => $this->getInput(),

@@ -72,7 +72,7 @@ if (!Array.prototype.indexOf)
 
 				// Test in each of the elements in the field array if condition is valid
 				$fields.each(function() {
-					var $field = $(this);
+					var $field = $(this), globalValue = $field.parent().data('global-value') || null;
 
 					// If checkbox or radio box the value is read from proprieties
 					if (['checkbox','radio'].indexOf($field.attr('type')) !== -1)
@@ -88,18 +88,40 @@ if (!Array.prototype.indexOf)
 					// and normalize as string
 					if (!(typeof itemval === 'object'))
 					{
-						itemval = JSON.parse('["' + itemval + '"]');
+						itemval = JSON.parse('[ "' + itemval.toString() + '" ]');
 					}
 
 					// Test if any of the values of the field exists in showon conditions
 					for (var i in itemval)
 					{
-						if (condition['values'].indexOf(itemval[i]) !== -1)
+						// ":" Equal to one or more of the values condition
+						if (jsondata[j]['sign'] === '=' && jsondata[j]['values'].indexOf(itemval[i]) !== -1)
 						{
-							condition['valid'] = 1;
+							jsondata[j]['valid'] = 1;
+						}
+						// "!:" Not equal to one or more of the values condition
+						if (jsondata[j]['sign'] === '!=' && jsondata[j]['values'].indexOf(itemval[i]) === -1)
+						{
+							jsondata[j]['valid'] = 1;
+						}
+					}
+
+					// Test the global value, if needed and exists
+					if (jsondata[j]['valid'] === 0 && itemval[0] === "" && globalValue !== null)
+					{
+						// ":" Equal to one or more of the values condition
+						if (jsondata[j]['sign'] === '=' && jsondata[j]['values'].indexOf(globalValue.toString()) !== -1)
+						{
+							jsondata[j]['valid'] = 1;
+						}
+						// "!:" Not equal to one or more of the values condition
+						if (jsondata[j]['sign'] === '!=' && jsondata[j]['values'].indexOf(globalValue.toString()) === -1)
+						{
+							jsondata[j]['valid'] = 1;
 						}
 					}
 				});
+				
 
 				// Verify conditions
 				// First condition (no operator): current condition must be valid

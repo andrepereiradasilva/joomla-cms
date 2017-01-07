@@ -316,4 +316,113 @@ class JFormHelper
 
 		return $paths;
 	}
+
+	/**
+	 * Parse the show on conditions
+	 *
+	 * @param   string  $formControl  Field form name.
+	 * @param   string  $formGroup    Field group name.
+	 * @param   string  $showOn       Show on conditions.
+	 *
+	 * @return  array   Array with show on conditions.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function parseShowOnConditions($formControl, $formGroup, $showOn)
+	{
+		// Process the showon data.
+		if (!$showOn)
+		{
+			return array();
+		}
+
+		$formControl = (string) $formControl;
+		$formGroup   = (string) $formGroup;
+		$pattern     = $formControl . '[' . $formGroup . '][{field}]';
+
+		// Empty form contol use only the field
+		if ($formControl === '')
+		{
+			$pattern = '{field}';
+		}
+		// Empty form group
+		elseif ($formGroup === '')
+		{
+			$pattern = $formControl . '[{field}]';
+		}
+
+		$showOnData  = array();
+		$showOnParts = preg_split('#\[AND\]|\[OR\]#', $showOn);
+
+		foreach ($showOnParts as $showOnPart)
+		{
+			$compareEqual     = strpos($showOnPart, '!:') === false;
+			$showOnPartBlocks = explode(($compareEqual ? ':' : '!:'), $showOnPart, 2);
+
+			$showOnData[] = array(
+				'field'  => str_replace('{field}', $showOnPartBlocks[0], $pattern),
+				'values' => explode(',', $showOnPartBlocks[1]),
+				'sign'   => $compareEqual === true ? '=' : '!=',
+				'op'     => preg_match('#^\[(AND|OR)\]#', $showOnPart, $matches) ? $matches[1] : '',
+			);
+		}
+
+		return $showOnData;
+	}
+
+	/**
+	 * Gets the global value
+	 *
+	 * @param   JForm   $form        Current Form JForm object name.
+	 * @param   string  $fieldName   The field name to check the global value.
+	 *
+	 * @return  mixed   String if a global value exists, null otherwise.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getGlobalValue($form, $fieldName)
+	{
+		$component          = JFactory::getApplication()->input->getCmd('option');
+		$processedComponent = $component;
+
+		// Get correct component for menu items
+		if ($component === 'com_menus')
+		{
+			$link               = $form->getData()->get('link');
+			$uri                = new JUri($link);
+			$processedComponent = $uri->getVar('option', $component);
+		}
+
+		$value = JComponentHelper::getParams($processedComponent)->get($fieldName);
+
+		// Try with global configuration
+		if ($value === null)
+		{
+			$value = JFactory::getConfig()->get($fieldName);
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Parse the show on conditions
+	 *
+	 * @param   array  $dataAttributes  The data atributes array.
+	 *
+	 * @return  string  The data-* attributes in HTML format.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function renderDataAttributes(array $dataAttributes)
+	{
+		// Process the showon data.
+		$html = '';
+
+		foreach ($dataAttributes as $key => $value)
+		{
+			$html .= ' data-' . $key . '="' . htmlspecialchars(!is_scalar($value) ? json_encode($value) : $value, ENT_COMPAT, 'UTF-8') . '"';
+		}
+
+		return $html;
+	}
 }
