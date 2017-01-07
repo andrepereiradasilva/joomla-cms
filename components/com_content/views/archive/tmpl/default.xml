@@ -90,6 +90,7 @@
 				label="JGLOBAL_SHOW_INTRO_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
@@ -97,7 +98,6 @@
 			<field
 				name="info_block_position"
 				type="list"
-				default=""
 				label="COM_CONTENT_FIELD_INFOBLOCK_POSITION_LABEL"
 				description="COM_CONTENT_FIELD_INFOBLOCK_POSITION_DESC"
 				useglobal="true"
@@ -115,6 +115,7 @@
 				description="COM_CONTENT_FIELD_INFOBLOCK_TITLE_DESC"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option	value="0">JHIDE</option>
 				<option	value="1">JSHOW</option>
 			</field>
@@ -124,6 +125,7 @@
 				label="JGLOBAL_SHOW_CATEGORY_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
@@ -131,10 +133,12 @@
 			<field name="link_category" type="list"
 				description="JGLOBAL_LINK_CATEGORY_DESC"
 				label="JGLOBAL_LINK_CATEGORY_LABEL"
+				showon="show_category:use_article,1"
 				useglobal="true"
 				>
-				<option value="0">JNo</option>
-				<option value="1">JYes</option>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
 			</field>
 
 			<field
@@ -144,6 +148,7 @@
 				description="JGLOBAL_SHOW_PARENT_CATEGORY_DESC"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option	value="0">JHIDE</option>
 				<option	value="1">JSHOW</option>
 			</field>
@@ -153,8 +158,10 @@
 				type="list"
 				label="JGLOBAL_LINK_PARENT_CATEGORY_LABEL"
 				description="JGLOBAL_LINK_PARENT_CATEGORY_DESC"
+				showon="show_parent_category:use_article,1"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option	value="0">JNO</option>
 				<option	value="1">JYES</option>
 			</field>
@@ -164,6 +171,7 @@
 				label="JGLOBAL_LINKED_TITLES_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JNO</option>
 				<option value="1">JYES</option>
 			</field>
@@ -173,6 +181,7 @@
 				label="JGLOBAL_SHOW_AUTHOR_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
@@ -182,8 +191,10 @@
 				type="list"
 				label="JGLOBAL_LINK_AUTHOR_LABEL"
 				description="JGLOBAL_LINK_AUTHOR_DESC"
+				showon="show_author:use_article,1"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option	value="0">JNO</option>
 				<option	value="1">JYES</option>
 			</field>
@@ -193,6 +204,7 @@
 				label="JGLOBAL_SHOW_CREATE_DATE_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
@@ -202,6 +214,7 @@
 				label="JGLOBAL_SHOW_MODIFY_DATE_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
@@ -211,16 +224,59 @@
 				label="JGLOBAL_SHOW_PUBLISH_DATE_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
-
 
 			<field name="show_item_navigation" type="list"
 				description="JGLOBAL_SHOW_NAVIGATION_DESC"
 				label="JGLOBAL_SHOW_NAVIGATION_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
+
+			<field
+				name="show_vote"
+				type="list"
+				label="JGLOBAL_SHOW_VOTE_LABEL"
+				description="JGLOBAL_SHOW_VOTE_DESC"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JHIDE</option>
+				<option	value="1">JSHOW</option>
+			</field>
+
+			<field name="show_icons" type="list"
+				description="JGLOBAL_SHOW_ICONS_DESC"
+				label="JGLOBAL_SHOW_ICONS_LABEL"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
+
+			<field name="show_print_icon" type="list"
+				description="JGLOBAL_SHOW_PRINT_ICON_DESC"
+				label="JGLOBAL_SHOW_PRINT_ICON_LABEL"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
+
+			<field name="show_email_icon" type="list"
+				description="JGLOBAL_SHOW_EMAIL_ICON_DESC"
+				label="JGLOBAL_SHOW_EMAIL_ICON_LABEL"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
@@ -230,9 +286,35 @@
 				label="JGLOBAL_SHOW_HITS_LABEL"
 				useglobal="true"
 				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
+
+			<field
+				name="show_tags"
+				type="list"
+				label="COM_CONTENT_FIELD_SHOW_TAGS_LABEL"
+				description="COM_CONTENT_FIELD_SHOW_TAGS_DESC"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JHIDE</option>
+				<option value="1">JSHOW</option>
+			</field>
+
+			<field
+				name="show_noauth"
+				type="list"
+				label="JGLOBAL_SHOW_UNAUTH_LINKS_LABEL"
+				description="JGLOBAL_SHOW_UNAUTH_LINKS_DESC"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="0">JNO</option>
+				<option value="1">JYES</option>
+			</field>
+
 		</fieldset>
 
 	</fields>
