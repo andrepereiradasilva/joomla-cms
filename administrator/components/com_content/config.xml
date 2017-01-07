@@ -584,6 +584,7 @@
 			label="COM_CONTENT_NO_ARTICLES_LABEL"
 			description="COM_CONTENT_NO_ARTICLES_DESC"
 			default="1"
+			showon="show_empty_categories:1"
 			>
 			<option value="1">JSHOW</option>
 			<option value="0">JHIDE</option>
@@ -726,7 +727,9 @@
 			type="list"
 			default="0"
 			label="JGLOBAL_MULTI_COLUMN_ORDER_LABEL"
-			description="JGLOBAL_MULTI_COLUMN_ORDER_DESC">
+			description="JGLOBAL_MULTI_COLUMN_ORDER_DESC"
+			showon="num_columns!:,0,1"
+			>
 			<option
 				value="0">JGLOBAL_DOWN</option>
 			<option
