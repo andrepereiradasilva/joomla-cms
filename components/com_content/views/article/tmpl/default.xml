@@ -49,6 +49,7 @@
 			type="list"
 			label="JGLOBAL_LINKED_TITLES_LABEL"
 			description="JGLOBAL_LINKED_TITLES_DESC"
+			showon="show_title:1"
 			useglobal="true"
 			>
 			<option value="1">JYES</option>
@@ -105,6 +106,7 @@
 			type="list"
 			label="JGLOBAL_LINK_CATEGORY_LABEL"
 			description="JGLOBAL_LINK_CATEGORY_DESC"
+			showon="show_category:1"
 			useglobal="true"
 			>
 			<option value="1">JYES</option>
@@ -127,6 +129,7 @@
 			type="list"
 			label="JGLOBAL_LINK_PARENT_CATEGORY_LABEL"
 			description="JGLOBAL_LINK_PARENT_CATEGORY_DESC"
+			showon="show_parent_category:1"
 			useglobal="true"
 			>
 			<option value="1">JYES</option>
@@ -145,6 +148,18 @@
 		</field>
 
 		<field
+			name="flags"
+			type="list"
+			label="JGLOBAL_SHOW_FLAG_LABEL"
+			description="JGLOBAL_SHOW_FLAG_DESC"
+			showon="show_associations:1"
+			useglobal="true"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
 			name="show_author"
 			type="list"
 			label="JGLOBAL_SHOW_AUTHOR_LABEL"
@@ -160,6 +175,7 @@
 			type="list"
 			label="JGLOBAL_LINK_AUTHOR_LABEL"
 			description="JGLOBAL_LINK_AUTHOR_DESC"
+			showon="show_author:1"
 			useglobal="true"
 			>
 			<option value="1">JYES</option>
@@ -286,6 +302,7 @@
 			<option value="1">JYES</option>
 			<option value="0">JNO</option>
 		</field>
+
 		<field
 			name="urls_position"
 			type="list"
@@ -296,6 +313,7 @@
 			<option value="0">COM_CONTENT_FIELD_OPTION_ABOVE</option>
 			<option value="1">COM_CONTENT_FIELD_OPTION_BELOW</option>
 		</field>
+
 		</fieldset>
 	</fields>
 </metadata>
