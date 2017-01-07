@@ -120,6 +120,7 @@
 					type="list"
 					label="COM_CONTENT_NO_ARTICLES_LABEL"
 					description="COM_CONTENT_NO_ARTICLES_DESC"
+					showon="show_empty_categories:1"
 					useglobal="true"
 					>
 					<option value="0">JHIDE</option>
@@ -216,6 +217,7 @@
 					type="list"
 					description="JGLOBAL_MULTI_COLUMN_ORDER_DESC"
 					label="JGLOBAL_MULTI_COLUMN_ORDER_LABEL"
+					showon="num_columns!:,0,1"
 					useglobal="true"
 					>
 					<option value="0">JGLOBAL_DOWN</option>
@@ -286,6 +288,7 @@
 					type="list"
 					description="JGLOBAL_ORDERING_DATE_DESC"
 					label="JGLOBAL_ORDERING_DATE_LABEL"
+					showon="orderby_sec:rdate,date"
 					useglobal="true"
 					>
 					<option value="created">JGLOBAL_CREATED</option>
@@ -310,6 +313,7 @@
 					type="list"
 					label="JGLOBAL_PAGINATION_RESULTS_LABEL"
 					description="JGLOBAL_PAGINATION_RESULTS_DESC"
+					showon="show_pagination:1,2"
 					useglobal="true"
 					>
 					<option value="0">JHIDE</option>
@@ -348,6 +352,7 @@
 				type="list"
 				description="JGLOBAL_LINKED_TITLES_DESC"
 				label="JGLOBAL_LINKED_TITLES_LABEL"
+				showon="show_title:use_article,1"
 				useglobal="true"
 				>
 				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
@@ -370,7 +375,6 @@
 			<field
 				name="info_block_position"
 				type="list"
-				default=""
 				label="COM_CONTENT_FIELD_INFOBLOCK_POSITION_LABEL"
 				description="COM_CONTENT_FIELD_INFOBLOCK_POSITION_DESC"
 				useglobal="true"
@@ -410,6 +414,7 @@
 				type="list"
 				description="JGLOBAL_LINK_CATEGORY_DESC"
 				label="JGLOBAL_LINK_CATEGORY_LABEL"
+				showon="show_category:use_article,1"
 				useglobal="true"
 				>
 				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
@@ -434,6 +439,7 @@
 				type="list"
 				description="JGLOBAL_LINK_PARENT_CATEGORY_DESC"
 				label="JGLOBAL_LINK_PARENT_CATEGORY_LABEL"
+				showon="show_parent_category:use_article,1"
 				useglobal="true"
 				>
 				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
@@ -454,6 +460,19 @@
 			</field>
 
 			<field
+				name="flags"
+				type="list"
+				label="JGLOBAL_SHOW_FLAG_LABEL"
+				description="JGLOBAL_SHOW_FLAG_DESC"
+				showon="show_associations:use_article,1"
+				useglobal="true"
+				>
+				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+
+			<field
 				name="show_author"
 				type="list"
 				description="JGLOBAL_SHOW_AUTHOR_DESC"
@@ -470,6 +489,7 @@
 				type="list"
 				description="JGLOBAL_LINK_AUTHOR_DESC"
 				label="JGLOBAL_LINK_AUTHOR_LABEL"
+				showon="show_author:use_article,1"
 				useglobal="true"
 				>
 				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
@@ -553,11 +573,21 @@
 				type="list"
 				label="JGLOBAL_SHOW_READMORE_TITLE_LABEL"
 				description="JGLOBAL_SHOW_READMORE_TITLE_DESC"
+				showon="show_readmore:1"
 				useglobal="true"
 				>
 				<option value="0">JHIDE</option>
 				<option value="1">JSHOW</option>
 			</field>
+
+			<field
+				name="readmore_limit"
+				type="text"
+				label="JGLOBAL_SHOW_READMORE_LIMIT_LABEL"
+				description="JGLOBAL_SHOW_READMORE_LIMIT_DESC"
+				showon="show_readmore:1[AND]show_readmore_title:1"
+				useglobal="true"
+			/>
 
 			<field
 				name="show_icons"
@@ -586,8 +616,8 @@
 			<field
 				name="show_email_icon"
 				type="list"
-				description="JGLOBAL_Show_Email_Icon_Desc"
-				label="JGLOBAL_Show_Email_Icon_Label"
+				description="JGLOBAL_SHOW_EMAIL_ICON_DESC"
+				label="JGLOBAL_SHOW_EMAIL_ICON_LABEL"
 				useglobal="true"
 				>
 				<option value="use_article">COM_CONTENT_FIELD_VALUE_USE_ARTICLE_SETTINGS</option>
@@ -649,6 +679,7 @@
 				type="list"
 				description="JGLOBAL_FEED_SUMMARY_DESC"
 				label="JGLOBAL_FEED_SUMMARY_LABEL"
+				showon="show_feed_link:1"
 				useglobal="true"
 				>
 				<option value="0">JGLOBAL_INTRO_TEXT</option>
