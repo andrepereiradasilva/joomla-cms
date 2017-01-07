@@ -294,6 +294,17 @@
 			</field>
 
 			<field
+				name="flags"
+				type="list"
+				label="JGLOBAL_SHOW_FLAG_LABEL"
+				description="JGLOBAL_SHOW_FLAG_DESC"
+				useglobal="true"
+				>
+				<option value="1">JYES</option>
+				<option value="0">JNO</option>
+			</field>
+
+			<field
 				name="show_author"
 				type="list"
 				class="chzn-color"
