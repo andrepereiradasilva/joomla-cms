@@ -58,8 +58,8 @@ if (!Array.prototype.indexOf)
 		 * @param {Boolean} animate
 		 */
 		function linkedoptions (target, animate) {
-			var showfield   = true,
-				jsondata    = target.data('showon') || [],
+			var showfield = true,
+				jsondata  = target.data('showon') || [],
 				itemval, condition, fieldName, $fields;
 
 			// Check if target conditions are satisfied
@@ -88,24 +88,40 @@ if (!Array.prototype.indexOf)
 					// and normalize as string
 					if (!(typeof itemval === 'object'))
 					{
-						itemval = JSON.parse('["' + itemval + '"]');
+						itemval = JSON.parse('[ "' + itemval.toString() + '" ]');
 					}
 
 					// Test if any of the values of the field exists in showon conditions
 					for (var i in itemval)
 					{
 						// ":" Equal to one or more of the values condition
-						if (jsondata[j]['sign'] == '=' && ((globalValue != null && itemval[i] == globalValue) || jsondata[j]['values'].indexOf(itemval[i]) !== -1))
+						if (jsondata[j]['sign'] === '=' && jsondata[j]['values'].indexOf(itemval[i]) !== -1)
 						{
 							jsondata[j]['valid'] = 1;
 						}
 						// "!:" Not equal to one or more of the values condition
-						if (jsondata[j]['sign'] == '!=' && ((globalValue != null && itemval[i] != globalValue) && jsondata[j]['values'].indexOf(itemval[i]) === -1))
+						if (jsondata[j]['sign'] === '!=' && jsondata[j]['values'].indexOf(itemval[i]) === -1)
+						{
+							jsondata[j]['valid'] = 1;
+						}
+					}
+
+					// Test the global value, if needed and exists
+					if (jsondata[j]['valid'] === 0 && itemval[0] === "" && globalValue !== null)
+					{
+						// ":" Equal to one or more of the values condition
+						if (jsondata[j]['sign'] === '=' && jsondata[j]['values'].indexOf(globalValue.toString()) !== -1)
+						{
+							jsondata[j]['valid'] = 1;
+						}
+						// "!:" Not equal to one or more of the values condition
+						if (jsondata[j]['sign'] === '!=' && jsondata[j]['values'].indexOf(globalValue.toString()) === -1)
 						{
 							jsondata[j]['valid'] = 1;
 						}
 					}
 				});
+				
 
 				// Verify conditions
 				// First condition (no operator): current condition must be valid
