@@ -952,7 +952,7 @@ abstract class JFormField
 
 		if ($this->showon)
 		{
-			$options['rel']           = ' data-showon=\'' . json_encode(JFormHelper::parseShowOnConditions($this->formControl, $this->showon)) . '\'';
+			$options['rel']           = ' data-showon=\'' . json_encode(JFormHelper::parseShowOnConditions($this->form, $this)) . '\'';
 			$options['showonEnabled'] = true;
 		}
 
