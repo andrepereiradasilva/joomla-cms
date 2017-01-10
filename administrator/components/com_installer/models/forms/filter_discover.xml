@@ -20,13 +20,14 @@
 		<field
 			name="type"
 			type="type"
-			onchange="this.form.submit();"
+			onchange="document.getElementById('filter_folder').value='';this.form.submit();"
 			>
 			<option value="">COM_INSTALLER_VALUE_TYPE_SELECT</option>
 		</field>
 		<field
 			name="folder"
 			type="folder"
+			showon="type:plugin"
 			onchange="this.form.submit();"
 			>
 			<option value="">COM_INSTALLER_VALUE_FOLDER_SELECT</option>
