@@ -354,7 +354,7 @@ class JFormHelper
 			$conditionFieldParts = explode('.', $showOnPartBlocks[0]);
 			$conditionFieldName  = isset($conditionFieldParts[1]) ? $conditionFieldParts[1] : $conditionFieldParts[0];
 			$conditionFieldGroup = isset($conditionFieldParts[1]) ? $conditionFieldParts[0] : null;
-			$conditionFieldGroup = $conditionFieldGroup === null && $field->group ? $field->group : $conditionFieldGroup;
+			$conditionFieldGroup = $conditionFieldGroup === null && property_exists($field, 'group') && $field->group ? $field->group : $conditionFieldGroup;
 			$conditionField      = ($conditionField = $form->getField($conditionFieldName, $conditionFieldGroup)) ? $conditionField->name : $conditionFieldName;
 
 			$showOnData[] = array(
