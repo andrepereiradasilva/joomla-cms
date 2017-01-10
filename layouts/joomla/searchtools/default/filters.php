@@ -13,6 +13,9 @@ $data = $displayData;
 
 // Check for show on fields.
 $filters = $data['view']->filterForm->getGroup('filter');
+
+// Load the form filters
+$filters = $data['view']->filterForm->getGroup('filter');
 ?>
 <?php if ($filters) : ?>
 	<?php foreach ($filters as $fieldName => $field) : ?>
