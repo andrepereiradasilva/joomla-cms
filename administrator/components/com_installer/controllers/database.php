@@ -39,4 +39,31 @@ class InstallerControllerDatabase extends JControllerLegacy
 
 		$this->setRedirect(JRoute::_('index.php?option=com_installer&view=database', false));
 	}
+
+	/**
+	 * Method to otimize assets database table.
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public function cleanAssets()
+	{
+		// Check for request forgeries.
+		JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+
+		$app           = JFactory::getApplication();
+		$assetsCleaned = JAccessHelper::cleanAssets(JAccessHelper::getListOfAssetsToClean());
+
+		if ($assetsCleaned === 0)
+		{
+			$app->enqueueMessage('No assets need to be optimized.', 'notice');
+		}
+		else
+		{
+			$app->enqueueMessage('Optimized ' . $assetsCleaned . ' assets!', 'message');
+		}
+
+		$this->setRedirect('index.php?option=com_installer&view=database');
+	}
 }
