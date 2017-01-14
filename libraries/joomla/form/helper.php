@@ -320,35 +320,54 @@ class JFormHelper
 	/**
 	 * Parse the show on conditions
 	 *
-	 * @param   string  $formControl  Form name.
-	 * @param   string  $showOn       Show on conditions.
+	 * @param   JForm       $form   The form.
+	 * @param   JFormField  $field  The field with the showon condition.
 	 *
 	 * @return  array   Array with show on conditions.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function parseShowOnConditions($formControl, $showOn)
+	public static function parseShowOnConditions($form, $field)
 	{
 		// Process the showon data.
-		if (!$showOn)
+		if (!$form || !$field || !$field->showon)
 		{
 			return array();
 		}
 
 		$showOnData  = array();
-		$showOnParts = preg_split('#\[AND\]|\[OR\]#', $showOn);
+		$showOnParts = preg_split('#(\[AND\]|\[OR\])#', $field->showon, -1, PREG_SPLIT_DELIM_CAPTURE);
+		$op          = '';
 
 		foreach ($showOnParts as $showOnPart)
 		{
+			if ($showOnPart === '[AND]' || $showOnPart === '[OR]')
+			{
+				$op = trim($showOnPart, '[]');
+				continue;
+			}
+
 			$compareEqual     = strpos($showOnPart, '!:') === false;
 			$showOnPartBlocks = explode(($compareEqual ? ':' : '!:'), $showOnPart, 2);
 
+			// Check if a group is being checked. will default to curren field group, if exists. Ex: params.show_title
+			$conditionFieldParts = explode('.', $showOnPartBlocks[0]);
+			$conditionFieldName  = isset($conditionFieldParts[1]) ? $conditionFieldParts[1] : $conditionFieldParts[0];
+			$conditionFieldGroup = isset($conditionFieldParts[1]) ? $conditionFieldParts[0] : null;
+			$conditionFieldGroup = $conditionFieldGroup === null && property_exists($field, 'group') && $field->group ? $field->group : $conditionFieldGroup;
+			$conditionField      = ($conditionField = $form->getField($conditionFieldName, $conditionFieldGroup)) ? $conditionField->name : $conditionFieldName;
+
 			$showOnData[] = array(
-				'field'  => $formControl ? $formControl . '[' . $showOnPartBlocks[0] . ']' : $showOnPartBlocks[0],
+				'field'  => str_replace('[]', '', $conditionField),
 				'values' => explode(',', $showOnPartBlocks[1]),
 				'sign'   => $compareEqual === true ? '=' : '!=',
-				'op'     => preg_match('#^\[(AND|OR)\]#', $showOnPart, $matches) ? $matches[1] : '',
+				'op'     => $op,
 			);
+
+			if ($op !== '')
+			{
+				$op = '';
+			}
 		}
 
 		return $showOnData;
