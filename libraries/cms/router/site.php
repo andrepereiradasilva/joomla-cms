@@ -72,7 +72,7 @@ class JRouterSite extends JRouter
 	{
 		$vars = array();
 
-		if ($this->app->get('force_ssl') == 2 && strtolower($uri->getScheme()) != 'https')
+		if ((int) $this->app->get('force_ssl', 0) === 2 && strtolower($uri->getScheme()) !== 'https')
 		{
 			// Forward to https
 			$uri->setScheme('https');
@@ -87,7 +87,7 @@ class JRouterSite extends JRouter
 		$path = substr_replace($path, '', 0, strlen(JUri::base(true)));
 
 		// Check to see if a request to a specific entry point has been made.
-		if (preg_match("#.*?\.php#u", $path, $matches))
+		if (preg_match("#.*?\.php#u", $path, $matches) === 1)
 		{
 			// Get the current entry point path relative to the site path.
 			$scriptPath         = realpath($_SERVER['SCRIPT_FILENAME'] ?: str_replace('\\\\', '\\', $_SERVER['PATH_TRANSLATED']));
@@ -95,7 +95,7 @@ class JRouterSite extends JRouter
 
 			// If a php file has been found in the request path, check to see if it is a valid file.
 			// Also verify that it represents the same file from the server variable for entry script.
-			if (file_exists(JPATH_SITE . $matches[0]) && ($matches[0] == $relativeScriptPath))
+			if (file_exists(JPATH_SITE . $matches[0]) === true && $matches[0] === $relativeScriptPath)
 			{
 				// Remove the entry point segments from the request path for proper routing.
 				$path = str_replace($matches[0], '', $path);
@@ -103,15 +103,11 @@ class JRouterSite extends JRouter
 		}
 
 		// Identify format
-		if ($this->_mode == JROUTER_MODE_SEF)
+		if ($this->_mode == JROUTER_MODE_SEF && (int) $this->app->get('sef_suffix', 0) === 1
+			&& substr($path, -9) !== 'index.php' && substr($path, -1) !== '/'
+			&& ($suffix = pathinfo($path, PATHINFO_EXTENSION)))
 		{
-			if ($this->app->get('sef_suffix') && !(substr($path, -9) == 'index.php' || substr($path, -1) == '/'))
-			{
-				if ($suffix = pathinfo($path, PATHINFO_EXTENSION))
-				{
-					$vars['format'] = $suffix;
-				}
-			}
+			$vars['format'] = $suffix;
 		}
 
 		// Set the route
@@ -124,7 +120,7 @@ class JRouterSite extends JRouter
 		{
 			$componentRouter = $this->getComponentRouter($component->option);
 
-			if (method_exists($componentRouter, 'parsepreprocess'))
+			if (method_exists($componentRouter, 'parsepreprocess') === true)
 			{
 				$this->attachParseRule(array($componentRouter, 'parsepreprocess'), static::PROCESS_BEFORE);
 			}
@@ -149,36 +145,28 @@ class JRouterSite extends JRouter
 		$uri = parent::build($url);
 
 		// Get the path data
-		$route = $uri->getPath();
+		$path = $uri->getPath();
 
-		// Add the suffix to the uri
-		if ($this->_mode == JROUTER_MODE_SEF && $route)
+		// Trnasform the path.
+		if ($this->_mode == JROUTER_MODE_SEF && $path !== '')
 		{
-			if ($this->app->get('sef_suffix') && !(substr($route, -9) == 'index.php' || substr($route, -1) == '/'))
+			// Add the html suffix in sef suffix mode.
+			if ((int) $this->app->get('sef_suffix', 0) === 1 && substr($path, -9) !== 'index.php' && substr($path, -1) !== '/'
+				&& ($format = $uri->getVar('format', 'html')))
 			{
-				if ($format = $uri->getVar('format', 'html'))
-				{
-					$route .= '.' . $format;
-					$uri->delVar('format');
-				}
+				$path .= '.' . $format;
+				$uri->delVar('format');
 			}
 
-			if ($this->app->get('sef_rewrite'))
+			// Transform the path in sef rewrite mode.
+			if ((int) $this->app->get('sef_rewrite', 0) === 1)
 			{
-				// Transform the route
-				if ($route == 'index.php')
-				{
-					$route = '';
-				}
-				else
-				{
-					$route = str_replace('index.php/', '', $route);
-				}
+				$path = $path === 'index.php' ? '' : str_replace('index.php/', '', $path);
 			}
 		}
 
 		// Add basepath to the uri
-		$uri->setPath(JUri::base(true) . '/' . $route);
+		$uri->setPath(JUri::base(true) . '/' . $path);
 
 		return $uri;
 	}
@@ -195,61 +183,60 @@ class JRouterSite extends JRouter
 	 */
 	protected function parseRawRoute(&$uri)
 	{
-		$vars = array();
-
 		// Handle an empty URL (special case)
-		if (!$uri->getVar('Itemid') && !$uri->getVar('option'))
+		if ($uri->getVar('Itemid', '') === '' && $uri->getVar('option', '') === '')
 		{
 			$item = $this->menu->getDefault($this->app->getLanguage()->getTag());
 
-			if (!is_object($item))
+			// No default item set.
+			if (is_object($item) === false)
 			{
-				// No default item set
-				return $vars;
+				return array();
 			}
 
-			// Set the information in the request
-			$vars = $item->query;
+			// Set the active menu item.
+			$this->menu->setActive($item->id);
 
-			// Get the itemid
-			$vars['Itemid'] = $item->id;
-
-			// Set the active menu item
-			$this->menu->setActive($vars['Itemid']);
-
-			return $vars;
+			// Set the information in the request and the item id.
+			return array_replace($item->query, array('Itemid' => $item->id));
 		}
 
 		// Get the variables from the uri
 		$this->setVars($uri->getQuery(true));
 
-		// Get the itemid, if it hasn't been set force it to null
-		$this->setVar('Itemid', $this->app->input->getInt('Itemid', null));
+		// Get the itemid, if it hasn't been set force it to null.
+		$itemId = $this->app->input->getInt('Itemid', null);
+
+		// No item Id return.
+		if ($itemId === null)
+		{
+			return array();
+		}
+
+		// Set the item id.
+		$this->setVar('Itemid', $itemId);
+
+		$vars = array();
+
+		$numberOfVars = count($this->getVars());
 
 		// Only an Itemid  OR if filter language plugin set? Get the full information from the itemid
-		if (count($this->getVars()) == 1 || ($this->app->getLanguageFilter() && count($this->getVars()) == 2))
+		if (($numberOfVars === 1 || ($numberOfVars === 2 && $this->app->getLanguageFilter() === true)) && ($item = $this->menu->getItem($itemId)))
 		{
-			$item = $this->menu->getItem($this->getVar('Itemid'));
-
-			if ($item && $item->type == 'alias')
+			if ($item->type === 'alias' && ($newItem = $this->menu->getItem($item->params->get('aliasoptions'))))
 			{
-				$newItem = $this->menu->getItem($item->params->get('aliasoptions'));
-
-				if ($newItem)
-				{
-					$item->query     = array_merge($item->query, $newItem->query);
-					$item->component = $newItem->component;
-				}
+				$item->query     = array_replace($item->query, $newItem->query);
+				$item->component = $newItem->component;
 			}
 
-			if ($item !== null && is_array($item->query))
+			if (is_array($item->query) === true)
 			{
-				$vars = $vars + $item->query;
+				$vars = $item->query;
 			}
 		}
 
 		// Set the active menu item
-		$this->menu->setActive($this->getVar('Itemid'));
+		$this->menu->setActive($itemId);
 
 		return $vars;
 	}
@@ -268,144 +255,119 @@ class JRouterSite extends JRouter
 	{
 		$route = $uri->getPath();
 
-		// Remove the suffix
-		if ($this->app->get('sef_suffix'))
-		{
-			if ($suffix = pathinfo($route, PATHINFO_EXTENSION))
-			{
-				$route = str_replace('.' . $suffix, '', $route);
-			}
-		}
-
 		// Get the variables from the uri
 		$vars = $uri->getQuery(true);
 
 		// Handle an empty URL (special case)
-		if (empty($route))
+		if ($route === '')
 		{
 			// If route is empty AND option is set in the query, assume it's non-sef url, and parse apropriately
-			if (isset($vars['option']) || isset($vars['Itemid']))
+			if (isset($vars['option']) === true || isset($vars['Itemid']) === true)
 			{
 				return $this->parseRawRoute($uri);
 			}
 
 			$item = $this->menu->getDefault($this->app->getLanguage()->getTag());
 
-			// If user not allowed to see default menu item then avoid notices
-			if (is_object($item))
+			// No default item set.
+			if (is_object($item) === false)
 			{
-				// Set the information in the request
-				$vars = $item->query;
-
-				// Get the itemid
-				$vars['Itemid'] = $item->id;
-
-				// Set the active menu item
-				$this->menu->setActive($vars['Itemid']);
-
-				$this->setVars($vars);
+				return $vars;
 			}
+
+			// Set the active menu item
+			$this->menu->setActive($item->id);
+
+			$vars = array_replace($item->query, array('Itemid' => $item->id));
+
+			$this->setVars($vars);
 
 			return $vars;
 		}
 
-		// Parse the application route
-		$segments = explode('/', $route);
+		// Remove the suffix
+		if ((int) $this->app->get('sef_suffix', 0) === 1 && ($suffix = pathinfo($route, PATHINFO_EXTENSION)))
+		{
+			$route = str_replace('.' . $suffix, '', $route);
+		}
 
-		if (count($segments) > 1 && $segments[0] == 'component')
+		// Check the path segments.
+		$segments = explode('/', ltrim($route, '/'));
+
+		// Component routes.
+		if ($segments !== array() && $segments[0] === 'component')
 		{
 			$vars['option'] = 'com_' . $segments[1];
 			$vars['Itemid'] = null;
-			$route = implode('/', array_slice($segments, 2));
+			$route          = implode('/', array_slice($segments, 1));
 		}
+		// Other routes.
 		else
 		{
 			// Get menu items.
-			$items = $this->menu->getMenu();
-
-			$found           = false;
-			$route_lowercase = StringHelper::strtolower($route);
-			$lang_tag        = $this->app->getLanguage()->getTag();
+			$items                  = $this->menu->getMenu();
+			$menuItem               = null;
+			$routeLowercase         = StringHelper::strtolower($route);
+			$languageCode           = $this->app->getLanguage()->getTag();
+			$validLanguages         = array('*', $languageCode);
+			$languagueFilterEnabled = (bool) $this->app->getLanguageFilter();
 
 			// Iterate through all items and check route matches.
 			foreach ($items as $item)
 			{
-				if ($item->route && StringHelper::strpos($route_lowercase . '/', $item->route . '/') === 0 && $item->type != 'menulink')
+				if (!$item->route || $item->type === 'menulink' || StringHelper::strpos($routeLowercase, $item->route) !== 0)
 				{
-					// Usual method for non-multilingual site.
-					if (!$this->app->getLanguageFilter())
-					{
-						// Exact route match. We can break iteration because exact item was found.
-						if ($item->route == $route_lowercase)
-						{
-							$found = $item;
-							break;
-						}
-
-						// Partial route match. Item with highest level takes priority.
-						if (!$found || $found->level < $item->level)
-						{
-							$found = $item;
-						}
-					}
-					// Multilingual site.
-					elseif ($item->language == '*' || $item->language == $lang_tag)
-					{
-						// Exact route match.
-						if ($item->route == $route_lowercase)
-						{
-							$found = $item;
-
-							// Break iteration only if language is matched.
-							if ($item->language == $lang_tag)
-							{
-								break;
-							}
-						}
-
-						// Partial route match. Item with highest level or same language takes priority.
-						if (!$found || $found->level < $item->level || $item->language == $lang_tag)
-						{
-							$found = $item;
-						}
-					}
+					continue;
 				}
-			}
 
-			if (!$found)
-			{
-				$found = $this->menu->getDefault($lang_tag);
-			}
-			else
-			{
-				$route = substr($route, strlen($found->route));
-
-				if ($route)
+				// In multilingual sites only accept items with language all or the item language.
+				if ($languagueFilterEnabled === true && in_array($item->language, $validLanguages, true) !== true)
 				{
-					$route = substr($route, 1);
+					continue;
 				}
-			}
 
-			if ($found)
-			{
-				if ($found->type == 'alias')
+				// Exact route match.
+				if ($item->route === $routeLowercase)
 				{
-					$newItem = $this->menu->getItem($found->params->get('aliasoptions'));
+					$menuItem = $item;
 
-					if ($newItem)
+					// Break iteration only if is monolingual or in multilingual if language is matched.
+					if ($languagueFilterEnabled === false || ($languagueFilterEnabled === true && $item->language === $languageCode))
 					{
-						$found->query     = array_merge($found->query, $newItem->query);
-						$found->component = $newItem->component;
+						break;
 					}
 				}
 
-				$vars['Itemid'] = $found->id;
-				$vars['option'] = $found->component;
+				// Partial route match. Item with highest level takes priority.
+				if ($menuItem === null || $menuItem->level < $item->level)
+				{
+					$menuItem = $item;
+				}
+			}
+
+			// No menu item found. Try to get the default menu item.
+			if ($menuItem === null)
+			{
+				$menuItem = $this->menu->getDefault($languageCode);
+			}
+
+			if ($menuItem !== null)
+			{
+				$route = trim(substr($route, strlen($menuItem->route)), '/');
+
+				if ($menuItem->type === 'alias' && ($newItem = $this->menu->getItem($menuItem->params->get('aliasoptions'))))
+				{
+					$menuItem->query     = array_replace($menuItem->query, $newItem->query);
+					$menuItem->component = $newItem->component;
+				}
+
+				$vars['Itemid'] = $menuItem->id;
+				$vars['option'] = $menuItem->component;
 			}
 		}
 
 		// Set the active menu item
-		if (isset($vars['Itemid']))
+		if (isset($vars['Itemid']) === true)
 		{
 			$this->menu->setActive($vars['Itemid']);
 		}
@@ -414,22 +376,16 @@ class JRouterSite extends JRouter
 		$this->setVars($vars);
 
 		// Parse the component route
-		if (!empty($route) && isset($this->_vars['option']))
+		if ($route !== '' && isset($this->_vars['option']) === true)
 		{
-			$segments = explode('/', $route);
-
-			if (empty($segments[0]))
-			{
-				array_shift($segments);
-			}
+			$segments = explode('/', ltrim($route, '/'));
 
 			// Handle component route
-			$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $this->_vars['option']);
-
-			if (count($segments))
+			if ($segments !== array())
 			{
-				$crouter = $this->getComponentRouter($component);
-				$vars = $crouter->parse($segments);
+				// Handle component route
+				$component = preg_replace('#[^A-Za-z0-9_\.-]#', '', $this->_vars['option']);
+				$vars      = $this->getComponentRouter($component)->parse($segments);
 
 				$this->setVars($vars);
 			}
@@ -461,14 +417,13 @@ class JRouterSite extends JRouter
 		// Get the query data
 		$query = $uri->getQuery(true);
 
-		if (!isset($query['option']))
+		if (isset($query['option']) === false)
 		{
 			return;
 		}
 
-		$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $query['option']);
-		$crouter   = $this->getComponentRouter($component);
-		$query     = $crouter->preprocess($query);
+		$component = preg_replace('#[^A-Za-z0-9_\.-]#', '', $query['option']);
+		$query     = $this->getComponentRouter($component)->preprocess($query);
 
 		$uri->setQuery($query);
 	}
@@ -583,17 +538,11 @@ class JRouterSite extends JRouter
 		// Process the attached parse rules
 		$vars = parent::processParseRules($uri, $stage);
 
-		if ($stage == self::PROCESS_DURING)
+		// Process the pagination support
+		if ($stage == self::PROCESS_DURING && $this->_mode == JROUTER_MODE_SEF && ($start = $uri->getVar('start', '') !== ''))
 		{
-			// Process the pagination support
-			if ($this->_mode == JROUTER_MODE_SEF)
-			{
-				if ($start = $uri->getVar('start'))
-				{
-					$uri->delVar('start');
-					$vars['limitstart'] = $start;
-				}
-			}
+			$uri->delVar('start');
+			$vars['limitstart'] = $start;
 		}
 
 		return $vars;
@@ -649,34 +598,44 @@ class JRouterSite extends JRouter
 			// Get the query data
 			$query = $uri->getQuery(true);
 
-			if (!isset($query['option']))
+			if (isset($query['option']) === false)
 			{
 				return;
 			}
 
 			// Build the component route
-			$component = preg_replace('/[^A-Z0-9_\.-]/i', '', $query['option']);
-			$router   = $this->getComponentRouter($component);
-			$query     = $router->preprocess($query);
-			$uri->setQuery($query);
+			$component = preg_replace('#[^A-Za-z0-9_\.-]i', '', $query['option']);
+
+			$uri->setQuery($this->getComponentRouter($component)->preprocess($query));
 		}
 
-		if ($stage == self::PROCESS_DURING)
+		if ($stage == self::PROCESS_DURING && $this->_mode == JROUTER_MODE_SEF)
 		{
 			// Get the path data
 			$route = $uri->getPath();
 
-			if ($this->_mode == JROUTER_MODE_SEF && $route)
+			if ($route !== '' && ($limitstart = $uri->getVar('limitstart', '') !== '')
 			{
-				if ($limitstart = $uri->getVar('limitstart'))
-				{
-					$uri->setVar('start', (int) $limitstart);
-					$uri->delVar('limitstart');
-				}
+				$uri->setVar('start', (int) $limitstart);
+				$uri->delVar('limitstart');
 			}
-
-			$uri->setPath($route);
 		}
+	}
+
+	private function buildComponentQuery(JUri $uri)
+	{
+		// Get the query data
+		$query = $uri->getQuery(true);
+
+		if (isset($query['option']) === false)
+		{
+			return;
+		}
+
+		// Build the component route
+		$component = preg_replace('#[^A-Za-z0-9_\.-]i', '', $query['option']);
+
+		return $this->getComponentRouter($component)->preprocess($query);
 	}
 
 	/**

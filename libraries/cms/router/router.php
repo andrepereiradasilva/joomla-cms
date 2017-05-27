@@ -96,11 +96,11 @@ class JRouter
 	 * @since  1.5
 	 */
 	protected $rules = array(
-		'buildpreprocess' => array(),
-		'build' => array(),
+		'buildpreprocess'  => array(),
+		'build'            => array(),
 		'buildpostprocess' => array(),
-		'parsepreprocess' => array(),
-		'parse' => array(),
+		'parsepreprocess'  => array(),
+		'parse'            => array(),
 		'parsepostprocess' => array(),
 	);
 
@@ -112,11 +112,11 @@ class JRouter
 	 * @deprecated  4.0 Will convert to $rules
 	 */
 	protected $_rules = array(
-		'buildpreprocess' => array(),
-		'build' => array(),
+		'buildpreprocess'  => array(),
+		'build'            => array(),
 		'buildpostprocess' => array(),
-		'parsepreprocess' => array(),
-		'parse' => array(),
+		'parsepreprocess'  => array(),
+		'parse'            => array(),
 		'parsepostprocess' => array(),
 	);
 
@@ -145,14 +145,7 @@ class JRouter
 	 */
 	public function __construct($options = array())
 	{
-		if (array_key_exists('mode', $options))
-		{
-			$this->_mode = $options['mode'];
-		}
-		else
-		{
-			$this->_mode = JROUTER_MODE_RAW;
-		}
+		$this->_mode = isset($options['mode']) === true ? $options['mode'] : JROUTER_MODE_RAW;
 	}
 
 	/**
@@ -169,38 +162,38 @@ class JRouter
 	 */
 	public static function getInstance($client, $options = array())
 	{
-		if (empty(self::$instances[$client]))
+		if (isset(self::$instances[$client]) === true)
 		{
-			// Create a JRouter object
-			$classname = 'JRouter' . ucfirst($client);
+			return self::$instances[$client];
+		}
 
-			if (!class_exists($classname))
+		// Create a JRouter object
+		$classname = 'JRouter' . ucfirst($client);
+
+		if (class_exists($classname) === false)
+		{
+			// @deprecated 4.0 Everything in this block is deprecated but the warning is only logged after the file_exists
+			// Load the router object
+			$info = JApplicationHelper::getClientInfo($client, true);
+
+			if (is_object($info) === true)
 			{
-				// @deprecated 4.0 Everything in this block is deprecated but the warning is only logged after the file_exists
-				// Load the router object
-				$info = JApplicationHelper::getClientInfo($client, true);
+				JLoader::register($classname, $info->path . '/includes/router.php');
 
-				if (is_object($info))
+				if (class_exists($classname))
 				{
-					$path = $info->path . '/includes/router.php';
-
-					JLoader::register($classname, $path);
-
-					if (class_exists($classname))
-					{
-						JLog::add('Non-autoloadable JRouter subclasses are deprecated, support will be removed in 4.0.', JLog::WARNING, 'deprecated');
-					}
+					JLog::add('Non-autoloadable JRouter subclasses are deprecated, support will be removed in 4.0.', JLog::WARNING, 'deprecated');
 				}
 			}
+		}
 
-			if (class_exists($classname))
-			{
-				self::$instances[$client] = new $classname($options);
-			}
-			else
-			{
-				throw new RuntimeException(JText::sprintf('JLIB_APPLICATION_ERROR_ROUTER_LOAD', $client), 500);
-			}
+		if (class_exists($classname) === true)
+		{
+			self::$instances[$client] = new $classname($options);
+		}
+		else
+		{
+			throw new RuntimeException(JText::sprintf('JLIB_APPLICATION_ERROR_ROUTER_LOAD', $client), 500);
 		}
 
 		return self::$instances[$client];
@@ -239,7 +232,7 @@ class JRouter
 		// Do the postprocess stage of the URL build process
 		$vars += $this->processParseRules($uri, self::PROCESS_AFTER);
 
-		return array_merge($this->getVars(), $vars);
+		return array_replace($this->getVars(), $vars);
 	}
 
 	/**
@@ -257,7 +250,7 @@ class JRouter
 
 		if (isset($this->cache[$key]))
 		{
-			return clone $this->cache[$key];
+			return $this->cache[$key];
 		}
 
 		// Create the URI object
@@ -331,7 +324,7 @@ class JRouter
 	 */
 	public function setVar($key, $value, $create = true)
 	{
-		if ($create || array_key_exists($key, $this->_vars))
+		if ($create === true || array_key_exists($key, $this->_vars) === true)
 		{
 			$this->_vars[$key] = $value;
 		}
@@ -349,14 +342,7 @@ class JRouter
 	 */
 	public function setVars($vars = array(), $merge = true)
 	{
-		if ($merge)
-		{
-			$this->_vars = array_merge($this->_vars, $vars);
-		}
-		else
-		{
-			$this->_vars = $vars;
-		}
+		$this->_vars = $merge === true ? array_merge($this->_vars, $vars) : $vars;
 	}
 
 	/**
@@ -370,14 +356,7 @@ class JRouter
 	 */
 	public function getVar($key)
 	{
-		$result = null;
-
-		if (isset($this->_vars[$key]))
-		{
-			$result = $this->_vars[$key];
-		}
-
-		return $result;
+		return isset($this->_vars[$key]) === true ? $this->_vars[$key] : null;
 	}
 
 	/**
@@ -407,7 +386,7 @@ class JRouter
 	 */
 	public function attachBuildRule($callback, $stage = self::PROCESS_DURING)
 	{
-		if (!array_key_exists('build' . $stage, $this->_rules))
+		if (array_key_exists('build' . $stage, $this->_rules) === false)
 		{
 			throw new InvalidArgumentException(sprintf('The %s stage is not registered. (%s)', $stage, __METHOD__));
 		}
@@ -430,7 +409,7 @@ class JRouter
 	 */
 	public function attachParseRule($callback, $stage = self::PROCESS_DURING)
 	{
-		if (!array_key_exists('parse' . $stage, $this->_rules))
+		if (array_key_exists('parse' . $stage, $this->_rules) === false)
 		{
 			throw new InvalidArgumentException(sprintf('The %s stage is not registered. (%s)', $stage, __METHOD__));
 		}
@@ -585,7 +564,7 @@ class JRouter
 	 */
 	protected function processParseRules(&$uri, $stage = self::PROCESS_DURING)
 	{
-		if (!array_key_exists('parse' . $stage, $this->_rules))
+		if (array_key_exists('parse' . $stage, $this->_rules) === false)
 		{
 			throw new InvalidArgumentException(sprintf('The %s stage is not registered. (%s)', $stage, __METHOD__));
 		}
@@ -629,7 +608,7 @@ class JRouter
 	 */
 	protected function processBuildRules(&$uri, $stage = self::PROCESS_DURING)
 	{
-		if (!array_key_exists('build' . $stage, $this->_rules))
+		if (array_key_exists('build' . $stage, $this->_rules) === false)
 		{
 			throw new InvalidArgumentException(sprintf('The %s stage is not registered. (%s)', $stage, __METHOD__));
 		}
@@ -667,14 +646,12 @@ class JRouter
 	 */
 	protected function createUri($url)
 	{
-		if (!is_array($url) && substr($url, 0, 1) != '&')
+		if (is_array($url) === false && strpos($url, '&') !== 0)
 		{
 			return new JUri($url);
 		}
 
-		$uri = new JUri('index.php');
-
-		if (is_string($url))
+		if (is_string($url) === true)
 		{
 			$vars = array();
 
@@ -690,19 +667,14 @@ class JRouter
 			$vars = $url;
 		}
 
-		$vars = array_merge($this->getVars(), $vars);
+		$url = 'index.php';
 
-		foreach ($vars as $key => $var)
+		if ($vars !== array())
 		{
-			if ($var == '')
-			{
-				unset($vars[$key]);
-			}
+			$url .= '?' . http_build_query(array_filter(array_replace($this->getVars(), $vars), 'strlen'));
 		}
 
-		$uri->setQuery($vars);
-
-		return $uri;
+		return new JUri($url);
 	}
 
 	/**
@@ -733,11 +705,9 @@ class JRouter
 	 */
 	protected function encodeSegments($segments)
 	{
-		$total = count($segments);
-
-		for ($i = 0; $i < $total; $i++)
+		foreach ($segments as &$segment)
 		{
-			$segments[$i] = str_replace(':', '-', $segments[$i]);
+			$segment = str_replace(':', '-', $segment);
 		}
 
 		return $segments;
@@ -771,11 +741,9 @@ class JRouter
 	 */
 	protected function decodeSegments($segments)
 	{
-		$total = count($segments);
-
-		for ($i = 0; $i < $total; $i++)
+		foreach ($segments as &$segment)
 		{
-			$segments[$i] = preg_replace('/-/', ':', $segments[$i], 1);
+			$segment = preg_replace('#-#', ':', $segment, 1);
 		}
 
 		return $segments;
