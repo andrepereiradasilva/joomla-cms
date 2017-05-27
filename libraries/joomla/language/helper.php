@@ -420,28 +420,51 @@ class JLanguageHelper
 	}
 
 	/**
+	 * Checks if a content language is available.
+	 *
+	 * @param   string  $languageCode  Language to check.
+	 *
+	 * @return  boolean  True if the language is available.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function isContentLanguageAvailable($languageCode = '')
+	{
+		$languageCode = (string) $languageCode;
+
+		if ($languageCode === '')
+		{
+			return false;
+		}
+
+		$contentLanguages = self::getContentLanguages(true, true, 'lang_code');
+
+		return isset($contentLanguages[$languageCode]) === true;
+	}
+
+	/**
 	 * Checks if a language exists.
 	 *
 	 * This is a simple, quick check for the directory that should contain language files for the given user.
 	 *
-	 * @param   string  $lang      Language to check.
-	 * @param   string  $basePath  Optional path to check.
+	 * @param   string  $languageCode  Language to check.
+	 * @param   string  $basePath      Optional path to check.
 	 *
 	 * @return  boolean  True if the language exists.
 	 *
 	 * @since   3.7.0
 	 */
-	public static function exists($lang, $basePath = JPATH_BASE)
+	public static function exists($languageCode, $basePath = JPATH_BASE)
 	{
 		static $paths = array();
 
 		// Return false if no language was specified
-		if (!$lang)
+		if (!$languageCode)
 		{
 			return false;
 		}
 
-		$path = $basePath . '/language/' . $lang;
+		$path = $basePath . '/language/' . $languageCode;
 
 		// Return previous check results if it exists
 		if (isset($paths[$path]))
@@ -458,15 +481,15 @@ class JLanguageHelper
 	/**
 	 * Returns an associative array holding the metadata.
 	 *
-	 * @param   string  $lang  The name of the language.
+	 * @param   string  $languageCode  The name of the language.
 	 *
-	 * @return  mixed  If $lang exists return key/value pair with the language metadata, otherwise return NULL.
+	 * @return  mixed  If $languageCode exists return key/value pair with the language metadata, otherwise return NULL.
 	 *
 	 * @since   3.7.0
 	 */
-	public static function getMetadata($lang)
+	public static function getMetadata($languageCode)
 	{
-		$file   = self::getLanguagePath(JPATH_BASE, $lang) . '/' . $lang . '.xml';
+		$file   = self::getLanguagePath(JPATH_BASE, $languageCode) . '/' . $languageCode . '.xml';
 		$result = null;
 
 		if (is_file($file))
@@ -506,9 +529,9 @@ class JLanguageHelper
 	 *
 	 * @since   3.7.0
 	 */
-	public static function getLanguagePath($basePath = JPATH_BASE, $language = null)
+	public static function getLanguagePath($basePath = JPATH_BASE, $languageCode = null)
 	{
-		return $basePath . '/language' . (!empty($language) ? '/' . $language : '');
+		return $basePath . '/language' . (!empty($languageCode) ? '/' . $languageCode : '');
 	}
 
 	/**
@@ -594,5 +617,89 @@ class JLanguageHelper
 		}
 
 		return $metadata;
+	}
+
+	/**
+	 * Change the app language.
+	 *
+	 * @param   string  $languageCode  The app language code.
+	 *
+	 * @return  null
+	 *
+	 * @since   __DEPLOY__VERSION__
+	 */
+	public static function changeAppLanguage($languageCode = '')
+	{
+		$app      = JFactory::getApplication();
+		$language = $app->getLanguage();
+
+		// No need to change the app language.
+		if ($language->getTag() === $languageCode)
+		{
+			return;
+		}
+
+		// Create the new language object.
+		$newLanguage = JLanguage::getInstance($languageCode);
+
+		// Load the ciurrent language files to the new language object.
+		foreach ($language->getPaths() as $extension => $files)
+		{
+			$newLanguage->load($extension);
+		}
+
+		// Load the language into the app.
+		$app->loadLanguage($newLanguage);
+
+		// Register the language object with JFactory.
+		JFactory::$language = $newLanguage;
+	}
+
+	/**
+	 * Get the app language code form the environment.
+	 *
+	 * @param   string   $languageIdentifier     A sef language slug or language code identifier.
+	 * @param   boolean  $checkBrowserLanguage   Should the browser language be checked.
+	 * @param   boolean  $defaultFallback        Should it fallback to default language.
+	 *
+	 * @return  string  The language code.
+	 *
+	 * @since   __DEPLOY__VERSION__
+	 */
+	public static function getLanguageCodeFromEnvironment($languageIdentifier = '', $checkBrowserLanguage = true, $defaultFallback = false)
+	{
+		$languagesCodes = self::getContentLanguages(true, true, 'lang_code');
+		$languageCode   = '';
+
+		// If we have a query string param, try to get it.
+		if ($languageIdentifier !== '')
+		{
+			$sefLanguageSlugs = self::getContentLanguages(true, true, 'sef');
+
+			// If a sef language slug was sent trough the uri query parameters use that.
+			if (isset($sefLanguageSlugs[$languageIdentifier]) === true)
+			{
+				$languageCode = $sefLanguageSlugs[$languageIdentifier]->lang_code;
+			}
+			// Else if a language code was sent trough the uri query parameters use that.
+			elseif (isset($languagesCodes[$languageIdentifier]) === true)
+			{
+				$languageCode = $languageIdentifier;
+			}
+		}
+
+		// If we don't have a language code in the cookie and we set to detect from browser, get it from the browser.
+		if ($checkBrowserLanguage === true && isset($languagesCodes[$languageCode]) === false)
+		{
+			$languageCode = self::detectLanguage();
+		}
+
+		// No language code. Fallback to default language.
+		if ($defaultFallback === true && isset($languagesCodes[$languageCode]) === false)
+		{
+			$languageCode = JComponentHelper::getParams('com_languages')->get('site', 'en-GB');
+		}
+
+		return $languageCode;
 	}
 }

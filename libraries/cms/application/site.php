@@ -141,13 +141,13 @@ final class JApplicationSite extends JApplicationCms
 		{
 			case 'html':
 				// Get language
-				$lang_code = $this->getLanguage()->getTag();
-				$languages = JLanguageHelper::getLanguages('lang_code');
+				$languageCode = $this->getLanguage()->getTag();
+				$languages    = JLanguageHelper::getContentLanguages(true, true, 'lang_code');
 
 				// Set metadata
-				if (isset($languages[$lang_code]) && $languages[$lang_code]->metakey)
+				if (isset($languages[$languageCode]) && $languages[$languageCode]->metakey)
 				{
-					$document->setMetaData('keywords', $languages[$lang_code]->metakey);
+					$document->setMetaData('keywords', $languages[$languageCode]->metakey);
 				}
 				else
 				{
@@ -323,14 +323,14 @@ final class JApplicationSite extends JApplicationCms
 			$menu  = $menus->getActive();
 
 			// Get language
-			$lang_code = $this->getLanguage()->getTag();
-			$languages = JLanguageHelper::getLanguages('lang_code');
+			$languageCode = $this->getLanguage()->getTag();
+			$languages    = JLanguageHelper::getContentLanguages(true, true, 'lang_code');;
 
 			$title = $this->get('sitename');
 
-			if (isset($languages[$lang_code]) && $languages[$lang_code]->metadesc)
+			if (isset($languages[$languageCode]) === true && $languages[$languageCode]->metadesc)
 			{
-				$description = $languages[$lang_code]->metadesc;
+				$description = $languages[$languageCode]->metadesc;
 			}
 			else
 			{
@@ -455,7 +455,7 @@ final class JApplicationSite extends JApplicationCms
 
 		$cache = JFactory::getCache('com_templates', '');
 
-		if ($this->_language_filter)
+		if ($this->getLanguageFilter() === true)
 		{
 			$tag = $this->getLanguage()->getTag();
 		}
@@ -487,7 +487,7 @@ final class JApplicationSite extends JApplicationCms
 			foreach ($templates as &$template)
 			{
 				// Create home element
-				if ($template->home == 1 && !isset($template_home) || $this->_language_filter && $template->home == $tag)
+				if ($template->home == 1 && !isset($template_home) || $this->getLanguageFilter() === true && $template->home == $tag)
 				{
 					$template_home = clone $template;
 				}
@@ -585,6 +585,14 @@ final class JApplicationSite extends JApplicationCms
 	 */
 	protected function initialiseApp($options = array())
 	{
+/*
+		// Trigger the onAfterInitialise event.
+		JPluginHelper::importPlugin('language');
+		$this->triggerEvent('onBeforeLanguageSelect');
+
+		// Mark beforeInitialise in the profiler.
+		JDEBUG ? $this->profiler->mark('beforeLanguageSelect') : null;
+*/
 		$user = JFactory::getUser();
 
 		// If the user is a guest we populate it with the guest user group.
@@ -594,91 +602,36 @@ final class JApplicationSite extends JApplicationCms
 			$user->groups = array($guestUsergroup);
 		}
 
-		/*
-		 * If a language was specified it has priority, otherwise use user or default language settings
-		 * Check this only if the languagefilter plugin is enabled
-		 *
-		 * @TODO - Remove the hardcoded dependency to the languagefilter plugin
-		 */
-		if (JPluginHelper::isEnabled('system', 'languagefilter'))
+		$options['language'] = isset($options['language']) ? $options['language'] : '';
+
+		// Detect the specified language
+		if (JLanguageHelper::isContentLanguageAvailable($options['language']) === false)
 		{
-			$plugin = JPluginHelper::getPlugin('system', 'languagefilter');
-
-			$pluginParams = new Registry($plugin->params);
-
-			$this->setLanguageFilter(true);
-			$this->setDetectBrowser($pluginParams->get('detect_browser', '1') == '1');
+			$options['language'] = $this->input->getString('language', '');
 		}
 
-		if (empty($options['language']))
+		// Detect user language.
+		if (JLanguageHelper::isContentLanguageAvailable($options['language']) === false)
 		{
-			// Detect the specified language
-			$lang = $this->input->getString('language', null);
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguageHelper::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
+			$options['language'] = $user->getParam('language');
 		}
 
-		if ($this->getLanguageFilter() && empty($options['language']))
+		// Detect default language
+		if (JLanguageHelper::isContentLanguageAvailable($options['language']) === false)
 		{
-			// Detect cookie language
-			$lang = $this->input->cookie->get(md5($this->get('secret') . 'language'), null, 'string');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguageHelper::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-		}
-
-		if (empty($options['language']))
-		{
-			// Detect user language
-			$lang = $user->getParam('language');
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguageHelper::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-		}
-
-		if ($this->getDetectBrowser() && empty($options['language']))
-		{
-			// Detect browser language
-			$lang = JLanguageHelper::detectLanguage();
-
-			// Make sure that the user's language exists
-			if ($lang && JLanguageHelper::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-		}
-
-		if (empty($options['language']))
-		{
-			// Detect default language
-			$params = JComponentHelper::getParams('com_languages');
-			$options['language'] = $params->get('site', $this->get('language', 'en-GB'));
+			$options['language'] = JComponentHelper::getParams('com_languages')->get('site', $this->get('language', 'en-GB'));
 		}
 
 		// One last check to make sure we have something
-		if (!JLanguageHelper::exists($options['language']))
+		if (JLanguageHelper::isContentLanguageAvailable($options['language']) === false)
 		{
-			$lang = $this->config->get('language', 'en-GB');
+			$options['language'] = $this->config->get('language', 'en-GB');
+		}
 
-			if (JLanguageHelper::exists($lang))
-			{
-				$options['language'] = $lang;
-			}
-			else
-			{
-				// As a last ditch fail to english
-				$options['language'] = 'en-GB';
-			}
+		// Default to en-GB if language still not found.
+		if (JLanguageHelper::isContentLanguageAvailable($options['language']) === false)
+		{
+			$options['language'] = 'en-GB';
 		}
 
 		// Finish initialisation
@@ -806,6 +759,7 @@ final class JApplicationSite extends JApplicationCms
 	 * @return	boolean	 The previous state
 	 *
 	 * @since	3.2
+	 * @deprecated	4.0 Use app set 'language.detect_browser' instead.
 	 */
 	public function setDetectBrowser($state = false)
 	{
