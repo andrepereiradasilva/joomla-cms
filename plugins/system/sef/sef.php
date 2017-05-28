@@ -86,7 +86,7 @@ class PlgSystemSef extends JPlugin
 	 */
 	public function onAfterRender()
 	{
-		if ($this->app->isClient('site') === false)
+		if (!$this->app->isClient('site'))
 		{
 			return;
 		}
@@ -96,45 +96,7 @@ class PlgSystemSef extends JPlugin
 		$buffer = $this->app->getBody();
 
 		// For feeds we need to search for the URL with domain.
-		$prefix      = $this->app->getDocument()->getType() === 'feed' ? JUri::root() : '';
-		$cleanPrefix = trim($prefix, '/');
-/*
-		$testUrls = '
-		<a href="index.php">1</a>
-		<a href="/index.php">2</a>
-		<a href="index.php?">3</a>
-		<a href="index.php?option=com_content">4</a>
-		<a href="index.php?option=com_content&view=article&id=1">5</a>
-		<a href="index.php?option=com_content&id=1&view=article">5</a>
-		<a href="index.php?option=com_content&view=article&id=1&catid=8">6</a>
-		<a href="index.php?option=com_content&view=article&id=1&catid=8&lang=en-GB">6</a>
-		<a href="index.php?option=com_content&view=article&id=1&catid=8&lang=en-GB&tmpl=component">6</a>
-		<a href="index.php?option=com_content&view=article&id=1&catid=8&lang=en-GB&tmpl=component&Itemid=101">6</a>
-		<a href="index.php?option=com_content&amp;view=article&amp;id=1&amp;catid=8&amp;Itemid=101&amp;tmpl=component&amp;lang=pt-PT">7</a>
-		';
-		$buffer = str_replace('</body>', $testUrls . '</body>', $buffer);
-*/
-//JDEBUG === false ?: JProfiler::getInstance('Application')->mark('- start sef 1');
-		// Replace index.php URI by SEF URI.
-		if (strpos($buffer, $prefix . 'index.php') !== false)
-		{
-			preg_match_all('#(?<=["\']' . $prefix . ')index\.php(|.+?)(?=["\'])#i', $buffer, $matches);
-
-			$nonSefUris = array_unique($matches[0], SORT_REGULAR);
-			$sefUris    = array();
-
-			foreach ($nonSefUris as $nonSefUri)
-			{
-				$sefUris[] = $cleanPrefix . JRoute::_($nonSefUri);
-			}
-
-			$test = str_replace($nonSefUris, $sefUris, $buffer);
-
-			$this->checkBuffer($buffer);
-		}
-//JDEBUG === false ?: JProfiler::getInstance('Application')->mark('- end sef 1');
-//print_r($nonSefUris);
-//print_r($sefUris);
+		$prefix = $this->app->getDocument()->getType() === 'feed' ? JUri::root() : '';
 
 		// Replace index.php URI by SEF URI.
 		if (strpos($buffer, 'href="' . $prefix . 'index.php?') !== false)
