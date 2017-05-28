@@ -145,7 +145,7 @@ class JRouter
 	 */
 	public function __construct($options = array())
 	{
-		$this->_mode = isset($options['mode']) === true ? $options['mode'] : JROUTER_MODE_RAW;
+		$this->_mode = array_key_exists('mode', $options) === true ? $options['mode'] : JROUTER_MODE_RAW;
 	}
 
 	/**
@@ -246,40 +246,40 @@ class JRouter
 	 */
 	public function build($url)
 	{
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('[url] ' . $url);
 		$key = md5(serialize($url));
 
-		if (isset($this->cache[$key]))
+		if (isset($this->cache[$key]) === true)
 		{
 			return $this->cache[$key];
 		}
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('cache key created');
 		// Create the URI object
 		$uri = $this->createUri($url);
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('uri created');
 		// Do the preprocess stage of the URL build process
 		$this->processBuildRules($uri, self::PROCESS_BEFORE);
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after processBuildRules (before)');
 		// Process the uri information based on custom defined rules.
 		// This is the main build stage
 		$this->_processBuildRules($uri);
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after processBuildRules');
 		// Build RAW URL
 		if ($this->_mode == JROUTER_MODE_RAW)
 		{
 			$this->_buildRawRoute($uri);
 		}
-
 		// Build SEF URL : mysite/route/index.php?var=x
-		if ($this->_mode == JROUTER_MODE_SEF)
+		elseif ($this->_mode == JROUTER_MODE_SEF)
 		{
 			$this->_buildSefRoute($uri);
 		}
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after buildRoute (sef/nonsef)');
 		// Do the postprocess stage of the URL build process
 		$this->processBuildRules($uri, self::PROCESS_AFTER);
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after processBuildRules (after)');
 		$this->cache[$key] = clone $uri;
-
+!JDEBUG ?: JProfiler::getInstance('Application')->mark('<strong>[url] done</strong>');
 		return $uri;
 	}
 
@@ -342,7 +342,7 @@ class JRouter
 	 */
 	public function setVars($vars = array(), $merge = true)
 	{
-		$this->_vars = $merge === true ? array_merge($this->_vars, $vars) : $vars;
+		$this->_vars = $merge === true ? array_replace($this->_vars, $vars) : $vars;
 	}
 
 	/**
@@ -646,28 +646,20 @@ class JRouter
 	 */
 	protected function createUri($url)
 	{
-		if (is_array($url) === false && strpos($url, '&') !== 0)
+		// The url start with &. Convert to a correct url.
+		if (is_string($url) === true && $url !== '' && $url[0] === '&')
+		{
+			$url = preg_replace('#^&(|amp;)#', 'index.php?', $url);
+		}
+
+		// The url is a correct string.
+		if (is_string($url) === true)
 		{
 			return new JUri($url);
 		}
 
-		if (is_string($url) === true)
-		{
-			$vars = array();
-
-			if (strpos($url, '&amp;') !== false)
-			{
-				$url = str_replace('&amp;', '&', $url);
-			}
-
-			parse_str($url, $vars);
-		}
-		else
-		{
-			$vars = $url;
-		}
-
-		$url = 'index.php';
+		$vars = $url;
+		$url  = 'index.php';
 
 		if ($vars !== array())
 		{

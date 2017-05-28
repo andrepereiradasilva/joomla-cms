@@ -652,40 +652,43 @@ class JRouterSite extends JRouter
 		// Create the URI
 		$uri = parent::createUri($url);
 
-		// Get the itemid form the URI
-		$itemid = $uri->getVar('Itemid');
+		// Get the itemid and option form the URI
+		$uriItemId = $uri->getVar('Itemid', null);
+		$uriOption = $uri->getVar('option', '');
 
-		if (is_null($itemid))
+		// We have an item id but no option in the uri, get component name from the menu item.
+		if ($uriItemId !== null && $uriOption === '' && ($item = $this->menu->getItem($uriItemId)))
 		{
-			if ($option = $uri->getVar('option'))
-			{
-				$item = $this->menu->getItem($this->getVar('Itemid'));
-
-				if (isset($item) && $item->component == $option)
-				{
-					$uri->setVar('Itemid', $item->id);
-				}
-			}
-			else
-			{
-				if ($option = $this->getVar('option'))
-				{
-					$uri->setVar('option', $option);
-				}
-
-				if ($itemid = $this->getVar('Itemid'))
-				{
-					$uri->setVar('Itemid', $itemid);
-				}
-			}
+			$uri->setVar('option', $item->component);
 		}
-		else
+		// We don't have an item id in the uri.
+		elseif ($uriItemId === null)
 		{
-			if (!$uri->getVar('option'))
+			$thisItemId = $this->getVar('Itemid', null);
+
+			// If we have a option in the uri and a item id in this, get the item id from this menu item.
+			if ($uriOption !== '' && $thisItemId !== null)
 			{
-				if ($item = $this->menu->getItem($itemid))
+				$item = $this->menu->getItem($thisItemId);
+
+				if (isset($item) && $item->component === $uriOption)
 				{
-					$uri->setVar('option', $item->component);
+					$uri->setVar('Itemid', $thisItemId);
+				}
+			}
+			// If we don't have a option in the uri.
+			elseif ($uriOption === '')
+			{
+				// If we don't have a option in this, use that option.
+				if (($thisOption = $this->getVar('option', '')) !== '')
+				{
+					$uri->setVar('option', $thisOption);
+				}
+
+				// If we don't have a menu item id in this, use that menu item id.
+				if ($thisItemId !== null)
+				{
+					$uri->setVar('Itemid', $thisItemId);
 				}
 			}
 		}
@@ -704,36 +707,36 @@ class JRouterSite extends JRouter
 	 */
 	public function getComponentRouter($component)
 	{
-		if (!isset($this->componentRouters[$component]))
+		if (isset($this->componentRouters[$component]) === false)
 		{
-			$compname = ucfirst(substr($component, 4));
-			$class = $compname . 'Router';
+			$componentName = ucfirst(substr($component, 4));
+			$class         = $componentName . 'Router';
 
-			if (!class_exists($class))
+			if (class_exists($class) === false)
 			{
 				// Use the component routing handler if it exists
 				$path = JPATH_SITE . '/components/' . $component . '/router.php';
 
 				// Use the custom routing handler if it exists
-				if (file_exists($path))
+				if (file_exists($path) === true)
 				{
 					require_once $path;
 				}
 			}
 
-			if (class_exists($class))
+			if (class_exists($class) === true)
 			{
 				$reflection = new ReflectionClass($class);
 
-				if (in_array('JComponentRouterInterface', $reflection->getInterfaceNames()))
+				if (in_array('JComponentRouterInterface', $reflection->getInterfaceNames(), true) === true)
 				{
 					$this->componentRouters[$component] = new $class($this->app, $this->menu);
 				}
 			}
 
-			if (!isset($this->componentRouters[$component]))
+			if (isset($this->componentRouters[$component]) === false)
 			{
-				$this->componentRouters[$component] = new JComponentRouterLegacy($compname);
+				$this->componentRouters[$component] = new JComponentRouterLegacy($componentName);
 			}
 		}
 
@@ -754,15 +757,13 @@ class JRouterSite extends JRouter
 	{
 		$reflection = new ReflectionClass($router);
 
-		if (in_array('JComponentRouterInterface', $reflection->getInterfaceNames()))
+		if (in_array('JComponentRouterInterface', $reflection->getInterfaceNames(), true) === true)
 		{
 			$this->componentRouters[$component] = $router;
 
 			return true;
 		}
-		else
-		{
-			return false;
-		}
+
+		return false;
 	}
 }
