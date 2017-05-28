@@ -246,24 +246,23 @@ class JRouter
 	 */
 	public function build($url)
 	{
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('[url] ' . $url);
 		$key = md5(serialize($url));
 
 		if (isset($this->cache[$key]) === true)
 		{
 			return $this->cache[$key];
 		}
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('cache key created');
+
 		// Create the URI object
 		$uri = $this->createUri($url);
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('uri created');
+
 		// Do the preprocess stage of the URL build process
 		$this->processBuildRules($uri, self::PROCESS_BEFORE);
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after processBuildRules (before)');
+
 		// Process the uri information based on custom defined rules.
 		// This is the main build stage
 		$this->_processBuildRules($uri);
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after processBuildRules');
+
 		// Build RAW URL
 		if ($this->_mode == JROUTER_MODE_RAW)
 		{
@@ -274,12 +273,12 @@ class JRouter
 		{
 			$this->_buildSefRoute($uri);
 		}
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after buildRoute (sef/nonsef)');
+
 		// Do the postprocess stage of the URL build process
 		$this->processBuildRules($uri, self::PROCESS_AFTER);
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('- after processBuildRules (after)');
+
 		$this->cache[$key] = clone $uri;
-!JDEBUG ?: JProfiler::getInstance('Application')->mark('<strong>[url] done</strong>');
+
 		return $uri;
 	}
 
