@@ -63,16 +63,16 @@ class JText
 			return $string;
 		}
 
-		$lang = JFactory::getLanguage();
+		$translatedString = JFactory::getLanguage()->_($string, $jsSafe, $interpretBackSlashes);
 
 		if ($script)
 		{
-			static::$strings[$string] = $lang->_($string, $jsSafe, $interpretBackSlashes);
+			static::$strings[$string] = $translatedString;
 
 			return $string;
 		}
 
-		return $lang->_($string, $jsSafe, $interpretBackSlashes);
+		return $translatedString;
 	}
 
 	/**
@@ -90,46 +90,46 @@ class JText
 	private static function passSprintf(&$string, $jsSafe = false, $interpretBackSlashes = true, $script = false)
 	{
 		// Check if string contains a comma
-		if (strpos($string, ',') === false)
+		if (strpos($string, ',') === false || strpos($string, '%') === false)
 		{
 			return false;
 		}
 
 		$lang = JFactory::getLanguage();
-		$string_parts = explode(',', $string);
+		$stringParts = explode(',', $string);
 
 		// Pass all parts through the JText translator
-		foreach ($string_parts as $i => $str)
+		foreach ($stringParts as $i => $str)
 		{
-			$string_parts[$i] = $lang->_($str, $jsSafe, $interpretBackSlashes);
+			$stringParts[$i] = $lang->_($str, $jsSafe, $interpretBackSlashes);
 		}
 
-		$first_part = array_shift($string_parts);
+		$firstPart = array_shift($stringParts);
 
 		// Replace custom named placeholders with sprinftf style placeholders
-		$first_part = preg_replace('/\[\[%([0-9]+):[^\]]*\]\]/', '%\1$s', $first_part);
+		$firstPart = preg_replace('#\[\[%([0-9]+):[^\]]*\]\]#', '%\1$s', $firstPart);
 
 		// Check if string contains sprintf placeholders
-		if (!preg_match('/%([0-9]+\$)?s/', $first_part))
+		if (!preg_match('#%([0-9]+\$)?s#', $firstPart))
 		{
 			return false;
 		}
 
-		$final_string = vsprintf($first_part, $string_parts);
+		$finalString = vsprintf($firstPart, $stringParts);
 
 		// Return false if string hasn't changed
-		if ($first_part === $final_string)
+		if ($firstPart === $finalString)
 		{
 			return false;
 		}
 
-		$string = $final_string;
+		$string = $finalString;
 
 		if ($script)
 		{
-			foreach ($string_parts as $i => $str)
+			foreach ($stringParts as $i => $str)
 			{
-				static::$strings[$str] = $string_parts[$i];
+				static::$strings[$str] = $stringParts[$i];
 			}
 		}
 
