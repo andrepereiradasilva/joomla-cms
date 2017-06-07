@@ -195,9 +195,8 @@
 				label="COM_USERS_USER_FIELD_EDITOR_LABEL"
 				description="COM_USERS_USER_FIELD_EDITOR_DESC"
 				folder="editors"
-				>
-				<option value="">JOPTION_USE_DEFAULT</option>
-			</field>
+				useglobal="true"
+			/>
 
 			<field 
 				name="helpsite" 
