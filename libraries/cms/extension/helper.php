@@ -245,6 +245,18 @@ class JExtensionHelper
 	);
 
 	/**
+	 * Gets the core extensions.
+	 *
+	 * @return  array  Array with core extensions.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getCoreExtensions()
+	{
+		return self::$coreExtensions;
+	}
+
+	/**
 	 * Gets the core extensions ids.
 	 *
 	 * @return  array  Array of core extension ids.
