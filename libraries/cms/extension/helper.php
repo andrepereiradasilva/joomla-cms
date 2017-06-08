@@ -216,10 +216,14 @@ class JExtensionHelper
 		),
 		// Core template extensions
 		'template' => array(
-			'beez3',
-			'hathor',
-			'protostar',
-			'isis',
+			'site' => array(
+				'beez3',
+				'protostar',
+			),
+			'administrator' => array(
+				'hathor',
+				'isis',
+			),
 		),
 		// Core language extensions
 		'language' => array(
@@ -268,30 +272,39 @@ class JExtensionHelper
 			{
 				foreach ($extensionBlock as $extensionFolder => $extensions)
 				{
-					$query->orWhere(array($db->qn('type') . ' = ' . $db->q($extensionType), $db->qn('folder') . ' = ' . $db->q($extensionFolder), $db->qn('element') . ' IN (' . implode(', ', $db->q($extensions)) . ')'), 'AND');
+					$query->orWhere(array(
+						$db->qn('type') . ' = ' . $db->q($extensionType),
+						$db->qn('folder') . ' = ' . $db->q($extensionFolder),
+						$db->qn('element') . ' IN (' . implode(', ', $db->q($extensions)) . ')',
+					), 'AND');
 				}
 
 				continue;
 			}
 
-			// For module and language extensions that can be site or administrator.
-			if (in_array($extensionType, array('module', 'language'), true) === true)
+			// For module, template and language extensions that can be site or administrator.
+			if (in_array($extensionType, array('module', 'template', 'language'), true) === true)
 			{
 				foreach ($extensionBlock as $extensionClient => $extensions)
 				{
-					$query->orWhere(array($db->qn('type') . ' = ' . $db->q($extensionType), $db->qn('client_id') . ' = ' . $db->q($clientIds[$extensionClient]), $db->qn('element') . ' IN (' . implode(', ', $db->q($extensions)) . ')'), 'AND');
+					$query->orWhere(array(
+						$db->qn('type') . ' = ' . $db->q($extensionType),
+						$db->qn('client_id') . ' = ' . $db->q($clientIds[$extensionClient]),
+						$db->qn('element') . ' IN (' . implode(', ', $db->q($extensions)) . ')',
+					), 'AND');
 				}
 
 				continue;
 			}
 
 			// All other extension types.
-			$query->orWhere(array($db->qn('type') . ' = ' . $db->q($extensionType), $db->qn('element') . ' IN (' . implode(', ', $db->q($extensionBlock)) . ')'), 'AND');
+			$query->orWhere(array(
+				$db->qn('type') . ' = ' . $db->q($extensionType),
+				$db->qn('element') . ' IN (' . implode(', ', $db->q($extensionBlock)) . ')',
+			), 'AND');
 		}
 
-		$coreExtensionIds = $db->setQuery($query)->loadColumn();
-
-		return $coreExtensionIds;
+		return $db->setQuery($query)->loadColumn();
 	}
 
 }
