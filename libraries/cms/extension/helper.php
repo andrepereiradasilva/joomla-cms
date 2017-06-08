@@ -17,231 +17,220 @@ defined('JPATH_PLATFORM') or die;
 class JExtensionHelper
 {
 	protected static $coreExtensions = array(
-		// Core component extensions
-		'component' => array(
-			'com_mailto',
-			'com_wrapper',
-			'com_admin',
-			'com_banners',
-			'com_cache',
-			'com_categories',
-			'com_checkin',
-			'com_contact',
-			'com_cpanel',
-			'com_installer',
-			'com_languages',
-			'com_login',
-			'com_media',
-			'com_menus',
-			'com_messages',
-			'com_modules',
-			'com_newsfeeds',
-			'com_plugins',
-			'com_search',
-			'com_templates',
-			'com_content',
-			'com_config',
-			'com_redirect',
-			'com_users',
-			'com_finder',
-			'com_joomlaupdate',
-			'com_tags',
-			'com_contenthistory',
-			'com_ajax',
-			'com_postinstall',
-			'com_fields',
-			'com_associations',
-		),
-		// Core library extensions
-		'library' => array(
-			'phputf8',
-			'joomla',
-			'idna_convert',
-			'fof',
-			'phpass',
-		),
-		// Core module extensions
-		'module' => array(
-			'site' => array(
-				'mod_articles_archive',
-				'mod_articles_latest',
-				'mod_articles_popular',
-				'mod_banners',
-				'mod_breadcrumbs',
-				'mod_custom',
-				'mod_feed',
-				'mod_footer',
-				'mod_login',
-				'mod_menu',
-				'mod_articles_news',
-				'mod_random_image',
-				'mod_related_items',
-				'mod_search',
-				'mod_stats',
-				'mod_syndicate',
-				'mod_users_latest',
-				'mod_whosonline',
-				'mod_wrapper',
-				'mod_articles_category',
-				'mod_articles_categories',
-				'mod_languages',
-				'mod_finder',
-				'mod_tags_popular',
-				'mod_tags_similar',
-			),
-			'administrator' => array(
-				'mod_custom',
-				'mod_feed',
-				'mod_latest',
-				'mod_logged',
-				'mod_login',
-				'mod_menu',
-				'mod_popular',
-				'mod_quickicon',
-				'mod_status',
-				'mod_submenu',
-				'mod_title',
-				'mod_toolbar',
-				'mod_multilangstatus',
-				'mod_version',
-				'mod_stats_admin',
-			),
-		),
+		// Format: `type`, `element`, `folder`, `client_id`
+
+		// Core component extensions.
+		array('component', 'com_mailto', '', 0),
+		array('component', 'com_wrapper', '', 0),
+		array('component', 'com_admin', '', 1),
+		array('component', 'com_ajax', '', 1),
+		array('component', 'com_banners', '', 1),
+		array('component', 'com_cache', '', 1),
+		array('component', 'com_categories', '', 1),
+		array('component', 'com_checkin', '', 1),
+		array('component', 'com_contact', '', 1),
+		array('component', 'com_cpanel', '', 1),
+		array('component', 'com_installer', '', 1),
+		array('component', 'com_languages', '', 1),
+		array('component', 'com_login', '', 1),
+		array('component', 'com_media', '', 1),
+		array('component', 'com_menus', '', 1),
+		array('component', 'com_messages', '', 1),
+		array('component', 'com_modules', '', 1),
+		array('component', 'com_newsfeeds', '', 1),
+		array('component', 'com_plugins', '', 1),
+		array('component', 'com_search', '', 1),
+		array('component', 'com_templates', '', 1),
+		array('component', 'com_content', '', 1),
+		array('component', 'com_config', '', 1),
+		array('component', 'com_redirect', '', 1),
+		array('component', 'com_users', '', 1),
+		array('component', 'com_finder', '', 1),
+		array('component', 'com_tags', '', 1),
+		array('component', 'com_contenthistory', '', 1),
+		array('component', 'com_postinstall', '', 1),
+		array('component', 'com_joomlaupdate', '', 1),
+		array('component', 'com_fields', '', 1),
+		array('component', 'com_associations', '', 1),
+
+		// Core library extensions.
+		array('library', 'phputf8', '', 0),
+		array('library', 'joomla', '', 0),
+		array('library', 'idna_convert', '', 0),
+		array('library', 'fof', '', 0),
+		array('library', 'phpass', '', 0),
+
+		// Core module extensions.
+		// - Site
+		array('module', 'mod_articles_archive', '', 0),
+		array('module', 'mod_articles_latest', '', 0),
+		array('module', 'mod_articles_popular', '', 0),
+		array('module', 'mod_banners', '', 0),
+		array('module', 'mod_breadcrumbs', '', 0),
+		array('module', 'mod_custom', '', 0),
+		array('module', 'mod_feed', '', 0),
+		array('module', 'mod_footer', '', 0),
+		array('module', 'mod_login', '', 0),
+		array('module', 'mod_menu', '', 0),
+		array('module', 'mod_articles_news', '', 0),
+		array('module', 'mod_random_image', '', 0),
+		array('module', 'mod_related_items', '', 0),
+		array('module', 'mod_search', '', 0),
+		array('module', 'mod_stats', '', 0),
+		array('module', 'mod_syndicate', '', 0),
+		array('module', 'mod_users_latest', '', 0),
+		array('module', 'mod_whosonline', '', 0),
+		array('module', 'mod_wrapper', '', 0),
+		array('module', 'mod_articles_category', '', 0),
+		array('module', 'mod_articles_categories', '', 0),
+		array('module', 'mod_languages', '', 0),
+		array('module', 'mod_tags_popular', '', 0),
+		array('module', 'mod_tags_similar', '', 0),
+		array('module', 'mod_finder', '', 0),
+
+		// - Administrator
+		array('module', 'mod_custom', '', 1),
+		array('module', 'mod_feed', '', 1),
+		array('module', 'mod_latest', '', 1),
+		array('module', 'mod_logged', '', 1),
+		array('module', 'mod_login', '', 1),
+		array('module', 'mod_menu', '', 1),
+		array('module', 'mod_popular', '', 1),
+		array('module', 'mod_quickicon', '', 1),
+		array('module', 'mod_stats_admin', '', 1),
+		array('module', 'mod_status', '', 1),
+		array('module', 'mod_submenu', '', 1),
+		array('module', 'mod_title', '', 1),
+		array('module', 'mod_toolbar', '', 1),
+		array('module', 'mod_multilangstatus', '', 1),
+		array('module', 'mod_version', '', 1),
+
 		// Core plugin extensions
-		'plugin' => array(
-			'system' => array(
-				'languagefilter',
-				'p3p',
-				'cache',
-				'debug',
-				'log',
-				'redirect',
-				'remember',
-				'sef',
-				'logout',
-				'languagecode',
-				'highlight',
-				'updatenotification',
-				'stats',
-				'fields',
-			),
-			'content' => array(
-				'contact',
-				'emailcloak',
-				'loadmodule',
-				'pagebreak',
-				'pagenavigation',
-				'vote',
-				'joomla',
-				'finder',
-				'fields',
-			),
-			'user' => array(
-				'contactcreator',
-				'joomla',
-				'profile',
-			),
-			'quickicon' => array(
-				'joomlaupdate',
-				'extensionupdate',
-				'phpversioncheck',
-			),
-			'editors' => array(
-				'codemirror',
-				'none',
-				'tinymce',
-			),
-			'editors-xtd' => array(
-				'article',
-				'image',
-				'pagebreak',
-				'readmore',
-				'module',
-				'menu',
-				'contact',
-				'fields',
-			),
-			'authentication' => array(
-				'gmail',
-				'joomla',
-				'ldap',
-				'cookie',
-			),
-			'twofactorauth' => array(
-				'totp',
-				'yubikey',
-			),
-			'installer' => array(
-				'packageinstaller',
-				'folderinstaller',
-				'urlinstaller',
-			),
-			'extension' => array(
-				'joomla',
-			),
-			'captcha' => array(
-				'recaptcha',
-			),
-			'search' => array(
-				'categories',
-				'contacts',
-				'content',
-				'newsfeeds',
-				'tags',
-			),
-			'finder' => array(
-				'categories',
-				'contacts',
-				'content',
-				'newsfeeds',
-				'tags',
-			),
-			'fields' => array(
-				'calendar',
-				'checkboxes',
-				'color',
-				'editor',
-				'imagelist',
-				'integer',
-				'list',
-				'media',
-				'radio',
-				'sql',
-				'text',
-				'textarea',
-				'url',
-				'user',
-				'usergrouplist',
-			),
-		),
+		// - System
+		array('plugin', 'languagefilter', 'system', 0),
+		array('plugin', 'p3p', 'system', 0),
+		array('plugin', 'cache', 'system', 0),
+		array('plugin', 'debug', 'system', 0),
+		array('plugin', 'log', 'system', 0),
+		array('plugin', 'redirect', 'system', 0),
+		array('plugin', 'remember', 'system', 0),
+		array('plugin', 'sef', 'system', 0),
+		array('plugin', 'logout', 'system', 0),
+		array('plugin', 'languagecode', 'system', 0),
+		array('plugin', 'updatenotification', 'system', 0),
+		array('plugin', 'stats', 'system', 0),
+		array('plugin', 'fields', 'system', 0),
+		array('plugin', 'highlight', 'system', 0),
+
+		// - Content
+		array('plugin', 'contact', 'content', 0),
+		array('plugin', 'emailcloak', 'content', 0),
+		array('plugin', 'loadmodule', 'content', 0),
+		array('plugin', 'pagebreak', 'content', 0),
+		array('plugin', 'pagenavigation', 'content', 0),
+		array('plugin', 'vote', 'content', 0),
+		array('plugin', 'fields', 'content', 0),
+		array('plugin', 'joomla', 'content', 0),
+		array('plugin', 'finder', 'content', 0),
+
+		// - Extension
+		array('plugin', 'joomla', 'extension', 0),
+
+		// - Captcha
+		array('plugin', 'recaptcha', 'captcha', 0),
+
+		// - Installer
+		array('plugin', 'packageinstaller', 'installer', 0),
+		array('plugin', 'folderinstaller', 'installer', 0),
+		array('plugin', 'urlinstaller', 'installer', 0),
+
+		// - User
+		array('plugin', 'contactcreator', 'user', 0),
+		array('plugin', 'joomla', 'user', 0),
+		array('plugin', 'profile', 'user', 0),
+
+		// - Authentication
+		array('plugin', 'gmail', 'authentication', 0),
+		array('plugin', 'joomla', 'authentication', 0),
+		array('plugin', 'ldap', 'authentication', 0),
+		array('plugin', 'cookie', 'authentication', 0),
+
+		// - Two Factor Authentication
+		array('plugin', 'totp', 'twofactorauth', 0),
+		array('plugin', 'yubikey', 'twofactorauth', 0),
+
+		// - QuickIcon
+		array('plugin', 'joomlaupdate', 'quickicon', 0),
+		array('plugin', 'extensionupdate', 'quickicon', 0),
+		array('plugin', 'phpversioncheck', 'quickicon', 0),
+
+		// - Editors
+		array('plugin', 'codemirror', 'editors', 0),
+		array('plugin', 'none', 'editors', 0),
+		array('plugin', 'tinymce', 'editors', 0),
+
+		// - Editors XTD
+		array('plugin', 'article', 'editors-xtd', 0),
+		array('plugin', 'image', 'editors-xtd', 0),
+		array('plugin', 'pagebreak', 'editors-xtd', 0),
+		array('plugin', 'readmore', 'editors-xtd', 0),
+		array('plugin', 'module', 'editors-xtd', 0),
+		array('plugin', 'menu', 'editors-xtd', 0),
+		array('plugin', 'contact', 'editors-xtd', 0),
+		array('plugin', 'fields', 'editors-xtd', 0),
+
+		// - Search
+		array('plugin', 'categories', 'search', 0),
+		array('plugin', 'contacts', 'search', 0),
+		array('plugin', 'content', 'search', 0),
+		array('plugin', 'newsfeeds', 'search', 0),
+		array('plugin', 'tags', 'search', 0),
+
+		// - Finder
+		array('plugin', 'categories', 'finder', 0),
+		array('plugin', 'contacts', 'finder', 0),
+		array('plugin', 'content', 'finder', 0),
+		array('plugin', 'newsfeeds', 'finder', 0),
+		array('plugin', 'tags', 'finder', 0),
+
+		// - Fields
+		array('plugin', 'calendar', 'fields', 0),
+		array('plugin', 'checkboxes', 'fields', 0),
+		array('plugin', 'color', 'fields', 0),
+		array('plugin', 'editor', 'fields', 0),
+		array('plugin', 'imagelist', 'fields', 0),
+		array('plugin', 'integer', 'fields', 0),
+		array('plugin', 'list', 'fields', 0),
+		array('plugin', 'media', 'fields', 0),
+		array('plugin', 'radio', 'fields', 0),
+		array('plugin', 'sql', 'fields', 0),
+		array('plugin', 'text', 'fields', 0),
+		array('plugin', 'textarea', 'fields', 0),
+		array('plugin', 'url', 'fields', 0),
+		array('plugin', 'user', 'fields', 0),
+		array('plugin', 'usergrouplist', 'fields', 0),
+
 		// Core template extensions
-		'template' => array(
-			'site' => array(
-				'beez3',
-				'protostar',
-			),
-			'administrator' => array(
-				'hathor',
-				'isis',
-			),
-		),
+		// - Site
+		array('template', 'beez3', '', 0),
+		array('template', 'protostar', '', 0),
+
+		// - Administrator
+		array('template', 'hathor', '', 1),
+		array('template', 'isis', '', 1),
+
 		// Core language extensions
-		'language' => array(
-			'site' => array(
-				'en-GB',
-			),
-			'administrator' => array(
-				'en-GB',
-			),
-		),
+		// - Site
+		array('language', 'en-GB', '', 0),
+
+		// - Administrator
+		array('language', 'en-GB', '', 1),
+
 		// Core file extensions
-		'file' => array(
-			'joomla',
-		),
+		array('file', 'joomla', '', 0),
+
 		// Core package extensions
-		'package' => array(
-			'pkg_en-GB',
-		),
+		array('package', 'pkg_en-GB', '', 0),
 	);
 
 	/**
@@ -272,51 +261,24 @@ class JExtensionHelper
 			->from($db->qn('#__extensions'))
 			->where('1 = 2');
 
-		$clientIds = array(
-			'site'          => 0,
-			'administrator' => 1,
-		);
-
-		foreach (self::$coreExtensions as $extensionType => $extensionBlock)
+		foreach (self::$coreExtensions as $extension)
 		{
-			// For plugin extensions that also have folders.
-			if (in_array($extensionType, array('plugin'), true) === true)
-			{
-				foreach ($extensionBlock as $extensionFolder => $extensions)
-				{
-					$query->orWhere(array(
-						$db->qn('type') . ' = ' . $db->q($extensionType),
-						$db->qn('folder') . ' = ' . $db->q($extensionFolder),
-						$db->qn('element') . ' IN (' . implode(', ', $db->q($extensions)) . ')',
-					), 'AND');
-				}
+			// Prepare conditions.
+			$conditions = array(
+				$db->qn('type') . ' = ' . $db->q($extension[0]),
+				$db->qn('element') . ' = ' . $db->q($extension[1]),
+				$db->qn('client_id') . ' = ' . $db->q($extension[3]),
+			);
 
-				continue;
+			// If the extension has folder (plugins).
+			if ($extension[2] !== '')
+			{
+				$conditions[] = $db->qn('folder') . ' = ' . $db->q($extension[2]);
 			}
 
-			// For module, template and language extensions that can be site or administrator.
-			if (in_array($extensionType, array('module', 'template', 'language'), true) === true)
-			{
-				foreach ($extensionBlock as $extensionClient => $extensions)
-				{
-					$query->orWhere(array(
-						$db->qn('type') . ' = ' . $db->q($extensionType),
-						$db->qn('client_id') . ' = ' . $db->q($clientIds[$extensionClient]),
-						$db->qn('element') . ' IN (' . implode(', ', $db->q($extensions)) . ')',
-					), 'AND');
-				}
-
-				continue;
-			}
-
-			// All other extension types.
-			$query->orWhere(array(
-				$db->qn('type') . ' = ' . $db->q($extensionType),
-				$db->qn('element') . ' IN (' . implode(', ', $db->q($extensionBlock)) . ')',
-			), 'AND');
+			$query->orWhere($conditions, 'AND');
 		}
 
 		return $db->setQuery($query)->loadColumn();
 	}
-
 }
