@@ -40,7 +40,7 @@ class JModelFormTest extends TestCase
 			->method('getDispatcher')
 			->willReturn($this->getMockDispatcher());
 		JFactory::$application = $mockApp;
-		TestReflection::setValue('JPluginHelper', 'plugins', array());
+		TestReflection::setValue('JPluginHelper', 'plugins', []);
 	}
 
 	/**
@@ -79,7 +79,7 @@ class JModelFormTest extends TestCase
 		$formMock->method('validate')
 			->willReturn(new Exception('Exception Message'));
 
-		$this->assertFalse($this->object->validate($formMock, array()));
+		$this->assertFalse($this->object->validate($formMock, []));
 
 		return $this->object;
 	}
@@ -121,9 +121,9 @@ class JModelFormTest extends TestCase
 			->willReturn(false);
 
 		$formMock->method('getErrors')
-			->willReturn(array("Error Message 1", "Error Message 2"));
+			->willReturn(["Error Message 1", "Error Message 2"]);
 
-		$this->assertFalse($this->object->validate($formMock, array()));
+		$this->assertFalse($this->object->validate($formMock, []));
 
 		return $this->object;
 	}
@@ -143,7 +143,7 @@ class JModelFormTest extends TestCase
 	 */
 	public function testValidateSetsErrorMessageOnJformFalse($object)
 	{
-		$this->assertEquals(array('Error Message 1', 'Error Message 2'), $object->getErrors());
+		$this->assertEquals(['Error Message 1', 'Error Message 2'], $object->getErrors());
 	}
 
 	/**
@@ -186,7 +186,7 @@ class JModelFormTest extends TestCase
 	 */
 	public function testValidatePassesDataAndGroupToJform()
 	{
-		$data = array("a" => "b");
+		$data  = ["a" => "b"];
 		$group = "groupy";
 
 		$formMock = $this->getMockBuilder('JForm')
@@ -220,19 +220,19 @@ class JModelFormTest extends TestCase
 	 */
 	public function validationDataProvider()
 	{
-		return array(
-			array(
-				array("tags" => "1"),
-				array("tags" => "1")
-			),
-			array(
-				array("metadata" => array("tags" => "1")),
-				array("metadata" => array("tags" => "1"), "tags" => "1")
-			),
-			array(
-				array("tags" => "1", "metadata" => array("tags" => "2")),
-				array("tags" => "1", "metadata" => array("tags" => "2")),
-			),
-		);
+		return [
+			[
+				["tags" => "1"],
+				["tags" => "1"]
+			],
+			[
+				["metadata" => ["tags" => "1"]],
+				["metadata" => ["tags" => "1"], "tags" => "1"]
+			],
+			[
+				["tags" => "1", "metadata" => ["tags" => "2"]],
+				["tags" => "1", "metadata" => ["tags" => "2"]],
+			],
+		];
 	}
 }

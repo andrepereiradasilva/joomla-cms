@@ -84,43 +84,43 @@ class JComponentRouterRulesNomenuTest extends TestCase {
 	public function testParse()
 	{
 		// Check if a false view is properly rejected
-		$segments = array('falseview');
-		$vars = array('option' => 'com_content');
+		$segments = ['falseview'];
+		$vars     = ['option' => 'com_content'];
 		$this->object->parse($segments, $vars);
-		$this->assertEquals(array('falseview'), $segments);
-		$this->assertEquals(array('option' => 'com_content'), $vars);
+		$this->assertEquals(['falseview'], $segments);
+		$this->assertEquals(['option' => 'com_content'], $vars);
 
 		// Check if a single view is properly parsed
-		$segments = array('featured');
-		$vars = array('option' => 'com_content');
+		$segments = ['featured'];
+		$vars     = ['option' => 'com_content'];
 		$this->object->parse($segments, $vars);
-		$this->assertEquals(array(), $segments);
-		$this->assertEquals(array('option' => 'com_content', 'view' => 'featured'), $vars);
+		$this->assertEquals([], $segments);
+		$this->assertEquals(['option' => 'com_content', 'view' => 'featured'], $vars);
 
 		// Check if a view with ID is properly parsed
-		$segments = array('category', '23-the-question');
-		$vars = array('option' => 'com_content');
+		$segments = ['category', '23-the-question'];
+		$vars     = ['option' => 'com_content'];
 		$this->object->parse($segments, $vars);
-		$this->assertEquals(array(), $segments);
-		$this->assertEquals(array('option' => 'com_content', 'view' => 'category', 'id' => '23:the-question'), $vars);
+		$this->assertEquals([], $segments);
+		$this->assertEquals(['option' => 'com_content', 'view' => 'category', 'id' => '23:the-question'], $vars);
 
 		// Check if a view that normally has an ID but which is missing is properly parsed
-		$segments = array('category');
-		$vars = array('option' => 'com_content');
+		$segments = ['category'];
+		$vars     = ['option' => 'com_content'];
 		$this->object->parse($segments, $vars);
-		$this->assertEquals(array(), $segments);
-		$this->assertEquals(array('option' => 'com_content', 'view' => 'category'), $vars);
+		$this->assertEquals([], $segments);
+		$this->assertEquals(['option' => 'com_content', 'view' => 'category'], $vars);
 
 		// Test if the rule is properly skipped when a menu item is set
 		$router = $this->object->get('router');
 		$router->menu->expects($this->any())
 			->method('getActive')
 			->will($this->returnValue(new stdClass()));
-		$segments = array('article', '42:the-answer');
-		$vars = array('option' => 'com_content');
+		$segments = ['article', '42:the-answer'];
+		$vars     = ['option' => 'com_content'];
 		$this->object->parse($segments, $vars);
-		$this->assertEquals(array('article', '42:the-answer'), $segments);
-		$this->assertEquals(array('option' => 'com_content'), $vars);
+		$this->assertEquals(['article', '42:the-answer'], $segments);
+		$this->assertEquals(['option' => 'com_content'], $vars);
 	}
 
 	/**
@@ -133,31 +133,31 @@ class JComponentRouterRulesNomenuTest extends TestCase {
 	public function testBuild()
 	{
 		// Test if the rule is properly skipped if an Itemid is set
-		$query = array('option' => 'com_test', 'view' => 'article', 'id' => '42:the-answer', 'Itemid' => '42');
-		$segments = array();
+		$query    = ['option' => 'com_test', 'view' => 'article', 'id' => '42:the-answer', 'Itemid' => '42'];
+		$segments = [];
 		$this->object->build($query, $segments);
-		$this->assertEquals(array('option' => 'com_test', 'view' => 'article', 'id' => '42:the-answer', 'Itemid' => '42'), $query);
-		$this->assertEquals(array(), $segments);
+		$this->assertEquals(['option' => 'com_test', 'view' => 'article', 'id' => '42:the-answer', 'Itemid' => '42'], $query);
+		$this->assertEquals([], $segments);
 
 		// Test if a false view is properly not treated
-		$query = array('option' => 'com_content', 'view' => 'falseview', 'id' => '42:the-answer');
-		$segments = array();
+		$query    = ['option' => 'com_content', 'view' => 'falseview', 'id' => '42:the-answer'];
+		$segments = [];
 		$this->object->build($query, $segments);
-		$this->assertEquals(array('option' => 'com_content', 'view' => 'falseview', 'id' => '42:the-answer'), $query);
-		$this->assertEquals(array(), $segments);
+		$this->assertEquals(['option' => 'com_content', 'view' => 'falseview', 'id' => '42:the-answer'], $query);
+		$this->assertEquals([], $segments);
 
 		// Test if a single view without identifier is properly build
-		$query = array('option' => 'com_content', 'view' => 'featured');
-		$segments = array();
+		$query    = ['option' => 'com_content', 'view' => 'featured'];
+		$segments = [];
 		$this->object->build($query, $segments);
-		$this->assertEquals(array('option' => 'com_content'), $query);
-		$this->assertEquals(array('featured'), $segments);
+		$this->assertEquals(['option' => 'com_content'], $query);
+		$this->assertEquals(['featured'], $segments);
 
 		// Test if a single view with identifier is properly build
-		$query = array('option' => 'com_content', 'view' => 'article', 'id' => '42:the-answer');
-		$segments = array();
+		$query    = ['option' => 'com_content', 'view' => 'article', 'id' => '42:the-answer'];
+		$segments = [];
 		$this->object->build($query, $segments);
-		$this->assertEquals(array('option' => 'com_content'), $query);
-		$this->assertEquals(array('article', '42-the-answer'), $segments);
+		$this->assertEquals(['option' => 'com_content'], $query);
+		$this->assertEquals(['article', '42-the-answer'], $segments);
 	}
 }

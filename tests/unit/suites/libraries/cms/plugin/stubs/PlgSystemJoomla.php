@@ -44,7 +44,7 @@ class PlgSystemJoomla extends JPlugin
 		$this->autoloadLanguage = true;
 
 		// Config array for JPlugin constructor
-		$config = array();
+		$config = [];
 		$config['name']   = 'Joomla';
 		$config['type']   = 'System';
 		$config['params'] = new Registry;

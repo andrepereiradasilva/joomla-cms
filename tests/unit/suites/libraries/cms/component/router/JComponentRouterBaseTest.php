@@ -86,7 +86,7 @@ class JComponentRouterBaseTest extends TestCase
 		$menu = TestMockMenu::create($this);
 		$object = new JComponentRouterBaseInspector($app, $menu);
 
-		$array = array('option' => 'com_test', 'view' => 'test');
+		$array = ['option' => 'com_test', 'view' => 'test'];
 		$this->assertEquals($array, $object->preprocess($array));
 	}
 }

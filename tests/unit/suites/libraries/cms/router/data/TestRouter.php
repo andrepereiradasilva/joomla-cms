@@ -18,12 +18,12 @@ class TestRouter implements JComponentRouterInterface
 
 	public function parse(&$segments)
 	{
-		return array();
+		return [];
 	}
 
 	public function build(&$query)
 	{
-		return array();
+		return [];
 	}
 }
 
@@ -36,12 +36,12 @@ class Test2Router implements JComponentRouterInterface
 
 	public function parse(&$segments)
 	{
-		return array('testvar' => 'testvalue');
+		return ['testvar' => 'testvalue'];
 	}
 
 	public function build(&$query)
 	{
-		return array('router-test', 'another-segment');
+		return ['router-test', 'another-segment'];
 	}
 }
 
@@ -54,13 +54,13 @@ class Test3Router implements JComponentRouterInterface
 
 	public function parse(&$segments)
 	{
-		return array();
+		return [];
 	}
 
 	public function build(&$query)
 	{
 		unset($query['Itemid']);
 
-		return array();
+		return [];
 	}
 }

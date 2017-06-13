@@ -66,7 +66,7 @@ class JComponentRouterRulesStandardTest extends TestCaseDatabase {
 		$app = $this->getMockCmsApp();
 		JFactory::$application = $app;
 
-		$router = new ContentRouterStandardRuleOnly($app, new JMenuSite(array('app' => $app, 'language' => self::getMockLanguage())), $noIds);
+		$router = new ContentRouterStandardRuleOnly($app, new JMenuSite(['app' => $app, 'language' => self::getMockLanguage()]), $noIds);
 		$categories = new JComponentRouterViewconfiguration('categories');
 		$categories->setKey('id');
 		$router->registerView($categories);
@@ -124,88 +124,85 @@ class JComponentRouterRulesStandardTest extends TestCaseDatabase {
 	 */
 	public function dataTestBuild()
 	{
-		return array(
-			array(
-				array(
+		return [
+			[
+				[
 					'option' => 'com_content',
-					'view' => 'article',
-					'catid' => 19,
-					'id' => 8,
+					'view'   => 'article',
+					'catid'  => 19,
+					'id'     => 8,
 					'Itemid' => 260
-				),
-				array(
+				],
+				[
 					'option' => 'com_content',
 					'Itemid' => 260
-				),
-				array(
+				],
+				[
 					0 => 'beginners'
-				),
+				],
 				'Error building a URL for an article with a parent category menu item'
-			),
-			array(
-				array(
+			],
+			[
+				[
 					'option' => 'com_content',
-					'view' => 'article',
-					'catid' => 73,
-					'id' => 11,
+					'view'   => 'article',
+					'catid'  => 73,
+					'id'     => 11,
 					'Itemid' => 272
-				),
-				array(
+				],
+				[
 					'option' => 'com_content',
 					'Itemid' => 272
-				),
-				array(
+				],
+				[
 					0 => 'park-site',
 					1 => 'photo-gallery',
 					2 => 'scenery',
 					3 => 'cradle-mountain'
-				),
+				],
 				'Error building a URL for an article with multiple levels to it\'s category menu item'
-			),
-			array(
-				array(
+			],
+			[
+				[
 					'option' => 'com_content',
-					'view' => 'category',
-					'id' => 19,
+					'view'   => 'category',
+					'id'     => 19,
 					'Itemid' => 260
-				),
-				array(
+				],
+				[
 					'option' => 'com_content',
 					'Itemid' => 260
-				),
-				array(
-				),
+				],
+				[],
 				'Error building a URL for category that has a menu item'
-			),
-			array(
-				array(
+			],
+			[
+				[
 					'option' => 'com_content',
-					'view' => 'form',
+					'view'   => 'form',
 					'Itemid' => 263
-				),
+				],
 				// TODO: I think this might be a bug? I think view should be unset whatever the status of the layout
-				array(
+				[
 					'option' => 'com_content',
-					'view' => 'form',
+					'view'   => 'form',
 					'Itemid' => 263
-				),
-				array(
-				),
+				],
+				[],
 				'Error building a URL for a menu item that doesn\'t have a key'
-			),
-			array(
-				array(
+			],
+			[
+				[
 					'option' => 'com_content',
-					'id' => 19,
+					'id'     => 19,
 					'Itemid' => 260
-				),
-				array(
+				],
+				[
 					'option' => 'com_content',
-					'id' => 19,
+					'id'     => 19,
 					'Itemid' => 260
-				),
-				array(
-				),
+				],
+				[],
 				'URL without a view specified cannot build'
 			),
 		);
@@ -222,7 +219,7 @@ class JComponentRouterRulesStandardTest extends TestCaseDatabase {
 	 */
 	public function testBuild($query, $expectedQuery, $expectedSegments, $error)
 	{
-		$actualSegments = array();
+		$actualSegments = [];
 		$this->object->build($query, $actualSegments);
 		$this->assertEquals($expectedSegments, $actualSegments, $error);
 		$this->assertEquals($expectedQuery, $query, $error);
@@ -237,37 +234,37 @@ class JComponentRouterRulesStandardTest extends TestCaseDatabase {
 	 */
 	public function dataTestParse()
 	{
-		return array(
-			array(
-				array(
+		return [
+			[
+				[
 					0 => 'beginners'
-				),
-				array(
+				],
+				[
 					'option' => 'com_content',
-					'view' => 'article',
-					'catid' => 19,
-					'id' => 8
-				),
+					'view'   => 'article',
+					'catid'  => 19,
+					'id'     => 8
+				],
 				260,
 				'Error parsing a URL for an article with a parent category menu item'
-			),
-			array(
-				array(
+			],
+			]
+				[
 					0 => 'park-site',
 					1 => 'photo-gallery',
 					2 => 'scenery',
 					3 => 'cradle-mountain'
-				),
-				array(
+				],
+				[
 					'option' => 'com_content',
-					'view' => 'article',
-					'catid' => 73,
-					'id' => 11
-				),
+					'view'   => 'article',
+					'catid'  => 73,
+					'id'     => 11
+				],
 				272,
 				'Error parsing a URL for an article with a parent category menu item'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -281,7 +278,7 @@ class JComponentRouterRulesStandardTest extends TestCaseDatabase {
 	 */
 	public function testParse($segments, $expectedVars, $activeMenu, $error)
 	{
-		$vars = array();
+		$vars = [];
 
 		// Set the router ID effectively mimicking JComponentRouterRulesMenu
 		/** @var ContentRouterStandardRuleOnly $router */
@@ -291,6 +288,6 @@ class JComponentRouterRulesStandardTest extends TestCaseDatabase {
 
 		$this->object->parse($segments, $vars);
 		$this->assertEquals($expectedVars, $vars, $error . ' invalid vars');
-		$this->assertEquals(array(), $segments, $error . ' invalid segments');
+		$this->assertEquals([], $segments, $error . ' invalid segments');
 	}
 }

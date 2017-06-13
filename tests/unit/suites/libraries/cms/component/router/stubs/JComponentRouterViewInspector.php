@@ -63,7 +63,7 @@ class JComponentRouterViewInspector extends JComponentRouterView
 			return array_reverse($category->getPath(), true);
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -91,7 +91,7 @@ class JComponentRouterViewInspector extends JComponentRouterView
 	*/
 	public function getArticleSegment($id, $query)
 	{
-		return array((int) $id => $id);
+		return [(int) $id => $id];
 	}
 }
 

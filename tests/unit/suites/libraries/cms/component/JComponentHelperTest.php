@@ -26,7 +26,7 @@ class JComponentHelperTest extends TestCaseDatabase
 	 */
 	protected function tearDown()
 	{
-		TestReflection::setValue('JComponentHelper', 'components', array());
+		TestReflection::setValue('JComponentHelper', 'components', []);
 
 		parent::tearDown();
 	}

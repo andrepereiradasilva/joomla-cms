@@ -62,7 +62,7 @@ class JHelpTest extends TestCaseDatabase
 	 */
 	protected function tearDown()
 	{
-		TestReflection::setValue('JComponentHelper', 'components', array());
+		TestReflection::setValue('JComponentHelper', 'components', []);
 
 		// Restore the state
 		$this->restoreFactoryState();
@@ -131,11 +131,12 @@ class JHelpTest extends TestCaseDatabase
 	 */
 	public function testCreateSiteList()
 	{
-		$helpsite = array(
-			'text' => 'English (GB) help.joomla.org',
+		$helpsite = [
+			'text'  => 'English (GB) help.joomla.org',
 			'value' => 'http://help.joomla.org'
-		);
-		$this->assertEquals(array($helpsite), JHelp::createSiteList(null), 'Returns the default help site list');
+		];
+
+		$this->assertEquals([$helpsite], JHelp::createSiteList(null), 'Returns the default help site list');
 
 		$this->assertInternalType('array', JHelp::createSiteList(JPATH_ADMINISTRATOR . '/help/helpsites.xml'), 'Returns the help site list defined in the XML file');
 	}

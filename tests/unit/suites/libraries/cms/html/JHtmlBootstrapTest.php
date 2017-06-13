@@ -279,16 +279,16 @@ class JHtmlBootstrapTest extends TestCase
 		);
 
 		// Check the modal's html structure
-		$matcher = array(
+		$matcher = [
 			'id'         => 'modal',
 			'tag'        => 'div',
-			'attributes' => array('class' => 'joomla-modal modal fade'),
-			'child'      => array(
-				'attributes' => array('class' => 'modal-dialog'),
-				'tag' => 'div'
-			),
-			'children'   => array('count' => 1)
-		);
+			'attributes' => ['class' => 'joomla-modal modal fade'],
+			'child'      => [
+				'attributes' => ['class' => 'modal-dialog'],
+				'tag'        => 'div'
+			],
+			'children'   => ['count' => 1]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -428,10 +428,10 @@ class JHtmlBootstrapTest extends TestCase
 		);
 
 		// Check the modal's html structure
-		$matcher = array(
-			'id'         => 'myAccordian',
-			'tag'        => 'div',
-		);
+		$matcher = [
+			'id'  => 'myAccordian',
+			'tag' => 'div',
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -492,14 +492,14 @@ class JHtmlBootstrapTest extends TestCase
 		);
 
 		// Check the modal's html structure
-		$matcher = array(
+		$matcher = [
 			'tag'        => 'div',
-			'attributes' => array('class' => 'card'),
-			'child'      => array(
+			'attributes' => ['class' => 'card'],
+			'child'      => [
 				'tag'        => 'a',
-				'attributes' => array('class' => 'card-header')
-			)
-		);
+				'attributes' => ['class' => 'card-header']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -554,10 +554,10 @@ class JHtmlBootstrapTest extends TestCase
 		);
 
 		// Check the tab set's html structure
-		$matcher = array(
+		$matcher = [
 			'id'  => 'myTabTabs',
 			'tag' => 'ul'
-		);
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -609,11 +609,11 @@ class JHtmlBootstrapTest extends TestCase
 		);
 
 		// Check the tab set's html structure
-		$matcher = array(
+		$matcher = [
 			'id'         => 'myTabItem',
 			'tag'        => 'div',
-			'attributes' => array('class' => 'tab-pane')
-		);
+			'attributes' => ['class' => 'tab-pane']
+		];
 
 		$this->assertTag(
 			$matcher,

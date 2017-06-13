@@ -25,6 +25,6 @@ abstract class JHtmlJqueryInspector extends JHtmlJquery
 	 */
 	public static function resetLoaded()
 	{
-		static::$loaded = array();
+		static::$loaded = [];
 	}
 }

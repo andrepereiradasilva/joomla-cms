@@ -61,14 +61,14 @@ class JModelAdminTest extends TestCase
 	 */
 	public function testConstructorAppliesConfiguration()
 	{
-		$config = array(
-			'event_after_delete' => 'event_after_delete',
-			'event_after_save' => 'event_after_save',
+		$config = [
+			'event_after_delete'  => 'event_after_delete',
+			'event_after_save'    => 'event_after_save',
 			'event_before_delete' => 'event_before_delete',
-			'event_before_save' => 'event_before_save',
-			'event_change_state' => 'event_change_state',
-			'text_prefix' => 'text_prefix'
-		);
+			'event_before_save'   => 'event_before_save',
+			'event_change_state'  => 'event_change_state',
+			'text_prefix'         => 'text_prefix'
+		];
 
 		$this->object->__construct($config);
 
@@ -97,14 +97,14 @@ class JModelAdminTest extends TestCase
 	 */
 	public function testConstructorAppliesDefaultConfiguration()
 	{
-		$config = array(
-			'event_after_delete' => 'onContentAfterDelete',
-			'event_after_save' => 'onContentAfterSave',
+		$config = [
+			'event_after_delete'  => 'onContentAfterDelete',
+			'event_after_save'    => 'onContentAfterSave',
 			'event_before_delete' => 'onContentBeforeDelete',
-			'event_before_save' => 'onContentBeforeSave',
-			'event_change_state' => 'onContentChangeState',
-			'text_prefix' => 'COM_MOCK_J'
-		);
+			'event_before_save'   => 'onContentBeforeSave',
+			'event_change_state'  => 'onContentChangeState',
+			'text_prefix'         => 'COM_MOCK_J'
+		];
 
 		foreach ($config as $key => $value)
 		{

@@ -21,7 +21,7 @@ class MockJComponentRouterRulesMenuMenuObject
 	 * 
 	 * @var array
 	 */
-	protected $items = array();
+	protected $items = [];
 
 	/**
 	 * Active menuitem
@@ -37,7 +37,7 @@ class MockJComponentRouterRulesMenuMenuObject
 	 */
 	public function __construct()
 	{
-		$this->items[47] = (object) array(
+		$this->items[47] = (object) [
 			'id'           => '47', 
 			'menutype'     => 'testmenu', 
 			'title'        => 'Content Home', 
@@ -50,9 +50,10 @@ class MockJComponentRouterRulesMenuMenuObject
 			'component_id' => '22',
 			'component'    => 'com_content',
 			'parent_id'    => '0', 
-			'query'        => array('option' => 'com_content', 'view' => 'featured'));
+			'query'        => ['option' => 'com_content', 'view' => 'featured']
+		];
 
-		$this->items[48] = (object) array(
+		$this->items[48] = (object) [
 			'id'           => '48', 
 			'menutype'     => 'testmenu', 
 			'title'        => 'Categories View', 
@@ -65,9 +66,10 @@ class MockJComponentRouterRulesMenuMenuObject
 			'component_id' => '22', 
 			'component'    => 'com_content',
 			'parent_id'    => '47', 
-			'query'        => array('option' => 'com_content', 'view' => 'categories', 'id' => '14'));
+			'query'        => ['option' => 'com_content', 'view' => 'categories', 'id' => '14']
+		];
 
-		$this->items[49] = (object) array(
+		$this->items[49] = (object) [
 			'id'           => '49', 
 			'menutype'     => 'testmenu', 
 			'title'        => 'Category View', 
@@ -80,9 +82,10 @@ class MockJComponentRouterRulesMenuMenuObject
 			'component_id' => '22', 
 			'component'    => 'com_content',
 			'parent_id'    => '47', 
-			'query'        => array('option' => 'com_content', 'view' => 'category', 'id' => '20'));
+			'query'        => ['option' => 'com_content', 'view' => 'category', 'id' => '20']
+		];
 
-		$this->items[50] = (object) array(
+		$this->items[50] = (object) [
 			'id'           => '50', 
 			'menutype'     => 'testmenu', 
 			'title'        => 'Categories View', 
@@ -95,9 +98,10 @@ class MockJComponentRouterRulesMenuMenuObject
 			'component_id' => '22', 
 			'component'    => 'com_content',
 			'parent_id'    => '47', 
-			'query'        => array('option' => 'com_content', 'view' => 'categories', 'id' => '14'));
+			'query'        => ['option' => 'com_content', 'view' => 'categories', 'id' => '14']
+		];
 		
-		$this->items[51] = (object) array(
+		$this->items[51] = (object) [
 			'id'           => '51', 
 			'menutype'     => 'testmenu', 
 			'title'        => 'Content Home', 
@@ -110,7 +114,8 @@ class MockJComponentRouterRulesMenuMenuObject
 			'component_id' => '22', 
 			'component'    => 'com_content',
 			'parent_id'    => '0', 
-			'query'        => array('option' => 'com_content', 'view' => 'featured'));
+			'query'        => ['option' => 'com_content', 'view' => 'featured']
+		];
 	}
 
 	/**
@@ -125,7 +130,7 @@ class MockJComponentRouterRulesMenuMenuObject
 	 */
 	public function getItems($attributes, $values)
 	{
-		$items = array();
+		$items = [];
 		$attributes = (array) $attributes;
 		$values = (array) $values;
 

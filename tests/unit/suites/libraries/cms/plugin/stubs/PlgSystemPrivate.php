@@ -44,7 +44,7 @@ class PlgSystemPrivate extends JPlugin
 		$this->autoloadLanguage = true;
 
 		// Config array for JPlugin constructor
-		$config = array();
+		$config = [];
 		$config['name']   = 'Private';
 		$config['type']   = 'System';
 		$config['params'] = new Registry;

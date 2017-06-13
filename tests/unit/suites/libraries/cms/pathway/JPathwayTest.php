@@ -61,7 +61,7 @@ class JPathwayTest extends TestCase
 	 */
 	public function test__construct()
 	{
-		$this->assertAttributeEquals(array(), 'pathway', $this->fixture);
+		$this->assertAttributeEquals([], 'pathway', $this->fixture);
 	}
 
 	/**
@@ -101,7 +101,7 @@ class JPathwayTest extends TestCase
 		$this->fixture->addItem('Item1', 'index.php?key=item1');
 		$this->fixture->addItem('Item2', 'index.php?key=item2');
 
-		$pathway = array();
+		$pathway = [];
 		$object1 = new stdClass;
 		$object1->name = 'Item1';
 		$object1->link = 'index.php?key=item1';
@@ -123,7 +123,7 @@ class JPathwayTest extends TestCase
 	 */
 	public function testSetPathway()
 	{
-		$pathway = array();
+		$pathway = [];
 		$object1 = new stdClass;
 		$object1->name = 'Item1';
 		$object1->link = 'index.php?key=item1';
@@ -133,11 +133,11 @@ class JPathwayTest extends TestCase
 		$object2->link = 'index.php?key=item2';
 		$pathway[4] = $object2;
 
-		$this->assertEquals(array(), $this->fixture->setPathway($pathway));
+		$this->assertEquals([], $this->fixture->setPathway($pathway));
 		$this->assertAttributeEquals(array_values($pathway), 'pathway', $this->fixture);
 
-		$this->assertEquals(array_values($pathway), $this->fixture->setPathway(array()));
-		$this->assertAttributeEquals(array(), 'pathway', $this->fixture);
+		$this->assertEquals(array_values($pathway), $this->fixture->setPathway([]));
+		$this->assertAttributeEquals([], 'pathway', $this->fixture);
 	}
 
 	/**
@@ -149,7 +149,7 @@ class JPathwayTest extends TestCase
 	 */
 	public function testGetPathwayNames()
 	{
-		$pathway = array();
+		$pathway = [];
 		$object1 = new stdClass;
 		$object1->name = 'Item1';
 		$object1->link = 'index.php?key=item1';
@@ -163,7 +163,7 @@ class JPathwayTest extends TestCase
 
 		$this->fixture->setPathway($pathway);
 
-		$this->assertEquals(array('Item1', 'Item2'), $this->fixture->getPathwayNames());
+		$this->assertEquals(['Item1', 'Item2'], $this->fixture->getPathwayNames());
 	}
 
 	/**
@@ -175,7 +175,7 @@ class JPathwayTest extends TestCase
 	 */
 	public function testAddItem()
 	{
-		$pathway = array();
+		$pathway = [];
 		$object1 = new stdClass;
 		$object1->name = 'Item1';
 		$object1->link = 'index.php?key=item1';
@@ -200,7 +200,7 @@ class JPathwayTest extends TestCase
 	 */
 	public function testSetItemName()
 	{
-		$pathway = array();
+		$pathway = [];
 		$object1 = new stdClass;
 		$object1->name = 'Item1';
 		$object1->link = 'index.php?key=item1';

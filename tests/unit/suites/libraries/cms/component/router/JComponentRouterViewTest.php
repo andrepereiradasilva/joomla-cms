@@ -128,42 +128,74 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	 */
 	public function casesGetPath()
 	{
-		$cases   = array();
+		$cases   = [];
 		// No view, so we don't have a path to return.
-		$cases[] = array(array('task' => 'edit'), array());
+		$cases[] = [
+			['task' => 'edit'],
+			[]
+		];
 
 		// View without any parents and children
-		$cases[] = array(array('view' => 'form'), array('form' => true));
+		$cases[] = [
+			['view' => 'form'],
+			['form' => true]
+		];
 
 		// View without any parents, but with children
-		$cases[] = array(array('view' => 'categories'), array('categories' => array()));
+		$cases[] = [
+			['view' => 'categories'],
+			['categories' => []]
+		];
 
 		// View with parent and children
-		$cases[] = array(array('view' => 'category', 'id' => '9'), array('category' => array(9 => '9:uncategorised'), 'categories' => array(9 => '9:uncategorised')));
+		$cases[] = [
+			[
+				'view' => 'category',
+				'id'   => '9'
+			],
+			[
+				'category'   => [9 => '9:uncategorised'],
+				'categories' => [9 => '9:uncategorised']
+			]
+		];
 
 		//View with parent, no children
-		$cases[] = array(array('view' => 'article', 'id' => '42:question-for-everything', 'catid' => '9'),
-			array(
-				'article' => array(42 => '42:question-for-everything'),
-				'category' => array(9 => '9:uncategorised'),
-				'categories' => array(9 => '9:uncategorised')
-			)
-		);
+		$cases[] = [
+			[
+				'view'  => 'article',
+				'id'    => '42:question-for-everything',
+				'catid' => '9'
+			],
+			[
+				'article'    => [42 => '42:question-for-everything'],
+				'category'   => [9 => '9:uncategorised'],
+				'categories' => [9 => '9:uncategorised']
+			]
+		];
 
 		//View with parent, no children and nested view
-		$cases[] = array(array('view' => 'article', 'id' => '42:question-for-everything', 'catid' => '20'),
-			array(
-				'article' => array(42 => '42:question-for-everything'),
-				'category' => array(20 => '20:extensions',
+		$cases[] = [
+			[
+				'view'  => 'article',
+				'id'    => '42:question-for-everything',
+				'catid' => '20'
+			],
+			[
+				'article' => [
+					42 => '42:question-for-everything'
+				],
+				'category' => [
+					20 => '20:extensions',
 					19 => '19:joomla',
 					14 => '14:sample-data-articles'
-				),
-				'categories' => array(20 => '20:extensions',
+				],
+				'categories' => [
+					20 => '20:extensions',
 					19 => '19:joomla',
 					14 => '14:sample-data-articles'
-				)
-			)
-		);
+				]
+			]
+		];
 
 		return $cases;
 	}
@@ -208,7 +240,7 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	{
 		$rule = new TestComponentRouterRule($this->object);
 		$this->object->attachRule($rule);
-		$this->assertEquals(array($rule), $this->object->getRules());
+		$this->assertEquals([$rule], $this->object->getRules());
 	}
 
 	/**
@@ -222,9 +254,9 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	public function testAttachRules()
 	{
 		$rule = new TestComponentRouterRule($this->object);
-		$this->assertEquals(array(), $this->object->getRules());
-		$this->object->attachRules(array($rule));
-		$this->assertEquals(array($rule), $this->object->getRules());
+		$this->assertEquals([], $this->object->getRules());
+		$this->object->attachRules([$rule]);
+		$this->assertEquals([$rule], $this->object->getRules());
 	}
 
 	/**
@@ -238,11 +270,11 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	public function testAttachRule()
 	{
 		$rule = new TestComponentRouterRule($this->object);
-		$this->assertEquals(array(), $this->object->get('rules'));
+		$this->assertEquals([], $this->object->get('rules'));
 		$this->object->attachRule($rule);
-		$this->assertEquals(array($rule), $this->object->get('rules'));
+		$this->assertEquals([$rule], $this->object->get('rules'));
 		$this->object->attachRule($rule);
-		$this->assertEquals(array($rule, $rule), $this->object->get('rules'));
+		$this->assertEquals([$rule, $rule], $this->object->get('rules'));
 	}
 
 	/**
@@ -257,9 +289,9 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	{
 		$rule = new TestComponentRouterRule($this->object);
 		$this->object->attachRule($rule);
-		$this->assertEquals(array($rule), $this->object->get('rules'));
+		$this->assertEquals([$rule], $this->object->get('rules'));
 		$this->assertTrue($this->object->detachRule($rule));
-		$this->assertEquals(array(), $this->object->get('rules'));
+		$this->assertEquals([], $this->object->get('rules'));
 		$this->assertFalse($this->object->detachRule($rule));
 	}
 
@@ -275,7 +307,7 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	{
 		$rule = new TestComponentRouterRule($this->object);
 		$this->object->attachRule($rule);
-		$this->assertEquals(array('key' => 'value', 'testrule' => 'yes'), $this->object->preprocess(array('key' => 'value')));
+		$this->assertEquals(['key' => 'value', 'testrule' => 'yes'], $this->object->preprocess(['key' => 'value']));
 	}
 
 	/**
@@ -290,9 +322,9 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	{
 		$rule = new TestComponentRouterRule($this->object);
 		$this->object->attachRule($rule);
-		$query = array('key' => 'value', 'test' => 'true');
-		$this->assertEquals(array('testrule-run'), $this->object->build($query));
-		$this->assertEquals(array('key' => 'value'), $query);
+		$query = ['key' => 'value', 'test' => 'true'];
+		$this->assertEquals(['testrule-run'], $this->object->build($query));
+		$this->assertEquals(['key' => 'value'], $query);
 	}
 
 	/**
@@ -307,9 +339,9 @@ class JComponentRouterViewTest extends TestCaseDatabase
 	{
 		$rule = new TestComponentRouterRule($this->object);
 		$this->object->attachRule($rule);
-		$segments = array('testrun', 'getsdropped');
-		$this->assertEquals(array('testparse' => 'run'), $this->object->parse($segments));
-		$this->assertEquals(array('testrun'), $segments);
+		$segments = ['testrun', 'getsdropped'];
+		$this->assertEquals(['testparse' => 'run'], $this->object->parse($segments));
+		$this->assertEquals(['testrun'], $segments);
 	}
 
 	/**
@@ -360,13 +392,13 @@ class JComponentRouterViewTest extends TestCaseDatabase
 		$featured = new JComponentRouterViewconfiguration('featured');
 		$form = new JComponentRouterViewconfiguration('form');
 
-		return array(
+		return [
 			'categories' => $categories,
-			'category' => $category,
-			'article' => $article,
-			'archive' => $archive,
-			'featured' => $featured,
-			'form' => $form
-		);
+			'category'   => $category,
+			'article'    => $article,
+			'archive'    => $archive,
+			'featured'   => $featured,
+			'form'       => $form
+		];
 	}
 }

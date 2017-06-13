@@ -185,7 +185,7 @@ class JToolbarTest extends TestCase
 	public function testAddButtonPath_Array()
 	{
 		$initialValue = $this->readAttribute($this->object, '_buttonPath');
-		$this->object->addButtonPath(array('MyTestPath1', 'MyTestPath2'));
+		$this->object->addButtonPath(['MyTestPath1', 'MyTestPath2']);
 		$newValue = $this->readAttribute($this->object, '_buttonPath');
 		$this->assertThat(
 			$newValue[0],

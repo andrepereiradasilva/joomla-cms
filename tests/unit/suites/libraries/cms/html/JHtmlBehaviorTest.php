@@ -84,10 +84,10 @@ class JHtmlBehaviorTest extends TestCase
 	 */
 	public function getCaptionData()
 	{
-		return array(
-			array(array('JHtmlBehavior::caption' => array('img.caption' => true))),
-			array(array('JHtmlBehavior::caption' => array('img.caption2' => true)), 'img.caption2'),
-		);
+		return [
+			[['JHtmlBehavior::caption' => ['img.caption' => true]]],
+			[['JHtmlBehavior::caption' => ['img.caption2' => true]], 'img.caption2'],
+		];
 	}
 
 	/**
@@ -124,7 +124,7 @@ class JHtmlBehaviorTest extends TestCase
 		JHtmlBehavior::formvalidation();
 
 		$this->assertEquals(
-			array('JHtmlBehavior::core' => true, 'JHtmlBehavior::formvalidator' => true),
+			['JHtmlBehavior::core' => true, 'JHtmlBehavior::formvalidator' => true],
 			JHtmlBehaviorInspector::getLoaded(),
 			'The form validation behavior is not loaded with all dependencies'
 		);
@@ -142,7 +142,7 @@ class JHtmlBehaviorTest extends TestCase
 		JHtmlBehavior::combobox();
 
 		$this->assertEquals(
-			array('JHtmlBehavior::core' => true, 'JHtmlBehavior::combobox' => true),
+			['JHtmlBehavior::core' => true, 'JHtmlBehavior::combobox' => true],
 			JHtmlBehaviorInspector::getLoaded(),
 			'The combobox behavior is not loaded with all dependencies'
 		);
@@ -157,21 +157,21 @@ class JHtmlBehaviorTest extends TestCase
 	 */
 	public function getMultiselectData()
 	{
-		$data = array(
-			array(
-				array(
-					'JHtmlBehavior::core' => true,
-					'JHtmlBehavior::multiselect' => array('adminForm' => true),
-				)
-			),
-			array(
-				array(
-					'JHtmlBehavior::core' => true,
-					'JHtmlBehavior::multiselect' => array('adminForm2' => true),
-				),
+		$data = [
+			[
+				[
+					'JHtmlBehavior::core'        => true,
+					'JHtmlBehavior::multiselect' => ['adminForm' => true],
+				]
+			],
+			[
+				[
+					'JHtmlBehavior::core'        => true,
+					'JHtmlBehavior::multiselect' => ['adminForm2' => true],
+				],
 				'adminForm2'
-			),
-		);
+			],
+		];
 
 		return $data;
 	}
@@ -210,7 +210,7 @@ class JHtmlBehaviorTest extends TestCase
 		JHtmlBehavior::colorpicker();
 
 		$this->assertEquals(
-			array('JHtmlBehavior::colorpicker' => true),
+			['JHtmlBehavior::colorpicker' => true],
 			JHtmlBehaviorInspector::getLoaded(),
 			'The colorpicker behavior is not loaded with all dependencies'
 		);
@@ -228,10 +228,10 @@ class JHtmlBehaviorTest extends TestCase
 		JHtmlBehavior::keepalive();
 
 		$this->assertEquals(
-			array(
+			[
 				'JHtmlBehavior::keepalive' => true,
 				'JHtmlBehavior::core'      => true
-			),
+			],
 			JHtmlBehaviorInspector::getLoaded(),
 			'The keepalive behavior is not loaded with all dependencies'
 		);
@@ -249,7 +249,7 @@ class JHtmlBehaviorTest extends TestCase
 		JHtmlBehavior::noframes();
 
 		$this->assertEquals(
-			array('JHtmlBehavior::core' => true, 'JHtmlBehavior::noframes' => true),
+			['JHtmlBehavior::core' => true, 'JHtmlBehavior::noframes' => true],
 			JHtmlBehaviorInspector::getLoaded(),
 			'The no frames behavior is not loaded with all dependencies'
 		);

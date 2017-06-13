@@ -183,7 +183,7 @@ class JTableContentTest extends TestCaseDatabase
 		$table = $this->object;
 
 		// Test with pk's in an array
-		$pks = array('18', '31');
+		$pks = ['18', '31'];
 		$this->assertTrue($table->publish($pks, '0'), 'Line: ' . __LINE__ . ' Publish with an array of pks should work');
 		$table->load('18');
 		$this->assertEquals('0', $table->state, 'Line: ' . __LINE__ . ' Id 18 should be unpublished');

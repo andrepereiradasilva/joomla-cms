@@ -16,7 +16,7 @@
  */
 class JHtmlInspector
 {
-	public static $arguments = array();
+	public static $arguments = [];
 
 	public static $returnValue;
 
@@ -31,7 +31,7 @@ class JHtmlInspector
 	{
 		if (!isset(self::$arguments))
 		{
-			self::$arguments = array(func_get_args());
+			self::$arguments = [func_get_args()];
 		}
 		else
 		{

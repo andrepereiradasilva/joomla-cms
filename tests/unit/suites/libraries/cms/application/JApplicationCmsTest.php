@@ -70,11 +70,11 @@ class JApplicationCmsTest extends TestCaseDatabase
 	 */
 	public function getRedirectData()
 	{
-		return array(
+		return [
 			// Note: url, base, request, (expected result)
-			array('/foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'),
-			array('foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'),
-		);
+			['/foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'],
+			['foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'],
+		];
 	}
 
 	/**
@@ -196,8 +196,8 @@ class JApplicationCmsTest extends TestCaseDatabase
 
 		// Build the mock object.
 		$mockClient = $this->getMockBuilder('\\Joomla\\Application\\Web\\WebClient')
-					->setMethods(array('test'))
-					->setConstructorArgs(array())
+					->setMethods(['test'])
+					->setConstructorArgs([])
 					->setMockClassName('')
 					->disableOriginalConstructor()
 					->getMock();
@@ -234,7 +234,7 @@ class JApplicationCmsTest extends TestCaseDatabase
 	{
 		$document = $this->getMockDocument();
 
-		$this->assignMockReturns($document, array('render' => 'JWeb Body'));
+		$this->assignMockReturns($document, ['render' => 'JWeb Body']);
 
 		// Manually inject the document.
 		$this->class->loadDocument($document);
@@ -259,7 +259,7 @@ class JApplicationCmsTest extends TestCaseDatabase
 	 */
 	public function testGetCfg()
 	{
-		$config = new Registry(array('foo' => 'bar'));
+		$config = new Registry(['foo' => 'bar']);
 
 		TestReflection::setValue($this->class, 'config', $config);
 
@@ -277,11 +277,11 @@ class JApplicationCmsTest extends TestCaseDatabase
 	 */
 	public function testGetInstance()
 	{
-		TestReflection::setValue('JApplicationCms', 'instances', array('CmsInspector' => $this->class));
+		TestReflection::setValue('JApplicationCms', 'instances', ['CmsInspector' => $this->class]);
 
 		$this->assertInstanceOf('JApplicationCmsInspector', JApplicationCms::getInstance('CmsInspector'));
 
-		TestReflection::setValue('JApplicationCms', 'instances', array('CmsInspector' => 'foo'));
+		TestReflection::setValue('JApplicationCms', 'instances', ['CmsInspector' => 'foo']);
 
 		$this->assertEquals('foo', JApplicationCms::getInstance('CmsInspector'));
 	}
@@ -399,9 +399,9 @@ class JApplicationCmsTest extends TestCaseDatabase
 		TestReflection::setValue(
 			$this->class,
 			'client',
-			(object) array(
+			(object) [
 				'engine' => WebClient::GECKO,
-			)
+			]
 		);
 
 		// Inject the internal configuration.
@@ -413,17 +413,17 @@ class JApplicationCmsTest extends TestCaseDatabase
 		$this->class->redirect($url, false);
 
 		$this->assertEquals(
-			array('HTTP/1.1 303 See other', true, 303),
+			['HTTP/1.1 303 See other', true, 303],
 			$this->class->headers[0]
 		);
 
 		$this->assertEquals(
-			array('Location: ' . $base . $url, true, null),
+			['Location: ' . $base . $url, true, null],
 			$this->class->headers[1]
 		);
 
 		$this->assertEquals(
-			array('Content-Type: text/html; charset=utf-8', true, null),
+			['Content-Type: text/html; charset=utf-8', true, null],
 			$this->class->headers[2]
 		);
 
@@ -432,12 +432,12 @@ class JApplicationCmsTest extends TestCaseDatabase
 		$this->assertRegexp('/Last-Modified/',$this->class->headers[4][0]);
 
 		$this->assertEquals(
-			array('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0', true, null),
+			['Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0', true, null],
 			$this->class->headers[5]
 		);
 
 		$this->assertEquals(
-			array('Pragma: no-cache', true, null),
+			['Pragma: no-cache', true, null],
 			$this->class->headers[6]
 		);
 	}
@@ -489,9 +489,9 @@ class JApplicationCmsTest extends TestCaseDatabase
 		TestReflection::setValue(
 			$this->class,
 			'client',
-			(object) array(
+			(object) [
 				'engine' => WebClient::TRIDENT,
-			)
+			]
 		);
 
 		// Capture the output for this test.
@@ -523,25 +523,25 @@ class JApplicationCmsTest extends TestCaseDatabase
 		TestReflection::setValue(
 			$this->class,
 			'client',
-			(object) array(
+			(object) [
 				'engine' => WebClient::GECKO,
-			)
+			]
 		);
 
 		$this->class->redirect($url, true);
 
 		$this->assertEquals(
-			array('HTTP/1.1 301 Moved Permanently', true, 301),
+			['HTTP/1.1 301 Moved Permanently', true, 301],
 			$this->class->headers[0]
 		);
 
 		$this->assertEquals(
-			array('Location: '  . $url, true, null),
+			['Location: '  . $url, true, null],
 			$this->class->headers[1]
 		);
 
 		$this->assertEquals(
-			array('Content-Type: text/html; charset=utf-8', true, null),
+			['Content-Type: text/html; charset=utf-8', true, null],
 			$this->class->headers[2]
 		);
 
@@ -550,12 +550,12 @@ class JApplicationCmsTest extends TestCaseDatabase
 		$this->assertRegexp('/Last-Modified/',$this->class->headers[4][0]);
 
 		$this->assertEquals(
-			array('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0', true, null),
+			['Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0', true, null],
 			$this->class->headers[5]
 		);
 
 		$this->assertEquals(
-			array('Pragma: no-cache', true, null),
+			['Pragma: no-cache', true, null],
 			$this->class->headers[6]
 		);
 	}
@@ -580,9 +580,9 @@ class JApplicationCmsTest extends TestCaseDatabase
 		TestReflection::setValue(
 			$this->class,
 			'client',
-			(object) array(
+			(object) [
 				'engine' => WebClient::GECKO,
-			)
+			]
 		);
 
 		// Inject the internal configuration.
@@ -609,7 +609,7 @@ class JApplicationCmsTest extends TestCaseDatabase
 	{
 		$document = $this->getMockDocument();
 
-		$this->assignMockReturns($document, array('render' => 'JWeb Body'));
+		$this->assignMockReturns($document, ['render' => 'JWeb Body']);
 
 		// Manually inject the document.
 		TestReflection::setValue($this->class, 'document', $document);

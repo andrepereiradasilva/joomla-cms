@@ -20,7 +20,7 @@ class JApplicationResponseJsonMock
 	 * @var    array  The message queue.
 	 * @since  12.2
 	 */
-	public $queue = array();
+	public $queue = [];
 
 	/**
 	 * Enqueue a system message.
@@ -34,7 +34,7 @@ class JApplicationResponseJsonMock
 	 */
 	public function enqueueMessage($msg, $type = 'message')
 	{
-		$this->queue[] = array('message' => $msg, 'type' => strtolower($type));
+		$this->queue[] = ['message' => $msg, 'type' => strtolower($type)];
 	}
 
 	/**
@@ -48,7 +48,7 @@ class JApplicationResponseJsonMock
 	{
 		$queue = $this->queue;
 
-		$this->queue = array();
+		$this->queue = [];
 
 		return $queue;
 	}

@@ -87,7 +87,7 @@ class JControllerLegacyTest extends TestCase
 	 */
 	public function testCreateFileName()
 	{
-		$parts = array('name' => 'test');
+		$parts = ['name' => 'test'];
 
 		$this->assertEquals('test.php', TestReflection::invoke('JControllerLegacy', 'createFileName', 'controller', $parts), __LINE__);
 
@@ -99,11 +99,11 @@ class JControllerLegacyTest extends TestCase
 
 		$this->assertEquals('test.json.php', TestReflection::invoke('JControllerLegacy', 'createFileName', 'controller', $parts), __LINE__);
 
-		$parts = array('name' => 'TEST', 'format' => 'JSON');
+		$parts = ['name' => 'TEST', 'format' => 'JSON'];
 
 		$this->assertEquals('test.json.php', TestReflection::invoke('JControllerLegacy', 'createFileName', 'controller', $parts), __LINE__);
 
-		$parts = array('name' => 'test');
+		$parts = ['name' => 'test'];
 
 		$this->assertEquals('test/view.php', TestReflection::invoke('JControllerLegacy', 'createFileName', 'view', $parts), __LINE__);
 
@@ -111,7 +111,7 @@ class JControllerLegacyTest extends TestCase
 
 		$this->assertEquals('test/view.json.php', TestReflection::invoke('JControllerLegacy', 'createFileName', 'view', $parts), __LINE__);
 
-		$parts = array('type' => 'JSON', 'name' => 'TEST');
+		$parts = ['type' => 'JSON', 'name' => 'TEST'];
 
 		$this->assertEquals('test/view.json.php', TestReflection::invoke('JControllerLegacy', 'createFileName', 'view', $parts), __LINE__);
 	}
@@ -126,7 +126,7 @@ class JControllerLegacyTest extends TestCase
 		$controller = new TestTestController;
 		$this->assertEquals(
 			$controller->getTasks(),
-			array('task5', 'task1', 'task2', 'display'),
+			['task5', 'task1', 'task2', 'display'],
 			'The available tasks should be the public tasks in _all_ the derived classes after controller plus "display".'
 		);
 	}
@@ -139,9 +139,9 @@ class JControllerLegacyTest extends TestCase
 	public function testConstructerWithInjectedName()
 	{
 		$name = 'foobar';
-		$config = array(
+		$config = [
 			'name' => $name
-		);
+		];
 
 		$controller = new TestTestController($config);
 
@@ -232,7 +232,7 @@ class JControllerLegacyTest extends TestCase
 	{
 		$class = new TestController;
 
-		$this->assertEquals(array('task1', 'task2', 'display'), $class->getTasks());
+		$this->assertEquals(['task1', 'task2', 'display'], $class->getTasks());
 	}
 
 	/**

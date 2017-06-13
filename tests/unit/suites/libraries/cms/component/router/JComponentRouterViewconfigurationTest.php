@@ -65,7 +65,7 @@ class JComponentRouterViewconfigurationTest extends TestCase
 	{
 		$this->assertInstanceOf('JComponentRouterViewconfiguration', $this->object);
 		$this->assertEquals('test', $this->object->name);
-		$this->assertEquals(array('test'), $this->object->path);
+		$this->assertEquals(['test'], $this->object->path);
 	}
 
 	/**
@@ -79,15 +79,15 @@ class JComponentRouterViewconfigurationTest extends TestCase
 	public function testSetName()
 	{
 		$this->assertEquals('test', $this->object->name);
-		$this->assertEquals(array('test'), $this->object->path);
+		$this->assertEquals(['test'], $this->object->path);
 		$this->assertEquals($this->object, $this->object->setName('name'));
 		$this->assertEquals('name', $this->object->name);
-		$this->assertEquals(array('name'), $this->object->path);
+		$this->assertEquals(['name'], $this->object->path);
 		$object2 = new JComponentRouterViewconfiguration('parent');
 		$this->object->setParent($object2);
-		$this->assertEquals(array('parent', 'name'), $this->object->path);
+		$this->assertEquals(['parent', 'name'], $this->object->path);
 		$this->object->setName('name2');
-		$this->assertEquals(array('parent', 'name2'), $this->object->path);
+		$this->assertEquals(['parent', 'name2'], $this->object->path);
 	}
 
 	/**
@@ -120,43 +120,43 @@ class JComponentRouterViewconfigurationTest extends TestCase
 		// View has no parent
 		$this->assertEquals(false, $this->object->parent);
 		$this->assertEquals(false, $this->object->parent_key);
-		$this->assertEquals(array(), $this->object->children);
-		$this->assertEquals(array(), $this->object->child_keys);
-		$this->assertEquals(array('test'), $this->object->path);
-		$this->assertEquals(array(), $parent->children);
-		$this->assertEquals(array(), $parent->child_keys);
+		$this->assertEquals([], $this->object->children);
+		$this->assertEquals([], $this->object->child_keys);
+		$this->assertEquals(['test'], $this->object->path);
+		$this->assertEquals([], $parent->children);
+		$this->assertEquals([], $parent->child_keys);
 
 		// Assign View a parent
 		$this->assertEquals($this->object, $this->object->setParent($parent));
 		$this->assertEquals($parent, $this->object->parent);
 		$this->assertEquals(false, $this->object->parent_key);
-		$this->assertEquals(array(), $this->object->children);
-		$this->assertEquals(array($this->object), $parent->children);
-		$this->assertEquals(array('parent', 'test'), $this->object->path);
-		$this->assertEquals(array(), $parent->child_keys);
+		$this->assertEquals([], $this->object->children);
+		$this->assertEquals([$this->object], $parent->children);
+		$this->assertEquals(['parent', 'test'], $this->object->path);
+		$this->assertEquals([], $parent->child_keys);
 
 		// Re-assign View a parent, this time with an ID
 		$parent2 = new JComponentRouterViewconfiguration('category');
 		$this->assertEquals($this->object, $this->object->setParent($parent2, 'catid'));
 		$this->assertEquals($parent2, $this->object->parent);
 		$this->assertEquals('catid', $this->object->parent_key);
-		$this->assertEquals(array(), $this->object->children);
-		$this->assertEquals(array($this->object), $parent2->children);
-		$this->assertEquals(array('category', 'test'), $this->object->path);
-		$this->assertEquals(array('catid'), $parent2->child_keys);
+		$this->assertEquals([], $this->object->children);
+		$this->assertEquals([$this->object], $parent2->children);
+		$this->assertEquals(['category', 'test'], $this->object->path);
+		$this->assertEquals(['catid'], $parent2->child_keys);
 		// Make sure that the original parent is cleaned up
-		$this->assertEquals(array(), $parent->children);
-		$this->assertEquals(array(), $parent->child_keys);
+		$this->assertEquals([], $parent->children);
+		$this->assertEquals([], $parent->child_keys);
 
 		// Re-assign View a parent, again with an ID
 		$parent3 = new JComponentRouterViewconfiguration('form');
 		$this->assertEquals($this->object, $this->object->setParent($parent3, 'formid'));
 		$this->assertEquals($parent3, $this->object->parent);
 		$this->assertEquals('formid', $this->object->parent_key);
-		$this->assertEquals(array('formid'), $parent3->child_keys);
+		$this->assertEquals(['formid'], $parent3->child_keys);
 		// Make sure that the original parent is cleaned up
-		$this->assertEquals(array(), $parent2->children);
-		$this->assertEquals(array(), $parent2->child_keys);
+		$this->assertEquals([], $parent2->children);
+		$this->assertEquals([], $parent2->child_keys);
 	}
 
 	/**
@@ -188,12 +188,12 @@ class JComponentRouterViewconfigurationTest extends TestCase
 	 */
 	public function testAddLayout()
 	{
-		$this->assertEquals(array('default'), $this->object->layouts);
+		$this->assertEquals(['default'], $this->object->layouts);
 		$this->assertEquals($this->object, $this->object->addLayout('form'));
-		$this->assertEquals(array('default', 'form'), $this->object->layouts);
+		$this->assertEquals(['default', 'form'], $this->object->layouts);
 		// Make sure that a layout can only be added once
 		$this->object->addLayout('form');
-		$this->assertEquals(array('default', 'form'), $this->object->layouts);
+		$this->assertEquals(['default', 'form'], $this->object->layouts);
 	}
 
 	/**
@@ -206,13 +206,13 @@ class JComponentRouterViewconfigurationTest extends TestCase
 	 */
 	public function testRemoveLayout()
 	{
-		$this->assertEquals(array('default'), $this->object->layouts);
+		$this->assertEquals(['default'], $this->object->layouts);
 		$this->object->addLayout('form');
 		$this->assertEquals($this->object, $this->object->removeLayout('default'));
-		$this->assertEquals(array(1 => 'form'), $this->object->layouts);
+		$this->assertEquals([1 => 'form'], $this->object->layouts);
 		$this->assertEquals($this->object, $this->object->removeLayout('fake'));
-		$this->assertEquals(array(1 => 'form'), $this->object->layouts);
+		$this->assertEquals([1 => 'form'], $this->object->layouts);
 		$this->object->removeLayout('form');
-		$this->assertEquals(array(), $this->object->layouts);
+		$this->assertEquals([], $this->object->layouts);
 	}
 }

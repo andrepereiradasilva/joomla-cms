@@ -25,26 +25,36 @@ class JPaginationObjectTest extends TestCase
 	 */
 	public function dataTestConstructor()
 	{
-		return array(
-			array(JText::_('JPREV'), '', null, null, false,
-				array(
-					'text' => 'Prev',
+		return [
+			[
+				JText::_('JPREV'),
+				'',
+				null,
+				null,
+				false,
+				[
+					'text'   => 'Prev',
 					'prefix' => '',
-					'base' => null,
-					'link' => null,
+					'base'   => null,
+					'link'   => null,
 					'active' => false,
 				)
-			),
-			array(JText::_('JLIB_HTML_START'), 4, 2, 'http://www.example.com', true,
-				array(
-					'text' => 'JLIB_HTML_START',
+			],
+			[
+				JText::_('JLIB_HTML_START'),
+				4,
+				2,
+				'http://www.example.com',
+				true,
+				[
+					'text'   => 'JLIB_HTML_START',
 					'prefix' => 4,
-					'base' => 2,
-					'link' => 'http://www.example.com',
+					'base'   => 2,
+					'link'   => 'http://www.example.com',
 					'active' => true,
-				)
-			),
-		);
+				]
+			],
+		];
 	}
 
 	/**

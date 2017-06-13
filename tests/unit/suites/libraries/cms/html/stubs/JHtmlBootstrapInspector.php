@@ -25,6 +25,6 @@ abstract class JHtmlBootstrapInspector extends JHtmlBootstrap
 	 */
 	public static function resetLoaded()
 	{
-		static::$loaded = array();
+		static::$loaded = [];
 	}
 }

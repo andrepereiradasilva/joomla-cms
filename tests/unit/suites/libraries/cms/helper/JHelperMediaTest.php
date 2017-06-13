@@ -84,12 +84,12 @@ class JHelperMediaTest extends TestCaseDatabase
 	 */
 	public function isImageProvider()
 	{
-		return array(
-			array('Image file' => 'mypicture.jpg', 1),
-			array('Invalid type' => 'mypicture.php', 0),
-			array('No extension' => 'mypicture', 0),
-			array('Empty string' => '', 0)
-		);
+		return [
+			['Image file' => 'mypicture.jpg', 1],
+			['Invalid type' => 'mypicture.php', 0],
+			['No extension' => 'mypicture', 0],
+			['Empty string' => '', 0]
+		];
 	}
 
 	/**
@@ -136,7 +136,7 @@ class JHelperMediaTest extends TestCaseDatabase
 	{
 		// If changes are made to the tests/unit/schema directory this test requires updates
 		$countFiles = $this->object->countFiles(JPATH_TESTS . '/schema');
-		$this->assertSame(array(4, 0), $countFiles);
+		$this->assertSame([4, 0], $countFiles);
 	}
 
 	/**
@@ -148,19 +148,19 @@ class JHelperMediaTest extends TestCaseDatabase
 	 */
 	public function canUploadProvider()
 	{
-		return array(
-			array('Valid image file' => array('name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), true),
-			array('File too big' => array('name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 10485770), false),
-			array('Not an image' => array('name' => 'mypicture.php', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('Ends with .' => array('name' => 'mypicture.png.', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('Name contains bad characters' => array('name' => 'my<body>picture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('Name contains bad extension' => array('name' => 'myscript.php.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('Name contains a space' => array('name' => 'my script.php.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('Empty name' => array('name' => '', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('Unknown format' => array('name' => 'myfile.xyz', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8), false),
-			array('File above php limit' => array('name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 20485770), false),
-			array('File above max configured but below php limit' => array('name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 10685770), false),
-			);
+		return [
+			['Valid image file' => ['name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], true],
+			['File too big' => ['name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 10485770], false],
+			['Not an image' => ['name' => 'mypicture.php', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['Ends with .' => ['name' => 'mypicture.png.', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['Name contains bad characters' => ['name' => 'my<body>picture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['Name contains bad extension' => ['name' => 'myscript.php.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['Name contains a space' => ['name' => 'my script.php.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['Empty name' => ['name' => '', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['Unknown format' => ['name' => 'myfile.xyz', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 8], false],
+			['File above php limit' => ['name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 20485770], false],
+			['File above max configured but below php limit' => ['name' => 'mypicture.jpg', 'type' => 'image/jpeg', 'tmp_name' => JPATH_TESTS . '/suites/libraries/joomla/image/stubs/koala.jpg', 'error' => 0, 'size' => 10685770], false],
+		];
 	}
 
 	/**
@@ -190,14 +190,14 @@ class JHelperMediaTest extends TestCaseDatabase
 	 */
 	public function imageResizeProvider()
 	{
-		return array(
-				array('Bigger Height' => 300, 200, 150, array(150, 100)),
-				array('Bigger Width' => 200, 300, 150, array(100, 150)),
-				array('Square' => 300, 300, 150, array(150, 150)),
-				array('0 Height' => 300, 0, 150, array(150, 0)),
-				array('0 Width' => 0, 300, 150, array(0, 150)),
-				array('0 Target' => 300, 200, 0, array(0, 0)),
-		);
+		return [
+			['Bigger Height' => 300, 200, 150, [150, 100]],
+			['Bigger Width' => 200, 300, 150, [100, 150]],
+			['Square' => 300, 300, 150, [150, 150]],
+			['0 Height' => 300, 0, 150, [150, 0]],
+			['0 Width' => 0, 300, 150, [0, 150]],
+			['0 Target' => 300, 200, 0, [0, 0]],
+		];
 	}
 
 	/**

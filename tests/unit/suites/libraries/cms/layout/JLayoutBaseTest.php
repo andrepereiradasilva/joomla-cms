@@ -67,7 +67,7 @@ class JLayoutBaseTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function testJlayoutbaseSetOptionsReturnsAJlayoutbaseInstanceWithAnArrayParameter()
 	{
-		$this->assertInstanceOf('JLayoutBase', $this->layoutBase->setOptions(array()));
+		$this->assertInstanceOf('JLayoutBase', $this->layoutBase->setOptions([]));
 	}
 
 	/**
@@ -90,7 +90,7 @@ class JLayoutBaseTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function testJlayoutbaseGetOptionsReturnsAJregistryObjectWhenOptionsParameterIsAnArray()
 	{
-		$options = array();
+		$options = [];
 		$this->layoutBase->setOptions($options);
 
 		$this->assertInstanceOf('JRegistry', $this->layoutBase->getOptions());
@@ -118,7 +118,7 @@ class JLayoutBaseTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function testJlayoutbaseGetOptionsReturnsAJregistryObjectValueUsingAnArray()
 	{
-		$options = array('option' => 'value');
+		$options = ['option' => 'value'];
 		$this->layoutBase->setOptions($options);
 
 		$this->assertEquals('value', $this->layoutBase->getOptions()->get('option'));

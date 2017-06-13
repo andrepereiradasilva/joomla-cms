@@ -81,7 +81,7 @@ class ContentRouterStandardRuleOnly extends JComponentRouterView
 			return $path;
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -127,10 +127,10 @@ class ContentRouterStandardRuleOnly extends JComponentRouterView
 		{
 			list($void, $segment) = explode(':', $id, 2);
 
-			return array($void => $segment);
+			return [$void => $segment];
 		}
 
-		return array((int) $id => $id);
+		return [(int) $id => $id];
 	}
 
 	/**

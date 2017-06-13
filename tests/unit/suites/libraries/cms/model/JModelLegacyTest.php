@@ -75,7 +75,7 @@ class JModelLegacyTest extends TestCaseDatabase
 	public static function tearDownAfterClass()
 	{
 		// Reset JTable::$_includePaths
-		TestReflection::setValue('JTable', '_includePaths', array());
+		TestReflection::setValue('JTable', '_includePaths', []);
 		parent::tearDownAfterClass();
 	}
 
@@ -176,14 +176,15 @@ class JModelLegacyTest extends TestCaseDatabase
 	 */
 	public function testConstructorAppliesConfigCorrectly()
 	{
-		$config = array(
-			'name' => 'bash',
-			'state' => 'foo',
-			'dbo' => 'bar',
-			'table_path' => 'baz',
-			'ignore_request' => true,
+		$config = [
+			'name'              => 'bash',
+			'state'             => 'foo',
+			'dbo'               => 'bar',
+			'table_path'        => 'baz',
+			'ignore_request'    => true,
 			'event_clean_cache' => 'buz'
-		);
+		];
+
 		$this->fixture = new RemodelModelRoom($config);
 
 		$this->assertEquals('com_remodel', TestReflection::getValue($this->fixture, 'option'));
@@ -521,7 +522,7 @@ class JModelLegacyTest extends TestCaseDatabase
 		$method = new ReflectionMethod('TestModelLead', '_createFileName');
 		$method->setAccessible(true);
 
-		$this->assertEquals('foo.php', $method->invokeArgs($this->fixture, array('model', array('name' => 'foo'))));
+		$this->assertEquals('foo.php', $method->invokeArgs($this->fixture, ['model', ['name' => 'foo']]));
 	}
 
 	/**
@@ -553,7 +554,7 @@ class JModelLegacyTest extends TestCaseDatabase
 
 		$this->fixture->setDbo($dbMock);
 
-		$method->invokeArgs($this->fixture, array('param1', 'param2', 'param3'));
+		$method->invokeArgs($this->fixture, ['param1', 'param2', 'param3']);
 	}
 
 	/**
@@ -580,7 +581,7 @@ class JModelLegacyTest extends TestCaseDatabase
 
 		$this->fixture->setDbo($dbMock);
 
-		$this->assertEquals('returnValue', $method->invokeArgs($this->fixture, array('')));
+		$this->assertEquals('returnValue', $method->invokeArgs($this->fixture, ['']));
 	}
 
 	/**
@@ -615,7 +616,7 @@ class JModelLegacyTest extends TestCaseDatabase
 
 		$this->fixture->setDbo($dbMock);
 
-		$this->assertEquals(1, $method->invokeArgs($this->fixture, array('param1')));
+		$this->assertEquals(1, $method->invokeArgs($this->fixture, ['param1']));
 	}
 
 	/**
@@ -632,7 +633,7 @@ class JModelLegacyTest extends TestCaseDatabase
 		$method = new ReflectionMethod('TestModelLead', '_getListCount');
 		$method->setAccessible(true);
 
-		$queryMock = $this->getMockBuilder('JDatabaseQuery')->setMethods(array('select', 'clear'))->getMock();
+		$queryMock = $this->getMockBuilder('JDatabaseQuery')->setMethods(['select', 'clear'])->getMock();
 		$queryMock->method('clear')->will($this->returnSelf());
 
 		TestReflection::setValue($queryMock, 'type', 'select');
@@ -652,7 +653,7 @@ class JModelLegacyTest extends TestCaseDatabase
 
 		$this->fixture->setDbo($dbMock);
 
-		$this->assertEquals(1, $method->invokeArgs($this->fixture, array($queryMock)));
+		$this->assertEquals(1, $method->invokeArgs($this->fixture, [$queryMock]));
 	}
 
 	/**
@@ -669,6 +670,6 @@ class JModelLegacyTest extends TestCaseDatabase
 		$method = new ReflectionMethod('TestModelLead', '_createTable');
 		$method->setAccessible(true);
 
-		$this->assertInstanceOf('JTableAsset', $method->invokeArgs($this->fixture, array('Asset', 'JTable')));
+		$this->assertInstanceOf('JTableAsset', $method->invokeArgs($this->fixture, ['Asset', 'JTable']));
 	}
 }

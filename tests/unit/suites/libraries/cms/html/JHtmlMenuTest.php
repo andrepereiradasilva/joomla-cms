@@ -91,7 +91,7 @@ class JHtmlMenuTest extends TestCaseDatabase
 	{
 		$this->assertContains(
 			'<option value="mainmenu.435">- Home</option>',
-			JHtmlSelect::options(JHtmlMenu::menuitems(), array('published' => '1'))
+			JHtmlSelect::options(JHtmlMenu::menuitems(), ['published' => '1'])
 		);
 	}
 }

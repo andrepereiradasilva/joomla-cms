@@ -64,6 +64,6 @@ class JModelItemTest extends TestCase
 		$method = new ReflectionMethod('JModelItem', 'getStoreId');
 		$method->setAccessible(true);
 
-		$this->assertEquals(md5('teststring'), $method->invokeArgs($this->object, array('teststring')));
+		$this->assertEquals(md5('teststring'), $method->invokeArgs($this->object, ['teststring']));
 	}
 }

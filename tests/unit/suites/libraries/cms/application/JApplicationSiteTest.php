@@ -67,11 +67,11 @@ class JApplicationSiteTest extends TestCaseDatabase
 	 */
 	public function getRedirectData()
 	{
-		return array(
+		return [
 			// Note: url, base, request, (expected result)
-			array('/foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'),
-			array('foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'),
-		);
+			['/foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'],
+			['foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'],
+		];
 	}
 
 	/**
@@ -106,7 +106,7 @@ class JApplicationSiteTest extends TestCaseDatabase
 		$this->class = new JApplicationSite($this->getMockInput(), $config);
 		$this->class->setSession(JFactory::$session);
 		$this->class->setDispatcher($this->getMockDispatcher());
-		TestReflection::setValue('JApplicationCms', 'instances', array('site' => $this->class));
+		TestReflection::setValue('JApplicationCms', 'instances', ['site' => $this->class]);
 
 		JFactory::$application = $this->class;
 	}
@@ -122,7 +122,7 @@ class JApplicationSiteTest extends TestCaseDatabase
 	protected function tearDown()
 	{
 		// Reset the application instance.
-		TestReflection::setValue('JApplicationCms', 'instances', array());
+		TestReflection::setValue('JApplicationCms', 'instances', []);
 		TestReflection::setValue('JPluginHelper', 'plugins', null);
 
 		$_SERVER = $this->backupServer;
@@ -310,7 +310,7 @@ class JApplicationSiteTest extends TestCaseDatabase
 	{
 		$document = $this->getMockDocument();
 
-		$this->assignMockReturns($document, array('render' => 'JWeb Body'));
+		$this->assignMockReturns($document, ['render' => 'JWeb Body']);
 
 		// Manually inject the document.
 		TestReflection::setValue($this->class, 'document', $document);

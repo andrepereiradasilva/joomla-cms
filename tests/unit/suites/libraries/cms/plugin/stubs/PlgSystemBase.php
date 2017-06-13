@@ -28,7 +28,7 @@ class PlgSystemBase extends JPlugin
 		$this->autoloadLanguage = true;
 
 		// Config array for JPlugin constructor
-		$config = array();
+		$config = [];
 		$config['name']   = 'Base';
 		$config['type']   = 'System';
 		$config['params'] = new Registry;

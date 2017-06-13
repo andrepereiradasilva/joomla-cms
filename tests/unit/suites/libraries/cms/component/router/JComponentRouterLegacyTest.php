@@ -80,10 +80,10 @@ class JComponentRouterLegacyTest extends TestCase
 	 */
 	public function testPreprocess()
 	{
-		$this->assertEquals(array(), $this->object->preprocess(array()));
+		$this->assertEquals([], $this->object->preprocess([]));
 		$this->assertEquals(
-			array('option' => 'com_test', 'view' => 'test'),
-			$this->object->preprocess(array('option' => 'com_test', 'view' => 'test'))
+			['option' => 'com_test', 'view' => 'test'],
+			$this->object->preprocess(['option' => 'com_test', 'view' => 'test'])
 		);
 	}
 
@@ -97,17 +97,20 @@ class JComponentRouterLegacyTest extends TestCase
 	 */
 	public function testBuild()
 	{
-		$array = array();
+		$array = [];
 		$this->assertEquals($array,	$this->object->build($array));
-		$query = array('option' => 'com_test');
-		$segments = array('option-com_test');
+
+		$query    = ['option' => 'com_test'];
+		$segments = ['option-com_test'];
 		$this->assertEquals($segments, $this->object->build($query));
-		$query = array('option' => 'com_test', '42' => 'test-test');
-		$segments = array('option-com_test', '42-test-test');
+
+		$query    = ['option' => 'com_test', '42' => 'test-test'];
+		$segments = ['option-com_test', '42-test-test'];
 		$this->assertEquals($segments, $this->object->build($query));
+
 		$object = new JComponentRouterLegacy('fake');
-		$query = array('option' => 'com_test', '42' => 'test-test');
-		$this->assertEquals(array(), $object->build($query));
+		$query  = ['option' => 'com_test', '42' => 'test-test'];
+		$this->assertEquals([], $object->build($query));
 	}
 
 	/**
@@ -120,16 +123,19 @@ class JComponentRouterLegacyTest extends TestCase
 	 */
 	public function testParse()
 	{
-		$array = array();
+		$array = [];
 		$this->assertEquals($array,	$this->object->parse($array));
-		$query = array('option' => 'com_test');
-		$segments = array('option-com_test');
+
+		$query    = ['option' => 'com_test'];
+		$segments = ['option-com_test'];
 		$this->assertEquals($query, $this->object->parse($segments));
-		$query = array('option' => 'com_test', '42' => 'test-test');
-		$segments = array('option-com_test', '42-test-test');
+
+		$query    = ['option' => 'com_test', '42' => 'test-test'];
+		$segments = ['option-com_test', '42-test-test'];
 		$this->assertEquals($query, $this->object->parse($segments));
-		$object = new JComponentRouterLegacy('fake');
-		$segments = array('option-com_test', '42-test-test');
-		$this->assertEquals(array(), $object->parse($segments));
+
+		$object   = new JComponentRouterLegacy('fake');
+		$segments = ['option-com_test', '42-test-test'];
+		$this->assertEquals([], $object->parse($segments));
 	}
 }

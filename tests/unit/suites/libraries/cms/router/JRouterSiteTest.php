@@ -104,12 +104,12 @@ class JRouterSiteTest extends TestCaseDatabase
 		$this->assertTrue(count($rules['build']) == 0);
 		$this->assertTrue(count($rules['build' . JRouter::PROCESS_AFTER]) > 0);
 
-		$config = array(
-			array('sef', null, 1),
-			array('force_ssl', null, 2),
-			array('sef_suffix', null, 1),
-			array('sef_rewrite', null, 1)
-		);
+		$config = [
+			['sef', null, 1],
+			['force_ssl', null, 2],
+			['sef_suffix', null, 1],
+			['sef_rewrite', null, 1]
+		];
 		$app = $this->getMockCmsApp();
 		$app->method('get')->will($this->returnValueMap($config));
 		$object = new JRouterSite($app, $app->getMenu());
@@ -169,43 +169,45 @@ class JRouterSiteTest extends TestCaseDatabase
 	 */
 	public function casesParseInit()
 	{
-		$server1 = array(
+		$server1 = [
 			'HTTP_HOST'   => '',
 			'SCRIPT_NAME' => '',
 			'PHP_SELF'    => '',
 			'REQUEST_URI' => ''
-		);
+		];
 
-		$server2 = array(
+		$server2 = [
 			'HTTP_HOST'   => 'www.example.com:80',
 			'SCRIPT_NAME' => '/joomla/index.php',
 			'PHP_SELF'    => '/joomla/index.php',
 			'REQUEST_URI' => '/joomla/index.php?var=value 10'
-		);
-		$server3 = array(
+		];
+
+		$server3 = [
 			'HTTP_HOST'       => '',
 			'SCRIPT_NAME'     => '',
 			'SCRIPT_FILENAME' => JPATH_SITE . '/cli/deletefiles.php',
 			'PHP_SELF'        => '',
 			'REQUEST_URI'     => ''
-		);
-		return array(
-			array(
-				'url'     => '/joomla/blog/test%202',
-				'server'  => $server1,
-				'expUrl'  => 'joomla/blog/test 2'
-			),
-			array(
-				'url'     => '/joomla/blog/te%20st',
-				'server'  => $server2,
-				'expUrl'  => 'blog/te st'
-			),
-			array(
-				'url'     => '/cli/deletefiles.php?var1=value1',
-				'server'  => $server3,
-				'expUrl'  => '?var1=value1'
-			)
-		);
+		];
+
+		return [
+			[
+				'url'    => '/joomla/blog/test%202',
+				'server' => $server1,
+				'expUrl' => 'joomla/blog/test 2'
+			],
+			[
+				'url'    => '/joomla/blog/te%20st',
+				'server' => $server2,
+				'expUrl' => 'blog/te st'
+			],
+			[
+				'url'    => '/cli/deletefiles.php?var1=value1',
+				'server' => $server3,
+				'expUrl' => '?var1=value1'
+			]
+		];
 	}
 
 	/**
@@ -244,27 +246,27 @@ class JRouterSiteTest extends TestCaseDatabase
 		$this->object->parseFormat($this->object, $uri);
 
 		$this->assertEquals('index.php', $uri->getPath());
-		$this->assertEquals(array(), $uri->getQuery(true));
+		$this->assertEquals([], $uri->getQuery(true));
 
 		$uri2 = new JUri('/test/');
 		$this->object->parseFormat($this->object, $uri2);
 		$this->assertEquals('/test/', $uri2->getPath());
-		$this->assertEquals(array(), $uri2->getQuery(true));
+		$this->assertEquals([], $uri2->getQuery(true));
 
 		$uri3 = new JUri('/test.html');
 		$this->object->parseFormat($this->object, $uri3);
 		$this->assertEquals('/test', $uri3->getPath());
-		$this->assertEquals(array('format' => 'html'), $uri3->getQuery(true));
+		$this->assertEquals(['format' => 'html'], $uri3->getQuery(true));
 
 		$uri4 = new JUri('/test.json');
 		$this->object->parseFormat($this->object, $uri4);
 		$this->assertEquals('/test', $uri4->getPath());
-		$this->assertEquals(array('format' => 'json'), $uri4->getQuery(true));
+		$this->assertEquals(['format' => 'json'], $uri4->getQuery(true));
 
 		$uri5 = new JUri('/index.php/test.html');
 		$this->object->parseFormat($this->object, $uri5);
 		$this->assertEquals('/index.php/test', $uri5->getPath());
-		$this->assertEquals(array('format' => 'html'), $uri5->getQuery(true));
+		$this->assertEquals(['format' => 'html'], $uri5->getQuery(true));
 	}
 
 	/**
@@ -276,43 +278,43 @@ class JRouterSiteTest extends TestCaseDatabase
 	 */
 	public function casesParseSefRoute()
 	{
-		return array(
+		return [
 			// Empty URLs without a default menu item return nothing
-			'empty-sef'                     => array(
+			'empty-sef'                     => [
 				'',
 				''
-			),
+			],
 			// Absolute URLs to the domain of the site
-			'matching-menu'     => array(
+			'matching-menu'                 => [
 				'test',
 				'?Itemid=42&option=com_test'
-			),
-			'abs-sef-path-no_qs-no_sfx'     => array(
+			],
+			'abs-sef-path-no_qs-no_sfx'     => [
 				'test/path',
 				'path?Itemid=42&option=com_test'
-			),
-			'abs-sef-path-no_qs-no'     => array(
+			],
+			'abs-sef-path-no_qs-no'         => [
 				'path',
 				'path?Itemid=45&option=com_test3'
-			),
-			'abs-sef-path-qs-no_sfx'        => array(
+			],
+			'abs-sef-path-qs-no_sfx'        => [
 				'test/path?testvar=testvalue',
 				'path?testvar=testvalue&Itemid=42&option=com_test'
-			),
-			'abs-sef-no_path-qs-no_sfx'     => array(
+			],
+			'abs-sef-no_path-qs-no_sfx'     => [
 				'?testvar=testvalue',
 				'?testvar=testvalue'
-			),
+			],
 			// URLs with /component/something
-			'comp-sef-2lvl'                 => array(
+			'comp-sef-2lvl'                 => [
 				'component/test',
 				'?option=com_test'
-			),
-			'comp-sef-3lvl'                 => array(
+			],
+			'comp-sef-3lvl'                 => [
 				'component/test2/something',
 				'something?option=com_test2&testvar=testvalue'
-			)
-		);
+			]
+		];
 	}
 
 	/**
@@ -366,11 +368,11 @@ class JRouterSiteTest extends TestCaseDatabase
 	{
 		$uri = new JUri('index.php');
 		$this->object->parsePaginationData($this->object, $uri);
-		$this->assertEquals(array(), $uri->getQuery(true));
+		$this->assertEquals([], $uri->getQuery(true));
 
 		$uri = new JUri('/test?start=23wrong');
 		$this->object->parsePaginationData($this->object, $uri);
-		$this->assertEquals(array('limitstart' => '23wrong'), $uri->getQuery(true));
+		$this->assertEquals(['limitstart' => '23wrong'], $uri->getQuery(true));
 	}
 
 	/**
@@ -417,22 +419,22 @@ class JRouterSiteTest extends TestCaseDatabase
 		// Assert preprocess exits without option
 		$uri = new JUri('index.php?test=true');
 		$this->object->buildComponentPreprocess($this->object, $uri);
-		$this->assertEquals('index.php?test=true', (string)$uri);
+		$this->assertEquals('index.php?test=true', (string) $uri);
 
 		// Assert preprocess of Component router is run
 		$uri = new JUri('index.php?option=com_test');
 		$this->object->buildComponentPreprocess($this->object, $uri);
-		$this->assertEquals('index.php?option=com_test&testvar=testvalue', (string)$uri);
+		$this->assertEquals('index.php?option=com_test&testvar=testvalue', (string) $uri);
 
 		// Assert menu query is merged into request
 		$uri = new JUri('index.php?option=com_test42&Itemid=42');
 		$this->object->buildComponentPreprocess($this->object, $uri);
-		$this->assertEquals('index.php?option=com_test42&view=test&Itemid=42', (string)$uri);
+		$this->assertEquals('index.php?option=com_test42&view=test&Itemid=42', (string) $uri);
 
 		// Assert menu query is merged into request with language
 		$uri = new JUri('index.php?option=com_test42&Itemid=42&lang=en-GB');
 		$this->object->buildComponentPreprocess($this->object, $uri);
-		$this->assertEquals('index.php?option=com_test42&view=test&Itemid=42&lang=en-GB', (string)$uri);
+		$this->assertEquals('index.php?option=com_test42&view=test&Itemid=42&lang=en-GB', (string) $uri);
 	}
 
 	/**
@@ -444,48 +446,48 @@ class JRouterSiteTest extends TestCaseDatabase
 	 */
 	public function casesBuildSefRoute()
 	{
-		return array(
-			'Empty URLs are returned identically'                                     => array(
+		return [
+			'Empty URLs are returned identically'                                     => [
 				'url'      => '',
 				'expected' => ''
-			),
-			'URLs without an option are returned identically'                         => array(
+			],
+			'URLs without an option are returned identically'                         => [
 				'url'      => 'index.php?var1=value1',
 				'expected' => 'index.php?var1=value1'
-			),
-			'The menu item is properly prepended'                                     => array(
+			],
+			'The menu item is properly prepended'                                     => [
 				'url'      => 'index.php?option=com_test&var1=value1&Itemid=42',
 				'expected' => 'index.php/test?var1=value1'
-			),
-			'A non existing menu item is correctly ignored'                           => array(
+			],
+			'A non existing menu item is correctly ignored'                           => [
 				'url'      => 'index.php?option=com_test&var1=value1&Itemid=41',
 				'expected' => 'index.php/component/test?var1=value1&Itemid=41'
-			),
-			'A menu item with a parent is properly prepended'                         => array(
+			],
+			'A menu item with a parent is properly prepended'                         => [
 				'url'      => 'index.php?option=com_test&var1=value1&Itemid=46',
 				'expected' => 'index.php/test/sub-menu?var1=value1'
-			),
-			'Component router build: The menu item is properly prepended'             => array(
+			],
+			'Component router build: The menu item is properly prepended'             => [
 				'url'      => 'index.php?option=com_test2&var1=value1&Itemid=43',
 				'expected' => 'index.php/test2/router-test/another-segment?var1=value1'
-			),
-			'Component router build: A non existing menu item is correctly ignored'   => array(
+			],
+			'Component router build: A non existing menu item is correctly ignored'   => [
 				'url'      => 'index.php?option=com_test2&var1=value1&Itemid=41',
 				'expected' => 'index.php/component/test2/router-test/another-segment?var1=value1&Itemid=41'
-			),
-			'Component router build: A menu item with a parent is properly prepended' => array(
+			],
+			'Component router build: A menu item with a parent is properly prepended' => [
 				'url'      => 'index.php?option=com_test2&var1=value1&Itemid=44',
 				'expected' => 'index.php/test2/sub-menu/router-test/another-segment?var1=value1'
-			),
-			'A home menu item is treated properly (without vars)'                     => array(
+			],
+			'A home menu item is treated properly (without vars)'                     => [
 				'url'      => 'index.php?Itemid=45&option=com_test3',
 				'expected' => 'index.php'
-			),
-			'A home menu item is treated properly (with vars)'                        => array(
+			],
+			'A home menu item is treated properly (with vars)'                        => [
 				'url'      => 'index.php?Itemid=45&option=com_test3&testvar=testvalue',
 				'expected' => 'index.php?testvar=testvalue'
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -521,11 +523,11 @@ class JRouterSiteTest extends TestCaseDatabase
 	{
 		$uri = new JUri('index.php');
 		$this->object->buildPaginationData($this->object, $uri);
-		$this->assertEquals(array(), $uri->getQuery(true));
+		$this->assertEquals([], $uri->getQuery(true));
 
 		$uri2 = new JUri('/test?limitstart=23wrong');
 		$this->object->buildPaginationData($this->object, $uri2);
-		$this->assertEquals(array('start' => 23), $uri2->getQuery(true));
+		$this->assertEquals(['start' => 23], $uri2->getQuery(true));
 	}
 
 	/**
@@ -541,27 +543,27 @@ class JRouterSiteTest extends TestCaseDatabase
 		$uri = new JUri('index.php');
 		$this->object->buildFormat($this->object, $uri);
 		$this->assertEquals('index.php', $uri->getPath());
-		$this->assertEquals(array(), $uri->getQuery(true));
+		$this->assertEquals([], $uri->getQuery(true));
 
 		$uri2 = new JUri('/test/');
 		$this->object->buildFormat($this->object, $uri2);
 		$this->assertEquals('/test/', $uri2->getPath());
-		$this->assertEquals(array(), $uri2->getQuery(true));
+		$this->assertEquals([], $uri2->getQuery(true));
 
 		$uri3 = new JUri('/test');
 		$this->object->buildFormat($this->object, $uri3);
 		$this->assertEquals('/test.html', $uri3->getPath());
-		$this->assertEquals(array(), $uri3->getQuery(true));
+		$this->assertEquals([], $uri3->getQuery(true));
 
 		$uri4 = new JUri('/test?format=json');
 		$this->object->buildFormat($this->object, $uri4);
 		$this->assertEquals('/test.json', $uri4->getPath());
-		$this->assertEquals(array(), $uri4->getQuery(true));
+		$this->assertEquals([], $uri4->getQuery(true));
 
 		$uri5 = new JUri('/index.php/test?format=html&test=true');
 		$this->object->buildFormat($this->object, $uri5);
 		$this->assertEquals('/index.php/test.html', $uri5->getPath());
-		$this->assertEquals(array('test' => 'true'), $uri5->getQuery(true));
+		$this->assertEquals(['test' => 'true'], $uri5->getQuery(true));
 	}
 
 	/**
@@ -595,12 +597,12 @@ class JRouterSiteTest extends TestCaseDatabase
 	 */
 	public function testBuildBase()
 	{
-		$server = array(
+		$server = [
 			'HTTP_HOST'   => 'www.example.com:80',
 			'SCRIPT_NAME' => '/joomla/index.php',
 			'PHP_SELF'    => '/joomla/index.php',
 			'REQUEST_URI' => '/joomla/index.php?var=value 10'
-		);
+		];
 
 		$_SERVER = array_merge($_SERVER, $server);
 

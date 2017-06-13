@@ -121,7 +121,7 @@ class JToolbarButtonTest extends TestCaseDatabase
 	 */
 	public function testRender()
 	{
-		$type = array('Standard', 'test');
+		$type = ['Standard', 'test'];
 
 		$expected = "\n<button onclick=\"if (document.adminForm.boxchecked.value == 0) { Joomla.renderMessages({'error': [Joomla.JText._('JLIB_HTML_PLEASE_MAKE_A_SELECTION_FROM_THE_LIST')]}) } else { Joomla.submitbutton(''); }\" class=\"btn btn-sm btn-outline-primary\">\n\t<span class=\"icon-test\" aria-hidden=\"true\"></span>\n\t</button>\n";
 

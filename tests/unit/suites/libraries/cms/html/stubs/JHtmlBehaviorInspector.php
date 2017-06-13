@@ -25,7 +25,7 @@ abstract class JHtmlBehaviorInspector extends JHtmlBehavior
 	 */
 	public static function resetLoaded()
 	{
-		static::$loaded = array();
+		static::$loaded = [];
 	}
 
 	/**

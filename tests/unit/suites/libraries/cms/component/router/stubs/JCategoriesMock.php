@@ -23,7 +23,7 @@ class UnittestCategories extends JCategories
 	 *
 	 * @since   11.1
 	 */
-	public function __construct($options = array())
+	public function __construct($options = [])
 	{
 		$options['table'] = '#__content';
 		$options['extension'] = 'com_content';

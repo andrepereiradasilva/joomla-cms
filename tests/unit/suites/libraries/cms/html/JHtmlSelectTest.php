@@ -25,61 +25,61 @@ class JHtmlSelectTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function getGenericlistData()
 	{
-		return array(
-			// Function parameters array($expected, $data, $name, $attribs = null, $optKey = 'value', $optText = 'text',
-			// 						$selected = null, $idtag = false, $translate = false)
-			array(
+		return [
+			// Function parameters [$expected, $data, $name, $attribs = null, $optKey = 'value', $optText = 'text',
+			// 						$selected = null, $idtag = false, $translate = false]
+			[
 				"<select id=\"myName\" name=\"myName\">\n\t<option value=\"1\">Foo</option>\n\t<option value=\"2\">Bar</option>\n</select>\n",
-				array(
-					array(
+				[
+					[
 						'value' => '1',
-						'text' => 'Foo',
-					),
-					array(
+						'text'  => 'Foo',
+					],
+					[
 						'value' => '2',
-						'text' => 'Bar',
-					),
-				),
+						'text'  => 'Bar',
+					],
+				],
 				'myName',
-			),
-			array(
+			],
+			[
 				"<select id=\"myId\" name=\"myName\">\n\t<option value=\"1\">Foo</option>\n\t<option value=\"2\" selected=\"selected\">Bar</option>\n</select>\n",
-				array(
-					array(
+				[
+					[
 						'value' => '1',
-						'text' => 'Foo',
-					),
-					array(
+						'text'  => 'Foo',
+					],
+					[
 						'value' => '2',
-						'text' => 'Bar',
-					),
-				),
+						'text'  => 'Bar',
+					],
+				],
 				'myName',
 				null,
 				'value',
 				'text',
 				'2',
 				'myId',
-			),
-			array(
+			],
+			[
 				"<select id=\"myId\" name=\"myName\">\n\t<option value=\"1\">Foo</option>\n\t<option value=\"2\" selected=\"selected\">Bar</option>\n</select>\n",
-				array(
-					array(
+				[
+					[
 						'value' => '1',
-						'text' => 'Foo',
-					),
-					array(
+						'text'  => 'Foo',
+					],
+					[
 						'value' => '2',
-						'text' => 'Bar',
-					),
-				),
+						'text'  => 'Bar',
+					],
+				],
 				'myName',
-				array(
-					'id' => 'myId',
+				[
+					'id'          => 'myId',
 					'list.select' => '2',
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 
 	/**
@@ -91,10 +91,10 @@ class JHtmlSelectTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function getRadiolistData()
 	{
-		return array(
-			// Function parameters array($expected, $data, $name, $attribs = null, $optKey = 'value', $optText = 'text', $selected = null, $idtag = false,
-			// 						$translate = false)
-			array(
+		return [
+			// Function parameters [$expected, $data, $name, $attribs = null, $optKey = 'value', $optText = 'text', $selected = null, $idtag = false,
+			// 						$translate = false]
+			[
 				"<div class=\"controls\">\n\t" .
 				"<label for=\"yesId\" id=\"yesId-lbl\" class=\"radio\">\n\t\n\t" .
 				"<input type=\"radio\" name=\"myRadioListName\" id=\"yesId\" value=\"1\" >Yes\n\t" .
@@ -106,24 +106,24 @@ class JHtmlSelectTest extends \PHPUnit\Framework\TestCase
 				"<input type=\"radio\" name=\"myRadioListName\" id=\"myRadioListName-1\" value=\"-1\" >Maybe\n\t" .
 				"</label>\n" .
 				"</div>\n",
-				array(
-					array(
+				[
+					[
 						'value' => '1',
-						'text' => 'Yes',
-						'id' => "yesId",
-					),
-					array(
+						'text'  => 'Yes',
+						'id'    => "yesId",
+					],
+					[
 						'value' => '0',
-						'text' => 'No',
-					),
-					array(
+						'text'  => 'No',
+					],
+					[
 						'value' => '-1',
-						'text' => 'Maybe',
-					),
-				),
+						'text'  => 'Maybe',
+					],
+				],
 				"myRadioListName"
-			),
-			array(
+			],
+			[
 				"<div class=\"controls\">\n\t" .
 				"<label for=\"fooId\" id=\"fooId-lbl\" class=\"radio\">\n\t\n\t" .
 				"<input type=\"radio\" name=\"myFooBarListName\" id=\"fooId\" value=\"foo\" class=\"i am radio\" onchange=\"jsfunc();\">FOO\n\t" .
@@ -132,26 +132,26 @@ class JHtmlSelectTest extends \PHPUnit\Framework\TestCase
 				"<input type=\"radio\" name=\"myFooBarListName\" id=\"myFooBarListNamebar\" value=\"bar\" class=\"i am radio\" onchange=\"jsfunc();\">BAR\n\t" .
 				"</label>\n" .
 				"</div>\n",
-				array(
-					array(
+				[
+					[
 						'key' => 'foo',
 						'val' => 'FOO',
-						'id' => "fooId",
-					),
-					array(
+						'id'  => "fooId",
+					],
+					[
 						'key' => 'bar',
 						'val' => 'BAR',
-					),
-				),
+					],
+				],
 				"myFooBarListName",
-				array(
-					'class' => 'i am radio',
+				[
+					'class'    => 'i am radio',
 					'onchange' => 'jsfunc();',
-				),
+				],
 				'key',
 				'val',
-			),
-		);
+			],
+		];
 	}
 
 	/**
@@ -163,73 +163,73 @@ class JHtmlSelectTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function getOptionsData()
 	{
-		return array(
-			// Function parameters array($expected, $arr, $optKey = 'value', $optText = 'text', $selected = null, $translate = false)
-			array(
+		return [
+			// Function parameters [$expected, $arr, $optKey = 'value', $optText = 'text', $selected = null, $translate = false]
+			[
 				"<option value=\"1\">&nbsp;Test</option>\n",
-				array(
-					array(
+				[
+					[
 						'value' => '1',
-						'text' => '&nbsp;Test',
-					),
-				),
-			),
-			array(
+						'text'  => '&nbsp;Test',
+					],
+				],
+			],
+			[
 				"<option value=\"1\" disabled=\"disabled\">&nbsp;Test</option>\n",
-				array(
-					array(
-						'value' => '1',
-						'text' => '&nbsp;Test',
+				[
+					[
+						'value'   => '1',
+						'text'    => '&nbsp;Test',
 						'disable' => true,
-					),
-				),
-			),
-			array(
+					],
+				],
+			],
+			[
 				"<option value=\"1\">&nbsp;Test</option>\n",
-				array(
-					array(
+				[
+					[
 						'optionValue' => '1',
-						'optionText' => '&nbsp;Test',
-					),
-				),
-				array(
-					'option.key' => 'optionValue',
+						'optionText'  => '&nbsp;Test',
+					],
+				],
+				[
+					'option.key'  => 'optionValue',
 					'option.text' => 'optionText'
-				),
-			),
-			array(
+				],
+			],
+			[
 				"<option value=\"1\" id=\"myId\" label=\"My Label\" readonly>&nbsp;Test</option>\n",
-				array(
-					array(
-						'value' => '1',
-						'text' => '&nbsp;Test -         ',
-						'label' => 'My Label',
-						'id' => 'myId',
+				[
+					[
+						'value'       => '1',
+						'text'        => '&nbsp;Test -         ',
+						'label'       => 'My Label',
+						'id'          => 'myId',
 						'extraAttrib' => 'readonly',
-					),
-				),
-				array(
+					],
+				],
+				[
 					'option.label' => 'label',
-					'option.id' => 'id',
-					'option.attr' => 'extraAttrib',
-				),
-			),
-			array(
+					'option.id'    => 'id',
+					'option.attr'  => 'extraAttrib',
+				],
+			],
+			[
 				"<option value=\"1\" class=\"foo bar\" style=\"color:red;\">-&nbsp;Test -</option>\n",
-				array(
-					array(
+				[
+					[
 						'value' => '1',
-						'text' => '-&nbsp;Test -',
+						'text'  => '-&nbsp;Test -',
 						'label' => 'My Label',
-						'id' => 'myId',
-						'attrs' => array('class' => "foo bar",'style' => 'color:red;',),
-					),
-				),
-				array(
+						'id'    => 'myId',
+						'attrs' => ['class' => "foo bar",'style' => 'color:red;',],
+					],
+				],
+				[
 					'option.attr' => 'attrs',
-				),
-			),
-		);
+				],
+			],
+		];
 	}
 
 	/**
@@ -241,61 +241,61 @@ class JHtmlSelectTest extends \PHPUnit\Framework\TestCase
 	 */
 	public function getOptionData()
 	{
-		return array(
-			// Function parameters array($expected, $value, $text = '', $optKey = 'value', $optText = 'text', $disable = false)
-			array(
-				array(
-					'value' => 'optionValue',
-					'text' => 'optionText',
+		return [
+			// Function parameters [$expected, $value, $text = '', $optKey = 'value', $optText = 'text', $disable = false]
+			[
+				[
+					'value'   => 'optionValue',
+					'text'    => 'optionText',
 					'disable' => false,
-				),
+				],
 				'optionValue',
 				'optionText'
-			),
-			array(
-				array(
-					'fookey' => 'optionValue',
+			],
+			[
+				[
+					'fookey'  => 'optionValue',
 					'bartext' => 'optionText',
 					'disable' => false,
-				),
+				],
 				'optionValue',
 				'optionText',
 				'fookey',
 				'bartext',
-			),
-			array(
-				array(
-					'value' => 'optionValue',
-					'text' => 'optionText',
+			],
+			[
+				[
+					'value'   => 'optionValue',
+					'text'    => 'optionText',
 					'disable' => true,
-				),
+				],
 				'optionValue',
 				'optionText',
 				'value',
 				'text',
 				true,
-			),
-			array(
-				array(
-					'optionValue' => 'optionValue',
-					'optionText' => 'optionText',
+			],
+			[
+				[
+					'optionValue'    => 'optionValue',
+					'optionText'     => 'optionText',
 					'foobarDisabled' => false,
-					'lebal' => 'My Label',
-					'class' => 'foo bar',
-				),
+					'lebal'          => 'My Label',
+					'class'          => 'foo bar',
+				],
 				'optionValue',
 				'optionText',
-				array(
+				[
 					'option.disable' => 'foobarDisabled',
-					'option.attr' => 'class',
-					'attr' => 'foo bar',
-					'option.label' => 'lebal',
-					'label' => "My Label",
-					'option.key' => 'optionValue',
-					'option.text' => 'optionText',
-				),
-			),
-		);
+					'option.attr'    => 'class',
+					'attr'           => 'foo bar',
+					'option.label'   => 'lebal',
+					'label'          => "My Label",
+					'option.key'     => 'optionValue',
+					'option.text'    => 'optionText',
+				],
+			],
+		];
 	}
 
 	/**

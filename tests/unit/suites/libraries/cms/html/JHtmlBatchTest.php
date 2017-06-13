@@ -95,11 +95,11 @@ class JHtmlBatchTest extends TestCaseDatabase
 		$result = JHtmlBatch::access();
 
 		// Build the container to check the <label> element
-		$matcher = array(
+		$matcher = [
 			'id'      => 'batch-access-lbl',
 			'tag'     => 'label',
 			'content' => 'JLIB_HTML_BATCH_ACCESS_LABEL'
-		);
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -108,15 +108,15 @@ class JHtmlBatchTest extends TestCaseDatabase
 		);
 
 		// Build the container to check the <select> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'batch-access',
 			'tag'   => 'select',
-			'child' => array(
+			'child' => [
 				'tag'        => 'option',
 				'content'    => 'Public',
-				'attributes' => array('value' => '1')
-			)
-		);
+				'attributes' => ['value' => '1']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -137,11 +137,11 @@ class JHtmlBatchTest extends TestCaseDatabase
 		$result = JHtmlBatch::item('com_content');
 
 		// Build the container to check the <label> element
-		$matcher = array(
+		$matcher = [
 			'id'      => 'batch-choose-action-lbl',
 			'tag'     => 'label',
 			'content' => 'JLIB_HTML_BATCH_MENU_LABEL'
-		);
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -150,19 +150,19 @@ class JHtmlBatchTest extends TestCaseDatabase
 		);
 
 		// Build the container to check the <div> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'batch-choose-action',
 			'tag'   => 'div',
-			'child' => array(
+			'child' => [
 				'id'    => 'batch-category-id',
 				'tag'   => 'select',
-				'child' => array(
+				'child' => [
 					'tag'=> 'option',
 					'content'    => '- - - Modules',
-					'attributes' => array('value' => '22'),
-				)
-			)
-		);
+					'attributes' => ['value' => '22'],
+				]
+			]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -183,11 +183,11 @@ class JHtmlBatchTest extends TestCaseDatabase
 		$result = JHtmlBatch::language();
 
 		// Build the container to check the <label> element
-		$matcher = array(
+		$matcher = [
 			'id'      => 'batch-language-lbl',
 			'tag'     => 'label',
 			'content' => 'JLIB_HTML_BATCH_LANGUAGE_LABEL'
-		);
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -196,15 +196,15 @@ class JHtmlBatchTest extends TestCaseDatabase
 		);
 
 		// Build the container to check the <select> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'batch-language-id',
 			'tag'   => 'select',
-			'child' => array(
+			'child' => [
 				'tag'        => 'option',
 				'content'    => 'English (en-GB)',
-				'attributes' => array('value' => 'en-GB')
-			)
-		);
+				'attributes' => ['value' => 'en-GB']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -225,11 +225,11 @@ class JHtmlBatchTest extends TestCaseDatabase
 		$result = JHtmlBatch::user(true);
 
 		// Build the container to check the <label> element
-		$matcher = array(
+		$matcher = [
 			'id'      => 'batch-user-lbl',
 			'tag'     => 'label',
 			'content' => 'JLIB_HTML_BATCH_USER_LABEL'
-		);
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -238,15 +238,15 @@ class JHtmlBatchTest extends TestCaseDatabase
 		);
 
 		// Build the container to check the <select> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'batch-user-id',
 			'tag'   => 'select',
-			'child' => array(
+			'child' => [
 				'tag'        => 'option',
 				'content'    => 'Super User',
-				'attributes' => array('value' => '42')
-			)
-		);
+				'attributes' => ['value' => '42']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,

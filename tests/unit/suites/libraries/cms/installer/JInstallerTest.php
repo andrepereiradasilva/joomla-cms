@@ -204,17 +204,17 @@ class JInstallerTest extends TestCaseDatabase
 	{
 		// Build the mock object.
 		$adapterMock  = $this->getMockBuilder('test')
-					->setMethods(array('_rollback_testtype'))
+					->setMethods(['_rollback_testtype'])
 					->getMock();
 
 		$adapterMock->expects($this->once())
 			->method('_rollback_testtype')
-			->with($this->equalTo(array('type' => 'testtype')))
+			->with($this->equalTo(['type' => 'testtype']))
 			->will($this->returnValue(true));
 
 		$this->object->setAdapter('testadapter', $adapterMock);
 
-		$this->object->pushStep(array('type' => 'testtype'));
+		$this->object->pushStep(['type' => 'testtype']);
 
 		$this->assertTrue(
 			$this->object->abort(null, 'testadapter')
@@ -230,7 +230,7 @@ class JInstallerTest extends TestCaseDatabase
 	 */
 	public function testAbortBadType()
 	{
-		$this->object->pushStep(array('type' => 'badstep'));
+		$this->object->pushStep(['type' => 'badstep']);
 
 		$this->assertFalse(
 			$this->object->abort(null, false)

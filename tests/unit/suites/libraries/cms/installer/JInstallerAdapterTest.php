@@ -72,7 +72,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase, array('type' => 'component')));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase, ['type' => 'component']]);
 
 		$this->assertAttributeInstanceOf('JTableExtension', 'extension', $object);
 
@@ -96,12 +96,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array(self::$driver))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([self::$driver])
 							->getMock();
 
 		// A set of data for an extension
@@ -112,13 +112,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		// We expect the find method to be called once and this will return the extension ID
 		$mockTableExtension->expects($this->once())
 			->method('find')
-			->with(array('element' => $element, 'type' => $type))
+			->with(['element' => $element, 'type' => $type])
 			->willReturn($extensionId);
 
 		// Ensure that load is called once the extension ID is found
 		$mockTableExtension->expects($this->once())
 			->method('load')
-			->with(array('element' => $element, 'type' => $type));
+			->with(['element' => $element, 'type' => $type]);
 
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
 		TestReflection::setValue($object, 'type', $type);
@@ -144,12 +144,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 
 		// A set of data for an extension
@@ -159,7 +159,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		// We expect the find method to be called once and this will return the extension ID
 		$mockTableExtension->expects($this->once())
 			->method('find')
-			->with(array('element' => $element, 'type' => $type))
+			->with(['element' => $element, 'type' => $type])
 			->willReturn(null);
 
 		// Ensure that load is not called when the extension isn't found
@@ -190,12 +190,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 
 		$type = 'plugin';
@@ -203,7 +203,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 
 		$mockTableExtension->expects($this->once())
 			->method('find')
-			->with(array('element' => $element, 'type' => $type))
+			->with(['element' => $element, 'type' => $type])
 			->willThrowException(new RuntimeException);
 
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -222,7 +222,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testCheckExtensionInFilesystem()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('getPath', 'isOverwrite', 'isUpgrade', 'setOverwrite', 'setUpgrade'))
+						->setMethods(['getPath', 'isOverwrite', 'isUpgrade', 'setOverwrite', 'setUpgrade'])
 						->getMock();
 
 		$mockInstaller->expects($this->once())
@@ -240,14 +240,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 
 		$mockInstaller->expects($this->once())
 			->method('setOverwrite')
-			->willReturnCallback(array($this, 'installerOverwrite'));
+			->willReturnCallback([$this, 'installerOverwrite']);
 
 		$mockInstaller->expects($this->once())
 			->method('setUpgrade')
-			->willReturnCallback(array($this, 'installerUpgrade'));
+			->willReturnCallback([$this, 'installerUpgrade']);
 
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 		$manifestObject = simplexml_load_string($this->sampleManifest);
 
 		TestReflection::setValue($object, 'manifest', $manifestObject);
@@ -281,7 +281,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testsCheckExtensionInFilesystemInstallerRouteSetWhenFilesystemExistsWithExtensionIdSet()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('getPath', 'isOverwrite', 'isUpgrade', 'setOverwrite', 'setUpgrade'))
+						->setMethods(['getPath', 'isOverwrite', 'isUpgrade', 'setOverwrite', 'setUpgrade'])
 						->getMock();
 
 		$mockInstaller->expects($this->once())
@@ -298,7 +298,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 			->willReturn(true);
 
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 		$manifestObject = simplexml_load_string($this->sampleManifest);
 
 		TestReflection::setValue($object, 'manifest', $manifestObject);
@@ -324,7 +324,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testsCheckExtensionInFilesystemWithOverwriteSetFalse()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('getPath', 'isOverwrite', 'isUpgrade'))
+						->setMethods(['getPath', 'isOverwrite', 'isUpgrade'])
 						->getMock();
 
 		$mockInstaller->expects($this->any())
@@ -341,7 +341,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 			->willReturn(false);
 
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 		$manifestObject = simplexml_load_string($this->sampleManifest);
 		unset($manifestObject->update);
 
@@ -359,7 +359,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testDiscoverInstall()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -369,12 +369,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -383,13 +383,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'storeExtension',
 				'setupScriptfile',
 				'setupInstallPaths'
-			)
+			]
 		);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 
 		$mockTableExtension->extension_id = 444;
@@ -433,7 +433,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testDiscoverInstallWithNoDescription()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -443,12 +443,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -457,13 +457,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'storeExtension',
 				'setupScriptfile',
 				'setupInstallPaths'
-			)
+			]
 		);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -506,12 +506,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	 */
 	public function casesTestExceptionThrownInDiscoverInstall()
 	{
-		return array(
-			array('setupInstallPaths'),
-			array('storeExtension'),
-			array('parseQueries'),
-			array('finaliseInstall')
-		);
+		return [
+			['setupInstallPaths'],
+			['storeExtension'],
+			['parseQueries'],
+			['finaliseInstall']
+		];
 	}
 
 	/**
@@ -525,7 +525,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testDiscoverInstallWithExceptionThrownInAdapterMethods($method)
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -535,12 +535,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -549,7 +549,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'storeExtension',
 				'setupScriptfile',
 				'setupInstallPaths'
-			)
+			]
 		);
 
 		// Mock the response of internal methods
@@ -584,7 +584,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$this->assertTrue(
 			$object->getDiscoverInstallSupported(),
@@ -601,7 +601,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		TestReflection::setValue($object, 'supportsDiscoverInstall', false);
 
@@ -621,7 +621,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		// Create the test object
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		// Mock the manifest Object and set it into the test object
 		$manifestObject = simplexml_load_string($this->sampleManifest);
@@ -644,7 +644,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		// Create the test object
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$this->assertEquals(
 			'com_contact',
@@ -665,12 +665,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array('getName')
+			['getName']
 		);
 		$object->expects($this->once())
 			->method('getName')
@@ -697,7 +697,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 		$manifestObject = simplexml_load_string($this->sampleManifest);
 
 		$object->manifest = $manifestObject;
@@ -719,7 +719,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		// Create the test object
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		// Mock the manifest Object and set it into the test object
 		$manifestObject = simplexml_load_string('<extension><name>plg_finder_content</name></extension>');
@@ -740,7 +740,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$this->assertEquals(
 			'install',
@@ -758,7 +758,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		TestReflection::setValue($object, 'route', 'update');
 
@@ -776,18 +776,18 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	 */
 	public function casesGetScriptClassName()
 	{
-		return array(
-			array(
+		return [
+			[
 				'com_content',
 				'com_contentInstallerScript',
 				'An extension installer script should return it\'s name with InstallerScript suffixed'
-			),
-			array(
+			],
+			[
 				'pkg_en-GB',
 				'pkg_enGBInstallerScript',
 				'An extension with a hyphen in the name should have the hypen removed in the installer script name'
-			),
-		);
+			],
+		]);
 	}
 
 	/**
@@ -804,7 +804,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		TestReflection::setValue($object, 'element', $element);
 
@@ -823,7 +823,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testInstall()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -833,12 +833,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -852,13 +852,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'checkExtensionInFilesystem',
 				'copyBaseFiles',
 				'parseOptionalTags'
-			)
+			]
 		);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -901,7 +901,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testInstallOnUpdateRoute()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -911,12 +911,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -931,13 +931,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'copyBaseFiles',
 				'parseOptionalTags',
 				'setupUpdates'
-			)
+			]
 		);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -985,7 +985,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testInstallAbortsWhenSetupUpdatesThrowsException()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -995,12 +995,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -1015,13 +1015,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'copyBaseFiles',
 				'parseOptionalTags',
 				'setupUpdates'
-			)
+			]
 		);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -1063,7 +1063,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testInstallWithNoDescription()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -1073,12 +1073,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -1092,13 +1092,13 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'checkExtensionInFilesystem',
 				'copyBaseFiles',
 				'parseOptionalTags'
-			)
+			]
 		);
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -1141,16 +1141,16 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	 */
 	public function casesTestExceptionThrownInInstall()
 	{
-		return array(
-			array('setupInstallPaths'),
-			array('checkExistingExtension'),
-			array('checkExtensionInFilesystem'),
-			array('createExtensionRoot'),
-			array('copyBaseFiles'),
-			array('storeExtension'),
-			array('parseQueries'),
-			array('finaliseInstall')
-		);
+		return [
+			['setupInstallPaths'],
+			['checkExistingExtension'],
+			['checkExtensionInFilesystem'],
+			['createExtensionRoot'],
+			['copyBaseFiles'],
+			['storeExtension'],
+			['parseQueries'],
+			['finaliseInstall']
+		];
 	}
 
 	/**
@@ -1164,7 +1164,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testInstallWithExceptionThrownInAdapterMethods($method)
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -1174,12 +1174,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -1193,7 +1193,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'checkExtensionInFilesystem',
 				'copyBaseFiles',
 				'parseOptionalTags'
-			)
+			]
 		);
 
 		// Mock the response of internal methods
@@ -1227,7 +1227,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testInstallWithExceptionThrownInFinaliseInstall()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('abort'))
+						->setMethods(['abort'])
 						->getMock();
 
 		// For this test we to ensure abort is not called in JInstaller
@@ -1237,12 +1237,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array(
+			[
 				'getName',
 				'getElement',
 				'finaliseInstall',
@@ -1256,7 +1256,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 				'checkExtensionInFilesystem',
 				'copyBaseFiles',
 				'parseOptionalTags'
-			)
+			]
 		);
 
 		// Mock the response of internal methods
@@ -1295,12 +1295,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array('doDatabaseTransactions')
+			['doDatabaseTransactions']
 		);
 		TestReflection::setValue($object, 'route', 'install');
 		$object->expects($this->once())
@@ -1322,7 +1322,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$schema = simplexml_load_string('<extension><update><schemas><schemapath type="mysql">sql/updates/mysql</schemapath></schemas></update></extension>');
 
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('parseSchemaUpdates'))
+						->setMethods(['parseSchemaUpdates'])
 						->getMock();
 
 		$mockInstaller->expects($this->once())
@@ -1333,19 +1333,19 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array('getManifest')
+			['getManifest']
 		);
 		TestReflection::setValue($object, 'route', 'update');
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -1369,7 +1369,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$schema = simplexml_load_string('<extension><update><schemas><schemapath type="mysql">sql/updates/mysql</schemapath></schemas></update></extension>');
 
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('parseSchemaUpdates'))
+						->setMethods(['parseSchemaUpdates'])
 						->getMock();
 		$mockInstaller->expects($this->once())
 			->method('parseSchemaUpdates')
@@ -1379,19 +1379,19 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array('getManifest')
+			['getManifest']
 		);
 		TestReflection::setValue($object, 'route', 'update');
 
 		// Set up a mock JTableExtension
 		$mockTableExtension = $this->getMockBuilder('JTableExtension')
-							->setMethods(array('find', 'load'))
-							->setConstructorArgs(array($this->getMockDatabase()))
+							->setMethods(['find', 'load'])
+							->setConstructorArgs([$this->getMockDatabase()])
 							->getMock();
 		$mockTableExtension->extension_id = 444;
 		TestReflection::setValue($object, 'extension', $mockTableExtension);
@@ -1413,7 +1413,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 		$manifestObject = simplexml_load_string($this->sampleManifest);
 
 		$this->assertInstanceOf(
@@ -1439,7 +1439,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')->getMock();
 		$mockDatabase = $this->getMockDatabase();
-		$object = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$this->assertEquals(
 			'install',
@@ -1467,11 +1467,11 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	 */
 	public function casesTestTriggerManifestScript()
 	{
-		return array(
-			array('install'),
-			array('uninstall'),
-			array('update'),
-		);
+		return [
+			['install'],
+			['uninstall'],
+			['update'],
+		];
 	}
 
 	/**
@@ -1485,14 +1485,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testTriggerManifestScriptForMethodsTakingInstallerObjectOnly($method)
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('set'))
+						->setMethods(['set'])
 						->getMock();
 
 		$mockDatabase = $this->getMockDatabase();
-		$object       = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object       = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$mockScript   = $this->getMockBuilder('DummyScript')
-						->setMethods(array('preflight', 'postflight', 'install', 'uninstall', 'update'))
+						->setMethods(['preflight', 'postflight', 'install', 'uninstall', 'update'])
 						->getMock();
 
 		$mockScript->expects($this->once())
@@ -1514,10 +1514,10 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	 */
 	public function casesTestTriggerManifestScriptFlights()
 	{
-		return array(
-			array('preflight'),
-			array('postflight'),
-		);
+		return [
+			['preflight'],
+			['postflight'],
+		];
 	}
 
 	/**
@@ -1531,14 +1531,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testTriggerManifestScriptForMethodsTakingInstallerObjectAndRoute($method)
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('set'))
+						->setMethods(['set'])
 						->getMock();
 
 		$mockDatabase = $this->getMockDatabase();
-		$object       = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object       = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$mockScript   = $this->getMockBuilder('DummyScript')
-						->setMethods(array('preflight', 'postflight', 'install', 'uninstall', 'update'))
+						->setMethods(['preflight', 'postflight', 'install', 'uninstall', 'update'])
 						->getMock();
 
 		$routeValue = 'update';
@@ -1565,14 +1565,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testTriggerManifestScriptPreflightReturningFalseThrowsException()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('set'))
+						->setMethods(['set'])
 						->getMock();
 
 		$mockDatabase = $this->getMockDatabase();
-		$object       = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object       = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$mockScript   = $this->getMockBuilder('DummyScript')
-						->setMethods(array('preflight', 'postflight', 'install', 'uninstall', 'update'))
+						->setMethods(['preflight', 'postflight', 'install', 'uninstall', 'update'])
 						->getMock();
 
 		$routeValue = 'update';
@@ -1595,10 +1595,10 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	 */
 	public function casesTestTriggerManifestException()
 	{
-		return array(
-			array('install'),
-			array('update'),
-		);
+		return [
+			['install'],
+			['update'],
+		];
 	}
 
 	/**
@@ -1613,14 +1613,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testTriggerManifestScriptInstallOrUpdateReturningFalseThrowsException($method)
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('set'))
+						->setMethods(['set'])
 						->getMock();
 
 		$mockDatabase = $this->getMockDatabase();
-		$object       = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object       = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$mockScript   = $this->getMockBuilder('DummyScript')
-						->setMethods(array('preflight', 'postflight', 'install', 'uninstall', 'update'))
+						->setMethods(['preflight', 'postflight', 'install', 'uninstall', 'update'])
 						->getMock();
 
 		TestReflection::setValue($object, 'route', $method);
@@ -1643,14 +1643,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testTriggerManifestScriptUninstallReturningFalseDoesNotThrowAnException()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('set'))
+						->setMethods(['set'])
 						->getMock();
 
 		$mockDatabase = $this->getMockDatabase();
-		$object       = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object       = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$mockScript   = $this->getMockBuilder('DummyScript')
-						->setMethods(array('preflight', 'postflight', 'install', 'uninstall', 'update'))
+						->setMethods(['preflight', 'postflight', 'install', 'uninstall', 'update'])
 						->getMock();
 
 		TestReflection::setValue($object, 'route', 'uninstall');
@@ -1675,14 +1675,14 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testTriggerManifestScriptPostflightReturningFalseDoesNotThrowAnException()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('set'))
+						->setMethods(['set'])
 						->getMock();
 
 		$mockDatabase = $this->getMockDatabase();
-		$object       = $this->getMockForAbstractClass('JInstallerAdapter', array($mockInstaller, $mockDatabase));
+		$object       = $this->getMockForAbstractClass('JInstallerAdapter', [$mockInstaller, $mockDatabase]);
 
 		$mockScript   = $this->getMockBuilder('DummyScript')
-						->setMethods(array('preflight', 'postflight', 'install', 'uninstall', 'update'))
+						->setMethods(['preflight', 'postflight', 'install', 'uninstall', 'update'])
 						->getMock();
 
 		TestReflection::setValue($object, 'route', 'uninstall');
@@ -1707,7 +1707,7 @@ class JInstallerAdapterTest extends TestCaseDatabase
 	public function testUpdate()
 	{
 		$mockInstaller = $this->getMockBuilder('JInstaller')
-						->setMethods(array('setOverwrite', 'setUpgrade'))
+						->setMethods(['setOverwrite', 'setUpgrade'])
 						->getMock();
 
 		$mockInstaller->expects($this->once())
@@ -1721,12 +1721,12 @@ class JInstallerAdapterTest extends TestCaseDatabase
 		$mockDatabase = $this->getMockDatabase();
 		$object = $this->getMockForAbstractClass(
 			'JInstallerAdapter',
-			array($mockInstaller, $mockDatabase),
+			[$mockInstaller, $mockDatabase],
 			'',
 			true,
 			true,
 			true,
-			array('install')
+			['install']
 		);
 
 		// Tests the update method proxies to install

@@ -44,15 +44,15 @@ class JHtmlListTest extends TestCaseDatabase
 		$result = JHtmlList::users('user-list', '43', '1');
 
 		// Build the container to check the <select> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'user-list',
 			'tag'   => 'select',
-			'child' => array(
+			'child' => [
 				'tag'        => 'option',
 				'content'    => 'Publisher',
-				'attributes' => array('selected' => 'selected', 'value' => '43')
-			)
-		);
+				'attributes' => ['selected' => 'selected', 'value' => '43']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -63,15 +63,15 @@ class JHtmlListTest extends TestCaseDatabase
 		$result = JHtmlList::users('user-list', '42');
 
 		// Build the container to check the <select> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'user-list',
 			'tag'   => 'select',
-			'child' => array(
+			'child' => [
 				'tag'        => 'option',
 				'content'    => 'Publisher',
-				'attributes' => array('value' => '43')
-			)
-		);
+				'attributes' => ['value' => '43']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,
@@ -92,15 +92,15 @@ class JHtmlListTest extends TestCaseDatabase
 		$result = JHtmlList::positions('position-list', 'center', null, '1', '1', '1', '1', 'positions');
 
 		// Build the container to check the <select> element
-		$matcher = array(
+		$matcher = [
 			'id'    => 'positions',
 			'tag'   => 'select',
-			'child' => array(
+			'child' => [
 				'tag'        => 'option',
 				'content'    => 'Left',
-				'attributes' => array('value' => 'left')
-			)
-		);
+				'attributes' => ['value' => 'left']
+			]
+		];
 
 		$this->assertTag(
 			$matcher,

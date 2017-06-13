@@ -31,7 +31,7 @@ class JErrorPageTest extends TestCaseDatabase
 	 */
 	protected function tearDown()
 	{
-		TestReflection::setValue('JDocument', 'instances', array());
+		TestReflection::setValue('JDocument', 'instances', []);
 		$this->restoreFactoryState();
 
 		parent::tearDown();
@@ -45,27 +45,27 @@ class JErrorPageTest extends TestCaseDatabase
 		$documentResponse = '<title>500 - Testing JErrorPage::render() with RuntimeException</title>Testing JErrorPage::render() with RuntimeException';
 
 		$key = serialize(
-			array(
+			[
 				'error',
-				array(
+				[
 					'charset'   => 'utf-8',
 					'lineend'   => 'unix',
 					'tab'       => "\t",
 					'language'  => 'en-GB',
 					'direction' => 'ltr',
-				),
-			)
+				],
+			]
 		);
 
 		$mockErrorDocument = $this->getMockBuilder('JDocumentError')
-			->setMethods(array('setError', 'setTitle', 'render'))
+			->setMethods(['setError', 'setTitle', 'render'])
 			->getMock();
 
 		$mockErrorDocument->expects($this->any())
 			->method('render')
 			->willReturn($documentResponse);
 
-		TestReflection::setValue('JDocument', 'instances', array($key => $mockErrorDocument));
+		TestReflection::setValue('JDocument', 'instances', [$key => $mockErrorDocument]);
 
 		// Create an Exception to inject into the method
 		$exception = new RuntimeException('Testing JErrorPage::render() with RuntimeException', 500);
@@ -89,27 +89,27 @@ class JErrorPageTest extends TestCaseDatabase
 		$documentResponse = '<title>500 - Testing JErrorPage::render() with PHP 7 Error</title>Testing JErrorPage::render() with PHP 7 Error';
 
 		$key = serialize(
-			array(
+			[
 				'error',
-				array(
+				[
 					'charset'   => 'utf-8',
 					'lineend'   => 'unix',
 					'tab'       => "\t",
 					'language'  => 'en-GB',
 					'direction' => 'ltr',
-				),
-			)
+				],
+			]
 		);
 
 		$mockErrorDocument = $this->getMockBuilder('JDocumentError')
-			->setMethods(array('setError', 'setTitle', 'render'))
+			->setMethods(['setError', 'setTitle', 'render'])
 			->getMock();
 
 		$mockErrorDocument->expects($this->any())
 			->method('render')
 			->willReturn($documentResponse);
 
-		TestReflection::setValue('JDocument', 'instances', array($key => $mockErrorDocument));
+		TestReflection::setValue('JDocument', 'instances', [$key => $mockErrorDocument]);
 
 		// Create an Error to inject into the method
 		$exception = new Error('Testing JErrorPage::render() with PHP 7 Error', 500);

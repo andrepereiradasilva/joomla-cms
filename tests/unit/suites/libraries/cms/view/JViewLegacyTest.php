@@ -74,7 +74,7 @@ class JViewLegacyTest extends TestCase
 		$test2 = new ModelMockupJView;
 		$test2->name = 'test2';
 
-		TestReflection::setValue($this->class, '_models', array('test1' => new ModelMockupJView, 'test2' => $test2));
+		TestReflection::setValue($this->class, '_models', ['test1' => new ModelMockupJView, 'test2' => $test2]);
 		TestReflection::setValue($this->class, '_defaultModel', 'test1');
 
 		$this->assertEquals('model', $this->class->get('Name'), 'Checks getName from default model.');
@@ -108,7 +108,7 @@ class JViewLegacyTest extends TestCase
 	public function testGetModel()
 	{
 		// Prepare variable to compare against and a bunch of models
-		$models = array();
+		$models = [];
 		$model1 = new ModelMockupJView;
 		$models['model'] = $model1;
 		$model2 = new ModelMockupJView;
@@ -228,7 +228,7 @@ class JViewLegacyTest extends TestCase
 	public function testSetModel()
 	{
 		// Prepare variable to compare against and a bunch of models
-		$models = array();
+		$models = [];
 		$model1 = new ModelMockupJView;
 		$model2 = new ModelMockupJView;
 		$model2->name = 'test';
@@ -312,12 +312,15 @@ class JViewLegacyTest extends TestCase
 		$ds = DIRECTORY_SEPARATOR;
 
 		// Reset the internal _path property so we can track it more easily.
-		TestReflection::setValue($this->class, '_path', array('helper' => array(), 'template' => array()));
+		TestReflection::setValue($this->class, '_path', ['helper' => [], 'template' => []]);
 
 		$this->class->addTemplatePath(JPATH_ROOT . $ds . 'libraries');
 
 		$this->assertAttributeEquals(
-			array('helper' => array(), 'template' => array(realpath(JPATH_ROOT . $ds . 'libraries') . $ds)),
+			[
+				'helper'   => [],
+				'template' => [realpath(JPATH_ROOT . $ds . 'libraries') . $ds]
+			],
 			'_path',
 			$this->class
 		);
@@ -325,7 +328,10 @@ class JViewLegacyTest extends TestCase
 		$this->class->addTemplatePath(JPATH_ROOT . $ds . 'cache');
 
 		$this->assertAttributeEquals(
-			array('helper' => array(), 'template' => array(realpath(JPATH_ROOT . $ds . 'cache') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds)),
+			[
+				'helper'   => [],
+				'template' => [realpath(JPATH_ROOT . $ds . 'cache') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds]
+			],
 			'_path',
 			$this->class
 		);
@@ -343,12 +349,15 @@ class JViewLegacyTest extends TestCase
 		$ds = DIRECTORY_SEPARATOR;
 
 		// Reset the internal _path property so we can track it more easily.
-		TestReflection::setValue($this->class, '_path', array('helper' => array(), 'template' => array()));
+		TestReflection::setValue($this->class, '_path', ['helper' => [], 'template' => []]);
 
 		$this->class->addHelperPath(JPATH_ROOT . $ds . 'libraries');
 
 		$this->assertAttributeEquals(
-			array('helper' => array(realpath(JPATH_ROOT . $ds . 'libraries') . $ds), 'template' => array()),
+			[
+				'helper'   => [realpath(JPATH_ROOT . $ds . 'libraries') . $ds),
+				'template' => []
+			],
 			'_path',
 			$this->class
 		);
@@ -356,7 +365,10 @@ class JViewLegacyTest extends TestCase
 		$this->class->addHelperPath(JPATH_ROOT . $ds . 'cache');
 
 		$this->assertAttributeEquals(
-			array('helper' => array(realpath(JPATH_ROOT . $ds . 'cache') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds), 'template' => array()),
+			[
+				'helper' => [realpath(JPATH_ROOT . $ds . 'cache') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds],
+				'template' => []
+			],
 			'_path',
 			$this->class
 		);
@@ -374,12 +386,15 @@ class JViewLegacyTest extends TestCase
 		$ds = DIRECTORY_SEPARATOR;
 
 		// Reset the internal _path property so we can track it more easily.
-		TestReflection::setValue($this->class, '_path', array('helper' => array(), 'template' => array()));
+		TestReflection::setValue($this->class, '_path', ['helper' => [], 'template' => []]);
 
 		TestReflection::invoke($this->class, '_addPath', 'template', JPATH_ROOT . $ds . 'libraries');
 
 		$this->assertAttributeEquals(
-			array('helper' => array(), 'template' => array(realpath(JPATH_ROOT . $ds . 'libraries') . $ds)),
+			[
+				'helper'   => [],
+				'template' => [realpath(JPATH_ROOT . $ds . 'libraries') . $ds]
+			],
 			'_path',
 			$this->class
 		);
@@ -387,7 +402,10 @@ class JViewLegacyTest extends TestCase
 		TestReflection::invoke($this->class, '_addPath', 'helper', realpath(JPATH_ROOT . $ds . 'tests'));
 
 		$this->assertAttributeEquals(
-			array('helper' => array(realpath(JPATH_ROOT . $ds . 'tests') . $ds), 'template' => array(realpath(JPATH_ROOT . $ds . 'libraries') . $ds)),
+			[
+				'helper'   => [realpath(JPATH_ROOT . $ds . 'tests') . $ds],
+				'template' => [realpath(JPATH_ROOT . $ds . 'libraries') . $ds]
+			],
 			'_path',
 			$this->class
 		);
@@ -395,10 +413,10 @@ class JViewLegacyTest extends TestCase
 		TestReflection::invoke($this->class, '_addPath', 'template', realpath(JPATH_ROOT . $ds . 'tests'));
 
 		$this->assertAttributeEquals(
-			array(
-				'helper' => array(realpath(JPATH_ROOT . $ds . 'tests') . $ds),
-				'template' => array(realpath(JPATH_ROOT . $ds . 'tests') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds)
-			),
+			{
+				'helper'   => [realpath(JPATH_ROOT . $ds . 'tests') . $ds],
+				'template' => [realpath(JPATH_ROOT . $ds . 'tests') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds]
+			],
 			'_path',
 			$this->class
 		);
@@ -406,10 +424,10 @@ class JViewLegacyTest extends TestCase
 		TestReflection::invoke($this->class, '_addPath', 'helper', realpath(JPATH_ROOT . $ds . 'libraries'));
 
 		$this->assertAttributeEquals(
-			array(
-				'helper' => array(realpath(JPATH_ROOT . $ds . 'libraries') . $ds, realpath(JPATH_ROOT . $ds . 'tests') . $ds),
-				'template' => array(realpath(JPATH_ROOT . $ds . 'tests') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds)
-			),
+			[
+				'helper'   => [realpath(JPATH_ROOT . $ds . 'libraries') . $ds, realpath(JPATH_ROOT . $ds . 'tests') . $ds],
+				'template' => [realpath(JPATH_ROOT . $ds . 'tests') . $ds, realpath(JPATH_ROOT . $ds . 'libraries') . $ds]
+			],
 			'_path',
 			$this->class
 		);
@@ -432,7 +450,7 @@ class JViewLegacyTest extends TestCase
 		$this->server = $_SERVER;
 
 		JFactory::$application = $this->getMockCmsApp();
-		JFactory::$application->input = new JInput(array());
+		JFactory::$application->input = new JInput([]);
 
 		defined('JPATH_COMPONENT') or define('JPATH_COMPONENT', JPATH_BASE . '/components/com_foobar');
 		$_SERVER['REQUEST_METHOD'] = 'get';

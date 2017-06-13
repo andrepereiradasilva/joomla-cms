@@ -81,10 +81,10 @@ class JHelperTest extends TestCaseDatabase
 	 */
 	public function languageIdProvider()
 	{
-		return array(
-			array('Exists' => 'en-GB', 1),
-			array('Does not exit' => 'ab-CD', null),
-		);
+		return [
+			['Exists' => 'en-GB', 1],
+			['Does not exit' => 'ab-CD', null],
+		];
 	}
 
 	/**

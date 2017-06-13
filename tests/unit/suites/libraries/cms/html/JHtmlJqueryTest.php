@@ -108,7 +108,7 @@ class JHtmlJqueryTest extends TestCase
 	public function testUi()
 	{
 		// Initialise the Bootstrap JS framework
-		JHtmlJquery::ui(array('core', 'sortable'));
+		JHtmlJquery::ui(['core', 'sortable']);
 
 		// Get the document instance
 		$document = JFactory::getDocument();

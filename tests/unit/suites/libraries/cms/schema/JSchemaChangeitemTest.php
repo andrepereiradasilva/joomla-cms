@@ -19,13 +19,13 @@ class JSchemaChangeitemTest extends TestCase
 	 */
 	public function dataGetInstance()
 	{
-		return array(
-			'MySQLi'     => array('Mysqli', 'Mysql', 'mysql'),
-			'PDO MySQL'  => array('Pdomysql', 'Mysql', 'mysql'),
-			'PostgreSQL' => array('Postgresql', 'Postgresql', 'postgresql'),
-			'SQL Server' => array('Sqlsrv', 'Sqlsrv', 'sqlazure'),
-			'SQL Azure'  => array('Sqlazure', 'Sqlsrv', 'sqlazure'),
-		);
+		return [
+			'MySQLi'     => ['Mysqli', 'Mysql', 'mysql'],
+			'PDO MySQL'  => ['Pdomysql', 'Mysql', 'mysql'],
+			'PostgreSQL' => ['Postgresql', 'Postgresql', 'postgresql'],
+			'SQL Server' => ['Sqlsrv', 'Sqlsrv', 'sqlazure'],
+			'SQL Azure'  => ['Sqlazure', 'Sqlsrv', 'sqlazure'],
+		];
 	}
 
 	/**

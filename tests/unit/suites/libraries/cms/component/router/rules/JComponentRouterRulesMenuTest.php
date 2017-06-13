@@ -111,12 +111,13 @@ class JComponentRouterRulesMenuTest extends TestCaseDatabase {
 	{
 		$this->assertInstanceOf('JComponentRouterRulesMenu', $this->object);
 		$this->assertInstanceOf('JComponentRouterView', $this->object->get('router'));
-		$this->assertEquals(array(
-			'*' => array(
-				'featured' => '47',
-				'categories' => array(14 => '48'),
-				'category' => array (20 => '49'))
-			), $this->object->get('lookup'));
+		$this->assertEquals([
+			'*' => [
+				'featured'   => '47',
+				'categories' => [14 => '48'],
+				'category'   => [20 => '49']
+			]
+			], $this->object->get('lookup'));
 	}
 
 	/**
@@ -128,55 +129,79 @@ class JComponentRouterRulesMenuTest extends TestCaseDatabase {
 	 */
 	public function casesPreprocess()
 	{
-		$cases   = array();
+		$cases   = [];
 		
 		// Check direct link to a simple view
-		$cases[] = array(array('option' => 'com_content', 'view' => 'featured'),
-			array('option' => 'com_content', 'view' => 'featured', 'Itemid' => '47'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'featured'],
+			['option' => 'com_content', 'view' => 'featured', 'Itemid' => '47']
+		];
 
 		// Check direct link to a simple view with a language
-		$cases[] = array(array('option' => 'com_content', 'view' => 'featured', 'lang' => 'en-GB'),
-			array('option' => 'com_content', 'view' => 'featured', 'lang' => 'en-GB', 'Itemid' => '51'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'featured', 'lang' => 'en-GB'],
+			['option' => 'com_content', 'view' => 'featured', 'lang' => 'en-GB', 'Itemid' => '51']
+		];
 
 		// Check direct link to a view with a key
-		$cases[] = array(array('option' => 'com_content', 'view' => 'categories', 'id' => '14'),
-			array('option' => 'com_content', 'view' => 'categories', 'id' => '14', 'Itemid' => '48'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'categories', 'id' => '14'],
+			['option' => 'com_content', 'view' => 'categories', 'id' => '14', 'Itemid' => '48']
+		];
 
 		// Check direct link to a view with a key with a language
-		$cases[] = array(array('option' => 'com_content', 'view' => 'categories', 'id' => '14', 'lang' => 'en-GB'),
-			array('option' => 'com_content', 'view' => 'categories', 'id' => '14', 'lang' => 'en-GB', 'Itemid' => '50'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'categories', 'id' => '14', 'lang' => 'en-GB'],
+			['option' => 'com_content', 'view' => 'categories', 'id' => '14', 'lang' => 'en-GB', 'Itemid' => '50']
+		];
 
 		// Check indirect link to a nested view with a key
-		$cases[] = array(array('option' => 'com_content', 'view' => 'category', 'id' => '22'),
-			array('option' => 'com_content', 'view' => 'category', 'id' => '22', 'Itemid' => '49'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'category', 'id' => '22'],
+			['option' => 'com_content', 'view' => 'category', 'id' => '22', 'Itemid' => '49']
+		];
 
 		// Check indirect link to a nested view with a key and a language
-		$cases[] = array(array('option' => 'com_content', 'view' => 'category', 'id' => '22', 'lang' => 'en-GB'),
-			array('option' => 'com_content', 'view' => 'category', 'id' => '22', 'lang' => 'en-GB', 'Itemid' => '49'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'category', 'id' => '22', 'lang' => 'en-GB'],
+			['option' => 'com_content', 'view' => 'category', 'id' => '22', 'lang' => 'en-GB', 'Itemid' => '49']
+		];
 
 		// Check indirect link to a single view behind a nested view with a key
-		$cases[] = array(array('option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22'),
-			array('option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22', 'Itemid' => '49'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22'],
+			['option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22', 'Itemid' => '49']
+		];
 
 		// Check indirect link to a single view behind a nested view with a key and language
-		$cases[] = array(array('option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22', 'lang' => 'en-GB'),
-			array('option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22', 'lang' => 'en-GB', 'Itemid' => '49'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22', 'lang' => 'en-GB'],
+			['option' => 'com_content', 'view' => 'article', 'id' => '42', 'catid' => '22', 'lang' => 'en-GB', 'Itemid' => '49']
+		];
 
 		// Check non-existing menu link
-		$cases[] = array(array('option' => 'com_content', 'view' => 'categories', 'id' => '42'),
-			array('option' => 'com_content', 'view' => 'categories', 'id' => '42', 'Itemid' => '49'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'categories', 'id' => '42'],
+			['option' => 'com_content', 'view' => 'categories', 'id' => '42', 'Itemid' => '49']
+		];
 
 		// Check indirect link to a single view behind a nested view with a key and language
-		$cases[] = array(array('option' => 'com_content', 'view' => 'categories', 'id' => '42', 'lang' => 'en-GB'),
-			array('option' => 'com_content', 'view' => 'categories', 'id' => '42', 'lang' => 'en-GB', 'Itemid' => '49'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'categories', 'id' => '42', 'lang' => 'en-GB'],
+			['option' => 'com_content', 'view' => 'categories', 'id' => '42', 'lang' => 'en-GB', 'Itemid' => '49']
+		];
 
 		// Check if a query with existing Itemid that is not the current active menu-item is not touched
-		$cases[] = array(array('option' => 'com_content', 'view' => 'categories', 'id' => '42', 'Itemid' => '99'),
-			array('option' => 'com_content', 'view' => 'categories', 'id' => '42', 'Itemid' => '99'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'categories', 'id' => '42', 'Itemid' => '99'],
+			['option' => 'com_content', 'view' => 'categories', 'id' => '42', 'Itemid' => '99']
+		];
 
 		// Check if a query with existing Itemid that is the current active menu-item is correctly searched
-		$cases[] = array(array('option' => 'com_content', 'view' => 'categories', 'id' => '14', 'Itemid' => '49'),
-			array('option' => 'com_content', 'view' => 'categories', 'id' => '14', 'Itemid' => '48'));
+		$cases[] = [
+			['option' => 'com_content', 'view' => 'categories', 'id' => '14', 'Itemid' => '49'],
+			['option' => 'com_content', 'view' => 'categories', 'id' => '14', 'Itemid' => '48']
+		];
 
 		return $cases;
 	}
@@ -213,7 +238,7 @@ class JComponentRouterRulesMenuTest extends TestCaseDatabase {
 		// Test if the default Itemid is used if everything else fails
 		$router = $this->object->get('router');
 		$router->menu->active = null;
-		$query = array();
+		$query = [];
 		$this->object->preprocess($query);
 		$this->assertEquals(array('Itemid' => '47'), $query);
 

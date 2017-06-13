@@ -111,74 +111,74 @@ class JRouterTest extends TestCase
 	 */
 	public function casesParse()
 	{
-		return array(
+		return [
 			// Empty URLs create an empty result
-			'empty-urls-empty-result' => array(
-				array(),
-				array(),
+			'empty-urls-empty-result' => ]
+				[],
+				[],
 				false,
 				'',
-				array(),
-				array()
-			),
+				[],
+				[]
+			],
 			// Empty URLs and rule can create a result
-			'empty-url-rule-nonempty-result' => array(
-				array(
+			'empty-url-rule-nonempty-result' => [
+				[
 					function (&$router, &$uri)
 					{
 						$uri->setVar('result', '1');
 					}
-				),
-				array(JRouter::PROCESS_DURING),
+				],
+				[JRouter::PROCESS_DURING],
 				false,
 				'',
 				array('result' => '1'),
-				array()
-			),
+				[]
+			],
 			// Vars are stored in the object
-			'store-vars-in-object' => array(
-				array(
+			'store-vars-in-object' => [
+				[
 					function (&$router, &$uri)
 					{
 						$uri->setVar('result', '1');
 					}
-				),
-				array(JRouter::PROCESS_DURING),
+				],
+				[JRouter::PROCESS_DURING],
 				true,
 				'',
-				array('result' => '1'),
-				array('result' => '1')
-			),
+				['result' => '1'],
+				['result' => '1']
+			],
 			// absolute URL with no query params returns empty result
-			'abs-no-query-no-result' => array(
-				array(),
-				array(),
+			'abs-no-query-no-result' => [
+				[],
+				[],
 				true,
 				'http://www.example.test',
-				array(),
-				array()
-			),
+				[],
+				[]
+			],
 			// URL with query params returns result
-			'query-result' => array(
-				array(),
-				array(),
+			'query-result' => [
+				[],
+				[],
 				false,
 				'?result=1&test=true',
-				array('result' => '1', 'test' => 'true'),
-				array()
-			),
+				['result' => '1', 'test' => 'true'],
+				[]
+			],
 			// URL with query params returns result
-			'query-result-setvar' => array(
-				array(),
-				array(),
+			'query-result-setvar' => [
+				[],
+				[],
 				true,
 				'?result=1&test=true',
-				array('result' => '1', 'test' => 'true'),
-				array('result' => '1', 'test' => 'true')
-			),
+				['result' => '1', 'test' => 'true'],
+				['result' => '1', 'test' => 'true']
+			],
 			// Several rules are applied to one URL
-			'several-rules-applied-to-url' => array(
-				array(
+			'several-rules-applied-to-url' => [
+				[
 					function (&$router, &$uri)
 					{
 						$uri->setVar('rule1', '1');
@@ -187,16 +187,16 @@ class JRouterTest extends TestCase
 					{
 						$uri->setVar('rule2', '1');
 					}
-				),
-				array(JRouter::PROCESS_DURING, JRouter::PROCESS_DURING),
+				],
+				[JRouter::PROCESS_DURING, JRouter::PROCESS_DURING],
 				false,
 				'?result=1&test=true',
-				array('result' => '1', 'test' => 'true', 'rule1' => '1', 'rule2' => '1'),
-				array()
-			),
+				['result' => '1', 'test' => 'true', 'rule1' => '1', 'rule2' => '1'],
+				[]
+			],
 			// Several rules are applied to one URL - ordered
-			'several-rules-applied-to-url-ordered' => array(
-				array(
+			'several-rules-applied-to-url-ordered' => [
+				[
 					function (&$router, &$uri)
 					{
 						$uri->setVar('rule1', '1');
@@ -210,15 +210,15 @@ class JRouterTest extends TestCase
 						$uri->setVar('rule3', '1');
 					}
 				),
-				array(JRouter::PROCESS_AFTER, JRouter::PROCESS_DURING, JRouter::PROCESS_BEFORE),
+				[JRouter::PROCESS_AFTER, JRouter::PROCESS_DURING, JRouter::PROCESS_BEFORE],
 				false,
 				'?result=1&test=true',
-				array('result' => '1', 'test' => 'true', 'rule3' => '1', 'rule2' => '1', 'rule1' => '1'),
-				array()
-			),
+				['result' => '1', 'test' => 'true', 'rule3' => '1', 'rule2' => '1', 'rule1' => '1'],
+				[]
+			],
 			// Several rules are applied to one URL - ordered
-			'rules-overwrite-data' => array(
-				array(
+			'rules-overwrite-data' => [
+				[
 					function (&$router, &$uri)
 					{
 						$uri->setVar('rule2', '2');
@@ -227,14 +227,14 @@ class JRouterTest extends TestCase
 					{
 						$uri->setVar('rule2', '1');
 					}
-				),
-				array(JRouter::PROCESS_AFTER, JRouter::PROCESS_DURING),
+				],
+				[JRouter::PROCESS_AFTER, JRouter::PROCESS_DURING],
 				false,
 				'?result=1&test=true',
-				array('result' => '1', 'test' => 'true', 'rule2' => '2'),
-				array()
-			),
-		);
+				['result' => '1', 'test' => 'true', 'rule2' => '2'],
+				[]
+			],
+		];
 	}
 
 	/**
@@ -280,7 +280,7 @@ class JRouterTest extends TestCase
 	 */
 	public function testMultipleVariablesCanBeAddedAtOnceAndOptionallyReplaceExistingVariables()
 	{
-		$this->assertEquals(array(), $this->object->getVars());
+		$this->assertEquals([], $this->object->getVars());
 
 		$this->object->setVars(array('var1' => 'value1'));
 		$this->assertEquals(array('var1' => 'value1'), $this->object->getVars());
@@ -291,8 +291,8 @@ class JRouterTest extends TestCase
 		$this->object->setVars(array('var3' => 'value3'), false);
 		$this->assertEquals(array('var3' => 'value3'), $this->object->getVars());
 
-		$this->object->setVars(array(), false);
-		$this->assertEquals(array(), $this->object->getVars());
+		$this->object->setVars([], false);
+		$this->assertEquals([], $this->object->getVars());
 	}
 
 	/**
@@ -303,8 +303,8 @@ class JRouterTest extends TestCase
 	public function casesVariables()
 	{
 		$cases = array(
-			array(array(), 'var', 'value', true, 'value'),
-			array(array(), 'var', 'value', false, null),
+			array([], 'var', 'value', true, 'value'),
+			array([], 'var', 'value', false, null),
 			array(array('var' => 'value1'), 'var', 'value2', true, 'value2'),
 			array(array('var' => 'value1'), 'var', 'value2', false, 'value2'),
 		);
@@ -364,7 +364,7 @@ class JRouterTest extends TestCase
 		return array(
 			array(
 				'url'      => 'index.php?var1=value1&var2=value2',
-				'rules'    => array(),
+				'rules'    => [],
 				'stage'    => JRouter::PROCESS_DURING,
 				'expected' => 'index.php?var1=value1&var2=value2'
 			),
@@ -557,17 +557,17 @@ class JRouterTest extends TestCase
 		return array(
 			array(
 				'url'      => '',
-				'preset'   => array(),
+				'preset'   => [],
 				'expected' => ''
 			),
 			array(
 				'url'      => 'index.php',
-				'preset'   => array(),
+				'preset'   => [],
 				'expected' => 'index.php'
 			),
 			array(
 				'url'      => array('var1' => 'value1', 'var2' => 'value2'),
-				'preset'   => array(),
+				'preset'   => [],
 				'expected' => 'index.php?var1=value1&var2=value2'
 			),
 			array(
@@ -582,7 +582,7 @@ class JRouterTest extends TestCase
 			),
 			array(
 				'url'      => '&var1=value1&var2=value2',
-				'preset'   => array(),
+				'preset'   => [],
 				'expected' => 'index.php?var1=value1&var2=value2'
 			),
 			array(
@@ -597,12 +597,12 @@ class JRouterTest extends TestCase
 			),
 			array(
 				'url'      => '&var1=value1&var2=',
-				'preset'   => array(),
+				'preset'   => [],
 				'expected' => 'index.php?var1=value1'
 			),
 			array(
 				'url'      => '&amp;var1=value1&amp;var2=value2',
-				'preset'   => array(),
+				'preset'   => [],
 				'expected' => 'index.php?var1=value1&var2=value2'
 			),
 		);
@@ -644,7 +644,7 @@ class JRouterTest extends TestCase
 		$this->assertEquals(array($rule), $rules['parse']);
 		$this->assertTrue($this->object->detachRule('parse', $rule));
 		$rules = $this->object->getRules();
-		$this->assertEquals(array(), $rules['parse']);
+		$this->assertEquals([], $rules['parse']);
 		$this->assertFalse($this->object->detachRule('parse', $rule));
 	}
 

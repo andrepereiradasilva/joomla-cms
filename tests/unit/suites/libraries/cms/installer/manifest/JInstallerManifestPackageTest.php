@@ -75,7 +75,7 @@ class JInstallerManifestPackageTest extends TestCase
 		);
 
 		$this->assertEquals(
-			array(),
+			[],
 			$this->object->filelist
 		);
 	}

@@ -190,7 +190,7 @@ class JTableCorecontentTest extends TestCaseDatabase
 	 */
 	public function testPublishWithMultipleKeys()
 	{
-		$pks = array('18', '31');
+		$pks = ['18', '31'];
 		$this->assertTrue($this->object->publish($pks, '0'));
 		$this->object->load('18');
 		$this->assertEquals('0', $this->object->core_state);
@@ -205,7 +205,7 @@ class JTableCorecontentTest extends TestCaseDatabase
 	 */
 	public function testPublishWithSingleKey()
 	{
-		$this->assertTrue($this->object->publish(array('32'), '1'));
+		$this->assertTrue($this->object->publish(['32'], '1'));
 		$this->object->load('32');
 		$this->assertEquals('1', $this->object->core_state);
 	}

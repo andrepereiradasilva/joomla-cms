@@ -29,10 +29,10 @@ class JApplicationCmsInspector extends JApplicationCms
 	public static $connectionAlive = true;
 
 	/**
-	 * @var     array  List of sent headers for inspection. array($string, $replace, $code).
+	 * @var     array  List of sent headers for inspection. [$string, $replace, $code].
 	 * @since   3.2
 	 */
-	public $headers = array();
+	public $headers = [];
 
 	/**
 	 * @var     integer  The exit code if the application was closed otherwise null.
@@ -105,6 +105,6 @@ class JApplicationCmsInspector extends JApplicationCms
 	 */
 	public function header($string, $replace = true, $code = null)
 	{
-		$this->headers[] = array($string, $replace, $code);
+		$this->headers[] = [$string, $replace, $code];
 	}
 }

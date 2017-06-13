@@ -67,11 +67,11 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	 */
 	public function getRedirectData()
 	{
-		return array(
+		return [
 			// Note: url, base, request, (expected result)
-			array('/foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'),
-			array('foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'),
-		);
+			['/foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'],
+			['foo', 'http://mydomain.com/', 'http://mydomain.com/index.php?v=3.2', 'http://mydomain.com/foo'],
+		];
 	}
 
 	/**
@@ -106,7 +106,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 		$this->class = new JApplicationAdministrator($this->getMockInput(), $config);
 		$this->class->setSession(JFactory::$session);
 		$this->class->setDispatcher($this->getMockDispatcher());
-		TestReflection::setValue('JApplicationCms', 'instances', array('administrator' => $this->class));
+		TestReflection::setValue('JApplicationCms', 'instances', ['administrator' => $this->class]);
 
 		JFactory::$application = $this->class;
 	}
@@ -122,7 +122,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	protected function tearDown()
 	{
 		// Reset the application instance.
-		TestReflection::setValue('JApplicationCms', 'instances', array());
+		TestReflection::setValue('JApplicationCms', 'instances', []);
 		TestReflection::setValue('JPluginHelper', 'plugins', null);
 
 		$_SERVER = $this->backupServer;
@@ -294,7 +294,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	{
 		$document = $this->getMockDocument();
 
-		$this->assignMockReturns($document, array('render' => 'JWeb Body'));
+		$this->assignMockReturns($document, ['render' => 'JWeb Body']);
 
 		// Manually inject the document.
 		TestReflection::setValue($this->class, 'document', $document);
@@ -309,7 +309,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	 */
 	public function testFindOptionGuest()
 	{
-		$user = $this->getMock('JUser', array('get', 'authorise'));
+		$user = $this->getMock('JUser', ['get', 'authorise']);
 		$user->expects($this->once())
 			->method('get')
 			->with($this->equalTo('guest'))
@@ -332,7 +332,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	 */
 	public function testFindOptionCanNotLoginAdmin()
 	{
-		$user = $this->getMock('JUser', array('get', 'authorise'));
+		$user = $this->getMock('JUser', ['get', 'authorise']);
 		$user->expects($this->once())
 			->method('get')
 			->with($this->equalTo('guest'))
@@ -357,7 +357,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	 */
 	public function testFindOptionCanLoginAdmin()
 	{
-		$user = $this->getMock('JUser', array('get', 'authorise'));
+		$user = $this->getMock('JUser', ['get', 'authorise']);
 		$user->expects($this->once())
 			->method('get')
 			->with($this->equalTo('guest'))
@@ -382,7 +382,7 @@ class JApplicationAdministratorTest extends TestCaseDatabase
 	 */
 	public function testFindOptionCanLoginAdminOptionSet()
 	{
-		$user = $this->getMock('JUser', array('get', 'authorise'));
+		$user = $this->getMock('JUser', ['get', 'authorise']);
 		$user->expects($this->once())
 			->method('get')
 			->with($this->equalTo('guest'))
