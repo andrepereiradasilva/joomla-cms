@@ -64,7 +64,7 @@ class FinderIndexerTokenTest extends TestCase
 	 */
 	public function test__construct()
 	{
-		$token = new FinderIndexerToken(array('These', 'parties', 'don\'t', 'end'), 'en-GB');
+		$token = new FinderIndexerToken(['These', 'parties', 'don\'t', 'end'], 'en-GB');
 
 		// Just to make sure we have an instance of ourself
 		$this->assertInstanceOf(

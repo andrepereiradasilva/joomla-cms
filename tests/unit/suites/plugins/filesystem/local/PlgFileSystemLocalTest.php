@@ -55,11 +55,11 @@ class PlgFileSystemLocalTest extends TestCaseDatabase
 		JLoader::import('filesystem.local.local', JPATH_PLUGINS);
 
 		$dispatcher = $this->getMockDispatcher();
-		$plugin = array(
-			'name' => 'local',
-			'type' => 'filesystem',
+		$plugin = [
+			'name'   => 'local',
+			'type'   => 'filesystem',
 			'params' => new \JRegistry,
-		);
+		];
 
 		// Instantiate plugin
 		$this->pluginClass = new PlgFileSystemLocal($dispatcher, $plugin);
