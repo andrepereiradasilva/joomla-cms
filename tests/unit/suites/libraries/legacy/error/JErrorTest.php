@@ -25,7 +25,7 @@ class JErrorTest extends TestCase
 	 */
 	public function testGetError()
 	{
-		JErrorInspector::manipulateStack(array());
+		JErrorInspector::manipulateStack([]);
 
 		$this->assertThat(
 			JError::getError(),
@@ -34,7 +34,7 @@ class JErrorTest extends TestCase
 		);
 
 		// We normally couldn't have strings, but this is only a test
-		JErrorInspector::manipulateStack(array('Error1', 'Error2'));
+		JErrorInspector::manipulateStack(['Error1', 'Error2']);
 
 		$this->assertThat(
 			JError::getError(),
@@ -44,7 +44,7 @@ class JErrorTest extends TestCase
 
 		$this->assertThat(
 			JErrorInspector::inspectStack(),
-			$this->equalTo(array('Error1', 'Error2')),
+			$this->equalTo(['Error1', 'Error2']),
 			'The stack was changed by getError even though unset was false'
 		);
 
@@ -56,12 +56,12 @@ class JErrorTest extends TestCase
 
 		$this->assertThat(
 			JErrorInspector::inspectStack(),
-			$this->equalTo(array('Error2')),
+			$this->equalTo(['Error2']),
 			'The stack was either not changed or changed the wrong way by getError (with  unset true)'
 		);
 
 		// Here we remove any junk left on the error stack
-		JErrorInspector::manipulateStack(array());
+		JErrorInspector::manipulateStack([]);
 	}
 
 	/**
@@ -71,15 +71,15 @@ class JErrorTest extends TestCase
 	 */
 	public function testGetErrors()
 	{
-		JErrorInspector::manipulateStack(array('value1', 'value2', 'value3'));
+		JErrorInspector::manipulateStack(['value1', 'value2', 'value3']);
 
 		$this->assertThat(
 			JError::getErrors(),
-			$this->equalTo(array('value1', 'value2', 'value3')),
+			$this->equalTo(['value1', 'value2', 'value3']),
 			'Somehow a basic getter did not manage to return the static value'
 		);
 
-		JErrorInspector::manipulateStack(array());
+		JErrorInspector::manipulateStack([]);
 	}
 
 	/**
@@ -92,7 +92,7 @@ class JErrorTest extends TestCase
 		// Remove the following lines when the framework is fixed.
 		// $this->markTestSkipped('The framework is currently broken.  Skipping this test.');
 
-		JErrorInspector::manipulateStack(array('value1', 'value2', 'value3'));
+		JErrorInspector::manipulateStack(['value1', 'value2', 'value3']);
 
 		$exception = new JException('This is the error message', 1056, 'error');
 
@@ -106,7 +106,7 @@ class JErrorTest extends TestCase
 			'The exception did not get properly added to the stack'
 		);
 
-		JErrorInspector::manipulateStack(array());
+		JErrorInspector::manipulateStack([]);
 	}
 
 	/**
@@ -117,11 +117,11 @@ class JErrorTest extends TestCase
 	public function testSetErrorHandling()
 	{
 		JErrorInspector::manipulateLevels(
-			array(
-				E_NOTICE => 'Notice',
+			[
+				E_NOTICE  => 'Notice',
 				E_WARNING => 'Warning',
-				E_ERROR => 'Error'
-			)
+				E_ERROR   => 'Error'
+			]
 		);
 		$errorHandling = JErrorInspector::inspectHandlers();
 
@@ -135,12 +135,12 @@ class JErrorTest extends TestCase
 
 		$this->assertThat(
 			$handlers[E_NOTICE],
-			$this->equalTo(array('mode' => 'message')),
+			$this->equalTo(['mode' => 'message']),
 			'The error handler did not get set to message'
 		);
 
 		$this->assertThat(
-			JError::setErrorHandling(E_NOTICE, 'callback', array($this, 'callbackHandler')),
+			JError::setErrorHandling(E_NOTICE, 'callback', [$this, 'callbackHandler']),
 			$this->isTrue(),
 			'Setting a message error handler failed'
 		);
@@ -149,7 +149,7 @@ class JErrorTest extends TestCase
 
 		$this->assertThat(
 			$handlers[E_NOTICE],
-			$this->equalTo(array('mode' => 'callback', 'options' => array($this, 'callbackHandler'))),
+			$this->equalTo(['mode' => 'callback', 'options' => [$this, 'callbackHandler']]),
 			'The error handler did not get set to callback'
 		);
 
