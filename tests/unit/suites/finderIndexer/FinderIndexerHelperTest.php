@@ -82,7 +82,7 @@ class FinderIndexerHelperTest extends TestCaseDatabase
 			'Tests that addContentType returns the ID for an already existing type.'
 		);
 
-		$existingIds = array('1', '2', '3', '4', '5', '6');
+		$existingIds = ['1', '2', '3', '4', '5', '6'];
 		$newTypeId   = FinderIndexerHelper::addContentType('PHPUnit');
 
 		$this->assertFalse(
