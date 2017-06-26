@@ -85,6 +85,12 @@ class InstallerViewDatabase extends InstallerViewDefault
 		 * Set toolbar items for the page.
 		 */
 		JToolbarHelper::custom('database.fix', 'refresh', 'refresh', 'COM_INSTALLER_TOOLBAR_DATABASE_FIX', false);
+
+		if (count(JAccessHelper::getListOfAssetsToClean()) !== 0)
+		{
+			JToolbarHelper::custom('database.cleanassets', 'refresh', 'refresh', JText::_('Optimize assets'), false);
+		}
+
 		JToolbarHelper::divider();
 		parent::addToolbar();
 		JToolbarHelper::help('JHELP_EXTENSIONS_EXTENSION_MANAGER_DATABASE');
