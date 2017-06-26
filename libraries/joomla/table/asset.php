@@ -57,6 +57,18 @@ class JTableAsset extends JTableNested
 	 */
 	public function __construct($db)
 	{
+		// Hardcode the asset table columns for performance.
+		$this->columns = array(
+			'id'        => (object) array('Field' => 'id', 'Default' => ''),
+			'parent_id' => (object) array('Field' => 'parent_id', 'Default' => 0),
+			'lft'       => (object) array('Field' => 'lft', 'Default' => 0),
+			'rgt'       => (object) array('Field' => 'rgt', 'Default' => 0),
+			'level'     => (object) array('Field' => 'level', 'Default' => ''),
+			'name'      => (object) array('Field' => 'name', 'Default' => ''),
+			'title'     => (object) array('Field' => 'title', 'Default' => ''),
+			'rules'     => (object) array('Field' => 'rules', 'Default' => ''),
+		);
+
 		parent::__construct('#__assets', 'id', $db);
 	}
 
