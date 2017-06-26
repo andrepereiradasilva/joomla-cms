@@ -321,60 +321,50 @@ class JLanguage
 	public function _($string, $jsSafe = false, $interpretBackSlashes = true)
 	{
 		// Detect empty string
-		if ($string == '')
+		if (empty($string))
 		{
 			return '';
 		}
 
-		$key = strtoupper($string);
+		$key    = strtoupper($string);
+		$string = isset($this->strings[$key]) ? $this->strings[$key] : $string;
 
-		if (isset($this->strings[$key]))
+		// Store debug information
+		if ($this->debug)
 		{
-			$string = $this->debug ? '**' . $this->strings[$key] . '**' : $this->strings[$key];
-
-			// Store debug information
-			if ($this->debug)
+			if (isset($this->strings[$key]))
 			{
-				$caller = $this->getCallerInfo();
-
-				if (!array_key_exists($key, $this->used))
-				{
-					$this->used[$key] = array();
-				}
-
-				$this->used[$key][] = $caller;
+				$boundary   = '**';
+				$property   = 'used';
+				$additional = array();
 			}
-		}
-		else
-		{
-			if ($this->debug)
+			else
 			{
-				$caller = $this->getCallerInfo();
-				$caller['string'] = $string;
-
-				if (!array_key_exists($key, $this->orphans))
-				{
-					$this->orphans[$key] = array();
-				}
-
-				$this->orphans[$key][] = $caller;
-
-				$string = '??' . $string . '??';
+				$boundary   = '??';
+				$property   = 'orphans';
+				$additional = array('string' => $string);
 			}
+
+			if (!isset($this->$property[$key]))
+			{
+				$this->$property[$key] = array();
+			}
+
+			$this->$property[$key][] = array_replace($this->getCallerInfo(), $additional);
+			
+			$string = $boundary . $string . $boundary;
 		}
 
+		// Javascript
 		if ($jsSafe)
 		{
-			// Javascript filter
-			$string = addslashes($string);
+			return addslashes($string);
 		}
-		elseif ($interpretBackSlashes)
+
+		// Interpret \n and \t characters
+		if ($interpretBackSlashes && strpos($string, '\\') !== false)
 		{
-			if (strpos($string, '\\') !== false)
-			{
-				// Interpret \n and \t characters
-				$string = str_replace(array('\\\\', '\t', '\n'), array("\\", "\t", "\n"), $string);
-			}
+			return str_replace(array('\\\\', '\t', '\n'), array("\\", "\t", "\n"), $string);
 		}
 
 		return $string;
