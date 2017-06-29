@@ -119,7 +119,8 @@ class SiteMenu extends AbstractMenu
 		foreach ($items as &$item)
 		{
 			// Create tree.
-			$item->tree = isset($items[$item->parent_id]) ? $items[$item->parent_id]->tree : [];
+			$item->tree   = isset($items[$item->parent_id]) ? $items[$item->parent_id]->tree : [];
+			$item->tree[] = $item->id;
 
 			// Create the query array.
 			parse_str(str_replace(['&amp;', 'index.php?'], ['&', ''], $item->link), $item->query);
