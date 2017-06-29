@@ -61,10 +61,9 @@ class ModMenuHelper
 
 		foreach ($items as $i => $item)
 		{
-			$itemParams               = $item->getParams();
-			$showMenuItem             = (int) $itemParams->get('menu_show', 1);
-			$lastMenuItem             = isset($items[$lastitem]) === true ? $items[$lastitem] : null;
-			$items[$lastitem]->parent = $lastMenuItem !== null && $showMenuItem === 1 && $lastMenuItem->id === $item->parent_id;
+			$itemParams   = $item->params;
+			$showMenuItem = (int) $itemParams->get('menu_show', 1);
+			$lastMenuItem = isset($items[$lastitem]) === true ? $items[$lastitem] : null;
 
 			// Exclude items according to parameters.
 			if (($start !== 0 && $start > $item->level)
@@ -87,12 +86,14 @@ class ModMenuHelper
 			$item->deeper     = false;
 			$item->shallower  = false;
 			$item->level_diff = 0;
+			$item->parent     = false;
 
 			if ($lastMenuItem !== null)
 			{
 				$items[$lastitem]->deeper     = $item->level > $lastMenuItem->level;
 				$items[$lastitem]->shallower  = $item->level < $lastMenuItem->level;
 				$items[$lastitem]->level_diff = $lastMenuItem->level - $item->level;
+				$items[$lastitem]->parent = $showMenuItem === 1 && $lastMenuItem->id === $item->parent_id;
 			}
 
 			$item->flink          = $item->link;
