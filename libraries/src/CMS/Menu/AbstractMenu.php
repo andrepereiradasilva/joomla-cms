@@ -121,7 +121,7 @@ abstract class AbstractMenu
 	{
 		if (isset($this->getMenu()[$id]))
 		{
-			return &$this->getMenu()[$id];
+			return $this->getMenu()[$id];
 		}
 
 		return null;
