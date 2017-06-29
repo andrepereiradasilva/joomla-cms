@@ -52,7 +52,7 @@ class ModMenuHelper
 			return [];
 		}
 
-		$path            = array_reverse($base->tree);
+		$path            = array_flip($base->tree);
 		$start           = (int) $params->get('startLevel', 1);
 		$end             = (int) $params->get('endLevel', 0);
 		$showAllChildren = (int) $params->get('showAllChildren', 1);

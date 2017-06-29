@@ -17,7 +17,7 @@ if ($tagId = $params->get('tag_id', ''))
 }
 
 $pathSize    = count($path);
-$pathReserve = array_reverse($path);
+$pathReserve = array_flip($path);
 
 // The menu class is deprecated. Use nav instead
 ?>
