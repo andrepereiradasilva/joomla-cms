@@ -118,6 +118,11 @@ class SiteMenu extends AbstractMenu
 
 		foreach ($items as &$item)
 		{
+			if ($item->home)
+			{
+				$this->default[trim($item->language)] = $item->id;
+			}
+
 			// Create tree.
 			$item->tree   = isset($items[$item->parent_id]) ? $items[$item->parent_id]->tree : [];
 			$item->tree[] = $item->id;

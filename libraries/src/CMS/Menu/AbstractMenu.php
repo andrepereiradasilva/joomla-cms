@@ -71,14 +71,6 @@ abstract class AbstractMenu
 		// Load the menu items
 		$this->load();
 
-		foreach ($this->getMenu() as $item)
-		{
-			if ($item->home)
-			{
-				$this->default[trim($item->language)] = $item->id;
-			}
-		}
-
 		$this->user = isset($options['user']) && $options['user'] instanceof \JUser ? $options['user'] : \JFactory::getUser();
 	}
 
