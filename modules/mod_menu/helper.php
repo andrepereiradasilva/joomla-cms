@@ -61,7 +61,7 @@ class ModMenuHelper
 
 		foreach ($items as $i => $item)
 		{
-			$itemParams               = $item->params;
+			$itemParams               = $item->getParams();
 			$showMenuItem             = (int) $itemParams->get('menu_show', 1);
 			$lastMenuItem             = isset($items[$lastitem]) === true ? $items[$lastitem] : null;
 			$items[$lastitem]->parent = $lastMenuItem !== null && $showMenuItem === 1 && $lastMenuItem->id === $item->parent_id;
