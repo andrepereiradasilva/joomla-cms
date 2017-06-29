@@ -276,12 +276,7 @@ class MenuItem extends \stdClass
 	 */
 	public function getParams()
 	{
-		if ($this->params instanceof Registry)
-		{
-			return $this->params;
-		}
-
-		return new Registry($this->params);
+		return $this->params instanceof Registry ? $this->params : new Registry($this->params);
 	}
 
 	/**
