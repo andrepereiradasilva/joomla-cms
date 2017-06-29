@@ -92,7 +92,7 @@ class SiteMenu extends AbstractMenu
 			/** @var \JCacheControllerCallback $cache */
 			$cache = \JFactory::getCache('com_menus', 'callback');
 
-			$this->items = $cache->get($loader, array(), md5(get_class($this)), false);
+			$this->items = $cache->get($loader, [], md5(get_class($this)), false);
 		}
 		catch (\JCacheException $e)
 		{
@@ -114,25 +114,15 @@ class SiteMenu extends AbstractMenu
 			return false;
 		}
 
-		foreach ($this->getMenu() as &$item)
+		$items = $this->getMenu();
+
+		foreach ($items as &$item)
 		{
-			// Get parent information.
-			$parent_tree = array();
-
-			if (isset($this->getMenu()[$item->parent_id]))
-			{
-				$parent_tree  = $this->getMenu()[$item->parent_id]->tree;
-			}
-
 			// Create tree.
-			$parent_tree[] = $item->id;
-			$item->tree = $parent_tree;
+			$item->tree = isset($items[$item->parent_id]) ? $items[$item->parent_id]->tree : [];
 
 			// Create the query array.
-			$url = str_replace('index.php?', '', $item->link);
-			$url = str_replace('&amp;', '&', $url);
-
-			parse_str($url, $item->query);
+			parse_str(str_replace(['&amp;', 'index.php?'], ['&', ''], $item->link), $item->query);
 		}
 
 		return true;

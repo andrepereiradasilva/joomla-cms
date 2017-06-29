@@ -119,12 +119,7 @@ abstract class AbstractMenu
 	 */
 	public function getItem($id)
 	{
-		if (isset($this->getMenu()[$id]))
-		{
-			return $this->getMenu()[$id];
-		}
-
-		return null;
+		return isset($this->getMenu()[$id]) ? $this->getMenu()[$id] : null;
 	}
 
 	/**
@@ -160,12 +155,12 @@ abstract class AbstractMenu
 	 */
 	public function getDefault($language = '*')
 	{
-		if (array_key_exists($language, $this->default))
+		if (isset($this->default[$language]))
 		{
 			return $this->getMenu()[$this->default[$language]];
 		}
 
-		if (array_key_exists('*', $this->default))
+		if (isset($this->default['*']))
 		{
 			return $this->getMenu()[$this->default['*']];
 		}
@@ -199,10 +194,7 @@ abstract class AbstractMenu
 	 */
 	public function getActive()
 	{
-		if ($this->active)
-		{
-			return $this->getMenu()[$this->active];
-		}
+		return $this->active ? $this->getMenu()[$this->active] : null;
 	}
 
 	/**
