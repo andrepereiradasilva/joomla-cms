@@ -61,7 +61,7 @@ class ModMenuHelper
 
 		foreach ($items as $i => $item)
 		{
-			$itemParams               = new \Joomla\Registry\Registry; //$item->params;
+			$itemParams               = $item->params;
 			$showMenuItem             = (int) $itemParams->get('menu_show', 1);
 			$lastMenuItem             = isset($items[$lastitem]) === true ? $items[$lastitem] : null;
 			$items[$lastitem]->parent = $lastMenuItem !== null && $showMenuItem === 1 && $lastMenuItem->id === $item->parent_id;
@@ -135,7 +135,7 @@ class ModMenuHelper
 					break;
 			}
 
-			//$item->flink = JRoute::_($item->flink, true, $convertUriSchemeFlag);
+			$item->flink = JRoute::_($item->flink, true, $convertUriSchemeFlag);
 
 			$menuAnchorCss   = $itemParams->get('menu-anchor_css');
 			$menuAnchorTitle = $itemParams->get('menu-anchor_title');
