@@ -61,10 +61,6 @@ class ModMenuHelper
 
 		foreach ($items as $i => $item)
 		{
-			$itemParams   = $item->params;
-			$showMenuItem = (int) $itemParams->get('menu_show', 1);
-			$lastMenuItem = isset($items[$lastitem]) === true ? $items[$lastitem] : null;
-
 			// Exclude items according to parameters.
 			if (($start !== 0 && $start > $item->level)
 				|| ($end !== 0 && $item->level > $end)
@@ -74,6 +70,9 @@ class ModMenuHelper
 				unset($items[$i]);
 				continue;
 			}
+
+			$itemParams   = $item->params;
+			$showMenuItem = (int) $itemParams->get('menu_show', 1);
 
 			// Exclude item with menu item option set to exclude from menu modules
 			if ($showMenuItem === 0 || isset($hiddenParents[$item->parent_id]) === true)
@@ -88,12 +87,14 @@ class ModMenuHelper
 			$item->level_diff = 0;
 			$item->parent     = false;
 
-			if ($lastMenuItem !== null)
+			$prevMenuItem = isset($items[$prevMenuItemId]) === true ? $items[$prevMenuItemId] : null;
+
+			if ($prevMenuItem !== null)
 			{
-				$items[$lastitem]->deeper     = $item->level > $lastMenuItem->level;
-				$items[$lastitem]->shallower  = $item->level < $lastMenuItem->level;
-				$items[$lastitem]->level_diff = $lastMenuItem->level - $item->level;
-				$items[$lastitem]->parent = $showMenuItem === 1 && $lastMenuItem->id === $item->parent_id;
+				$items[$prevMenuItemId]->deeper     = $item->level > $prevMenuItem->level;
+				$items[$prevMenuItemId]->shallower  = $item->level < $prevMenuItem->level;
+				$items[$prevMenuItemId]->level_diff = $prevMenuItem->level - $item->level;
+				$items[$prevMenuItemId]->parent     = $showMenuItem === 1 && $prevMenuItem->id === $item->parent_id;
 			}
 
 			$item->flink          = $item->link;
@@ -152,16 +153,16 @@ class ModMenuHelper
 			$item->menu_image   = $menuImage !== null ? htmlspecialchars($menuImage, ENT_COMPAT, 'UTF-8', false) : '';
 
 			// Preserve the last item key for the next loop.
-			$lastitem = $i;
+			$prevMenuItemId = $i;
 		}
 
-		if ($lastMenuItem !== null)
+		if ($prevMenuItem !== null)
 		{
-			$level                        = $start ?: 1;
-			$items[$lastitem]->deeper     = $level > $lastMenuItem->level;
-			$items[$lastitem]->shallower  = $level < $lastMenuItem->level;
-			$items[$lastitem]->level_diff = $lastMenuItem->level - $level;
-			$items[$lastitem]->parent     = false;
+			$level                              = $start ?: 1;
+			$items[$prevMenuItemId]->deeper     = $level > $prevMenuItem->level;
+			$items[$prevMenuItemId]->shallower  = $level < $prevMenuItem->level;
+			$items[$prevMenuItemId]->level_diff = $prevMenuItem->level - $level;
+			$items[$prevMenuItemId]->parent     = false;
 		}
 
 		// Store in cache.
