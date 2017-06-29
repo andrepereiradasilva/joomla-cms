@@ -25,7 +25,7 @@ abstract class AbstractMenu
 	 * @var    MenuItem[]
 	 * @since  __DEPLOY_VERSION__
 	 */
-	protected $items = array();
+	protected $items = [];
 
 	/**
 	 * Identifier of the default menu item
@@ -33,7 +33,7 @@ abstract class AbstractMenu
 	 * @var    integer
 	 * @since  __DEPLOY_VERSION__
 	 */
-	protected $default = array();
+	protected $default = [];
 
 	/**
 	 * Identifier of the active menu item
@@ -49,7 +49,7 @@ abstract class AbstractMenu
 	 * @var    AbstractMenu[]
 	 * @since  1.7
 	 */
-	protected static $instances = array();
+	protected static $instances = [];
 
 	/**
 	 * User object to check access levels for
@@ -66,7 +66,7 @@ abstract class AbstractMenu
 	 *
 	 * @since   1.5
 	 */
-	public function __construct($options = array())
+	public function __construct($options = [])
 	{
 		// Load the menu items
 		$this->load();
@@ -119,14 +119,12 @@ abstract class AbstractMenu
 	 */
 	public function getItem($id)
 	{
-		$result = null;
-
 		if (isset($this->getMenu()[$id]))
 		{
-			$result = &$this->getMenu()[$id];
+			return &$this->getMenu()[$id];
 		}
 
-		return $result;
+		return null;
 	}
 
 	/**
@@ -213,56 +211,39 @@ abstract class AbstractMenu
 	 * @param   mixed    $attributes  The field name(s).
 	 * @param   mixed    $values      The value(s) of the field. If an array, need to match field names
 	 *                                each attribute may have multiple values to lookup for.
-	 * @param   boolean  $firstonly   If true, only returns the first item found
+	 * @param   boolean  $firstOnly   If true, only returns the first item found
 	 *
-	 * @return  MenuItem|MenuItem[]  An array of menu item objects or a single object if the $firstonly parameter is true
+	 * @return  MenuItem|MenuItem[]  An array of menu item objects or a single object if the $firstOnly parameter is true
 	 *
 	 * @since   1.5
 	 */
-	public function getItems($attributes, $values, $firstonly = false)
+	public function getItems($attributes, $values, $firstOnly = false)
 	{
-		$items = array();
-		$attributes = (array) $attributes;
-		$values = (array) $values;
-		$count = count($attributes);
+		$items            = $this->getMenu();
+		$searchAttributes = array_combine((array) $attributes, (array) $values);
 
-		foreach ($this->getMenu() as $item)
+		foreach ($items as $k => $item)
 		{
 			if (!is_object($item))
 			{
 				continue;
 			}
 
-			$test = true;
-
-			for ($i = 0; $i < $count; $i++)
+			foreach ($searchAttributes as $attribute => $value)
 			{
-				if (is_array($values[$i]))
+				$isArrayOfValues = is_array($value) === true;
+
+				if (($isArrayOfValues === false && $item->{$attribute} != $value)
+					|| ($isArrayOfValues === true && !in_array($item->{$attribute}, $value)))
 				{
-					if (!in_array($item->{$attributes[$i]}, $values[$i]))
-					{
-						$test = false;
-						break;
-					}
-				}
-				else
-				{
-					if ($item->{$attributes[$i]} != $values[$i])
-					{
-						$test = false;
-						break;
-					}
+					unset($items[$k]);
+					continue 2;
 				}
 			}
 
-			if ($test)
+			if ($firstOnly === true)
 			{
-				if ($firstonly)
-				{
-					return $item;
-				}
-
-				$items[] = $item;
+				return $item;
 			}
 		}
 
@@ -311,9 +292,7 @@ abstract class AbstractMenu
 	 */
 	public function authorise($id)
 	{
-		$menu = $this->getItem($id);
-
-		if ($menu)
+		if ($menu = $this->getItem($id))
 		{
 			return in_array((int) $menu->access, $this->user->getAuthorisedViewLevels());
 		}

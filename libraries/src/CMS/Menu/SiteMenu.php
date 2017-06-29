@@ -52,7 +52,7 @@ class SiteMenu extends AbstractMenu
 	 *
 	 * @since   1.5
 	 */
-	public function __construct($options = array())
+	public function __construct($options = [])
 	{
 		// Extract the internal dependencies before calling the parent constructor since it calls $this->load()
 		$this->app      = isset($options['app']) && $options['app'] instanceof CMSApplication ? $options['app'] : \JFactory::getApplication();
@@ -84,10 +84,7 @@ class SiteMenu extends AbstractMenu
 				->where('m.client_id = 0')
 				->order('m.lft');
 
-			// Set the query
-			$this->db->setQuery($query);
-
-			return $this->db->loadObjectList('id', MenuItem::class);
+			return $this->db->setQuery($query)->loadObjectList('id', MenuItem::class);
 		};
 
 		try
@@ -146,50 +143,42 @@ class SiteMenu extends AbstractMenu
 	 *
 	 * @param   string   $attributes  The field name
 	 * @param   string   $values      The value of the field
-	 * @param   boolean  $firstonly   If true, only returns the first item found
+	 * @param   boolean  $firstOnly   If true, only returns the first item found
 	 *
-	 * @return  MenuItem|MenuItem[]  An array of menu item objects or a single object if the $firstonly parameter is true
+	 * @return  MenuItem|MenuItem[]  An array of menu item objects or a single object if the $firstOnly parameter is true
 	 *
 	 * @since   1.6
 	 */
-	public function getItems($attributes, $values, $firstonly = false)
+	public function getItems($attributes, $values, $firstOnly = false)
 	{
-		$attributes = (array) $attributes;
-		$values     = (array) $values;
+		$searchAttributes = array_combine((array) $attributes, (array) $values);
 
-		if ($this->app->isClient('site'))
+		if ($this->app->isClient('site') === true)
 		{
-			// Filter by language if not set
-			if (($key = array_search('language', $attributes)) === false)
+			// If language filter is set make sure, for performance reasons, that there aren't duplicated values.
+			if (isset($searchAttributes['language']) === true)
 			{
-				if (Multilanguage::isEnabled())
-				{
-					$attributes[] = 'language';
-					$values[]     = array(\JFactory::getLanguage()->getTag(), '*');
-				}
+				$searchAttributes['language'] = array_unique($searchAttributes['language']);
 			}
-			elseif ($values[$key] === null)
+			// If language filter is not set and we are in multilanguage sites, set as current language and all languages.
+			elseif (isset($searchAttributes['language']) === false && Multilanguage::isEnabled() === true)
 			{
-				unset($attributes[$key], $values[$key]);
+				$searchAttributes['language'] = [\JFactory::getLanguage()->getTag(), '*'];
+			}
+			// If language filter is set to  null, remove it.
+			elseif (array_key_exists($searchAttributes['language']) === true && $searchAttributes['language'] === null)
+			{
+				unset($searchAttributes['language']);
 			}
 
-			// Filter by access level if not set
-			if (($key = array_search('access', $attributes)) === false)
+			// If access filter is not use user authorized view levels and make sure, for performance reasons, that there aren't duplicated values.
+			if (isset($searchAttributes['access']) === false)
 			{
-				$attributes[] = 'access';
-				$values[] = $this->user->getAuthorisedViewLevels();
-			}
-			elseif ($values[$key] === null)
-			{
-				unset($attributes[$key], $values[$key]);
+				$searchAttributes['access'] = array_unique($this->user->getAuthorisedViewLevels());
 			}
 		}
 
-		// Reset arrays or we get a notice if some values were unset
-		$attributes = array_values($attributes);
-		$values = array_values($values);
-
-		return parent::getItems($attributes, $values, $firstonly);
+		return parent::getItems(array_keys($searchAttributes), array_values($searchAttributes), $firstOnly);
 	}
 
 	/**

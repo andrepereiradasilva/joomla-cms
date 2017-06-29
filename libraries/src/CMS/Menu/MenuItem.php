@@ -276,24 +276,12 @@ class MenuItem extends \stdClass
 	 */
 	public function getParams()
 	{
-		if (!($this->params instanceof Registry))
+		if ($this->params instanceof Registry)
 		{
-			try
-			{
-				$this->params = new Registry($this->params);
-			}
-			catch (RuntimeException $e)
-			{
-				/*
-				 * Joomla shipped with a broken sample json string for 4 years which caused fatals with new
-				 * error checks. So for now we catch the exception here - but one day we should remove it and require
-				 * valid JSON.
-				 */
-				$this->params = new Registry;
-			}
+			return $this->params;
 		}
 
-		return $this->params;
+		return new Registry($this->params);
 	}
 
 	/**
