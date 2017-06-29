@@ -167,7 +167,7 @@ class SiteMenu extends AbstractMenu
 				unset($searchAttributes['language']);
 			}
 
-			// If access filter is not use user authorized view levels and make sure, for performance reasons, that there aren't duplicated values.
+			// If access filter is not set use user authorized view levels and make sure, for performance reasons, that there aren't duplicated values.
 			if (isset($searchAttributes['access']) === false)
 			{
 				$searchAttributes['access'] = array_unique($this->user->getAuthorisedViewLevels());
