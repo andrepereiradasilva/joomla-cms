@@ -17,7 +17,7 @@ if ($tagId = $params->get('tag_id', ''))
 }
 
 $pathSize    = count($path);
-$pathReserve = array_flip($path);
+$pathFlipped = array_flip($path);
 
 // The menu class is deprecated. Use nav instead
 ?>
@@ -37,7 +37,7 @@ $pathReserve = array_flip($path);
 		$class .= ' current';
 	}
 
-	if (isset($pathReserve[$item->id]) === true)
+	if (isset($pathFlipped[$item->id]) === true)
 	{
 		$class .= ' active';
 	}
@@ -47,7 +47,7 @@ $pathReserve = array_flip($path);
 		{
 			$class .= ' active';
 		}
-		elseif (isset($pathReserve[$aliasId]) === true)
+		elseif (isset($pathFlipped[$aliasId]) === true)
 		{
 			$class .= ' alias-parent-active';
 		}
