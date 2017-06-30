@@ -58,7 +58,6 @@ class ModMenuHelper
 		$showAllChildren = (int) $params->get('showAllChildren', 1);
 		$hiddenParents   = [];
 		$prevMenuItemId  = 0;
-		$menuType        = $params->get('menutype');
 
 		foreach ($items as $i => &$item)
 		{
