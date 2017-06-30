@@ -42,7 +42,7 @@ class ModMenuHelper
 			return $cache->get($key);
 		}
 
-		$items = JFactory::getApplication()->getMenu()->getItems(['menutype'], [$params->get('menutype', '')]);
+		$items = JFactory::getApplication()->getMenu()->getMenu();
 
 		// No items in the menu.
 		if (!$items)
@@ -57,12 +57,14 @@ class ModMenuHelper
 		$end             = (int) $params->get('endLevel', 0);
 		$showAllChildren = (int) $params->get('showAllChildren', 1);
 		$hiddenParents   = [];
-		$lastitem        = 0;
+		$prevMenuItemId  = 0;
+		$menuType        = $params->get('menutype');
 
 		foreach ($items as $i => $item)
 		{
 			// Exclude items according to parameters.
-			if (($start !== 0 && $start > $item->level)
+			if ($item->menutype !== $menuType
+				|| ($start !== 0 && $start > $item->level)
 				|| ($end !== 0 && $item->level > $end)
 				|| ($showAllChildren === 0 && $item->level > 1 && isset($path[$item->parent_id]) === false)
 				|| ($start > 1 && isset($path[$item->tree[$start - 2]]) === false))
