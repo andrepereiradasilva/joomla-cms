@@ -114,18 +114,16 @@ class SiteMenu extends AbstractMenu
 			return false;
 		}
 
-		$items = $this->getMenu();
-
-		foreach ($items as &$item)
+		foreach ($this->getMenu() as &$item)
 		{
+			// Add default item to menu.
 			if ($item->home)
 			{
 				$this->default[trim($item->language)] = $item->id;
 			}
 
 			// Create tree.
-			$item->tree   = isset($items[$item->parent_id]) ? $items[$item->parent_id]->tree : [];
-			$item->tree[] = $item->id;
+			$item->tree = isset($items[$item->parent_id]) === true ? ($items[$item->parent_id]->tree + [$item->id]) : [$item->id];
 
 			// Create the query array.
 			parse_str(str_replace(['&amp;', 'index.php?'], ['&', ''], $item->link), $item->query);
