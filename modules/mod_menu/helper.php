@@ -60,7 +60,7 @@ class ModMenuHelper
 		$prevMenuItemId  = 0;
 		$menuType        = $params->get('menutype');
 
-		foreach ($items as $i => $item)
+		foreach ($items as $i => &$item)
 		{
 			// Exclude items according to parameters.
 			if ($item->menutype !== $menuType
