@@ -9,10 +9,10 @@
 
 defined('_JEXEC') or die;
 
-use \Joomla\CMS\Helper\ModuleHelper;
+use Joomla\CMS\Helper\ModuleHelper;
 
 // Include the menu functions only once
-JLoader::register('ModMenuHelper', __DIR__ . '/helper.php');
+\JLoader::register('ModMenuHelper', __DIR__ . '/helper.php');
 
 $list       = ModMenuHelper::getList($params);
 $base       = ModMenuHelper::getBase($params);

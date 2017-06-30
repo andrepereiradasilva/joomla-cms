@@ -9,6 +9,9 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Multilanguage;
+use Joomla\CMS\Factory;
+
 /**
  * Helper for mod_menu
  *
@@ -31,10 +34,10 @@ class ModMenuHelper
 	{
 		// Get active menu item
 		$base   = self::getBase($params);
-		$levels = array_unique(\JFactory::getUser()->getAuthorisedViewLevels());
+		$levels = array_unique(Factory::getUser()->getAuthorisedViewLevels());
 		asort($levels);
 		$key   = 'menu_items' . $params . implode(',', $levels) . '.' . $base->id;
-		$cache = \JFactory::getCache('mod_menu', '');
+		$cache = Factory::getCache('mod_menu', '');
 
 		// Already in cache.
 		if ($cache->contains($key))
@@ -42,7 +45,7 @@ class ModMenuHelper
 			return $cache->get($key);
 		}
 
-		$items = \JFactory::getApplication()->getMenu()->getItems(['menutype'], [$params->get('menutype')]);
+		$items = Factory::getApplication()->getMenu()->getItems(['menutype'], [$params->get('menutype')]);
 
 		// No items in the menu.
 		if (!$items)
@@ -137,7 +140,7 @@ class ModMenuHelper
 					break;
 			}
 
-			$item->flink = JRoute::_($item->flink, true, $convertUriSchemeFlag);
+			$item->flink = \JRoute::_($item->flink, true, $convertUriSchemeFlag);
 
 			$menuAnchorCss   = $itemParams->get('menu-anchor_css');
 			$menuAnchorTitle = $itemParams->get('menu-anchor_title');
@@ -186,7 +189,7 @@ class ModMenuHelper
 		$base = $params->get('base');
 
 		// Use active menu item if no base found
-		return $base !== null ? \JFactory::getApplication()->getMenu()->getItem($base) : self::getActive();
+		return $base !== null ? Factory::getApplication()->getMenu()->getItem($base) : self::getActive();
 	}
 
 	/**
@@ -198,7 +201,7 @@ class ModMenuHelper
 	 */
 	public static function getActive()
 	{
-		$active = \JFactory::getApplication()->getMenu()->getActive();
+		$active = Factory::getApplication()->getMenu()->getActive();
 
 		return $active ?: self::getDefault();
 	}
@@ -210,9 +213,9 @@ class ModMenuHelper
 	 */
 	public static function getDefault()
 	{
-		$app  = \JFactory::getApplication();
+		$app  = Factory::getApplication();
 		$menu = $app->getMenu();
 
-		return \JLanguageMultilang::isEnabled() === true ? $menu->getDefault($app->getLanguage()->getTag()) : $menu->getDefault();
+		return Multilanguage::isEnabled() === true ? $menu->getDefault($app->getLanguage()->getTag()) : $menu->getDefault();
 	}
 }
