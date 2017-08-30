@@ -9,6 +9,9 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Language\Multilanguage;
+use Joomla\CMS\Factory;
+
 /**
  * Helper for mod_menu
  *
@@ -21,138 +24,152 @@ class ModMenuHelper
 	/**
 	 * Get a list of the menu items.
 	 *
-	 * @param   \Joomla\Registry\Registry  &$params  The module options.
+	 * @param   \Joomla\Registry\Registry  $params  The module options.
 	 *
 	 * @return  array
 	 *
 	 * @since   1.5
 	 */
-	public static function getList(&$params)
+	public static function getList($params)
 	{
-		$app = JFactory::getApplication();
-		$menu = $app->getMenu();
-
 		// Get active menu item
-		$base = self::getBase($params);
-		$user = JFactory::getUser();
-		$levels = $user->getAuthorisedViewLevels();
+		$base   = self::getBase($params);
+		$levels = array_unique(Factory::getUser()->getAuthorisedViewLevels());
 		asort($levels);
-		$key = 'menu_items' . $params . implode(',', $levels) . '.' . $base->id;
-		$cache = JFactory::getCache('mod_menu', '');
+		$key   = 'menu_items' . $params . implode(',', $levels) . '.' . $base->id;
+		$cache = Factory::getCache('mod_menu', '');
 
+		// Already in cache.
 		if ($cache->contains($key))
 		{
-			$items = $cache->get($key);
+			return $cache->get($key);
 		}
-		else
+
+		$items = Factory::getApplication()->getMenu()->getItems(['menutype'], [$params->get('menutype')]);
+
+		// No items in the menu.
+		if (!$items)
 		{
-			$path           = $base->tree;
-			$start          = (int) $params->get('startLevel');
-			$end            = (int) $params->get('endLevel');
-			$showAll        = $params->get('showAllChildren');
-			$items          = $menu->getItems('menutype', $params->get('menutype'));
-			$hidden_parents = array();
-			$lastitem       = 0;
+			$cache->store($items, $key);
 
-			if ($items)
+			return [];
+		}
+
+		$path            = array_flip($base->tree);
+		$start           = (int) $params->get('startLevel', 1);
+		$end             = (int) $params->get('endLevel', 0);
+		$showAllChildren = (int) $params->get('showAllChildren', 1);
+		$hiddenParents   = [];
+		$prevMenuItemId  = 0;
+
+		foreach ($items as $i => &$item)
+		{
+			// Exclude items according to parameters.
+			if (($start !== 0 && $start > $item->level)
+				|| ($end !== 0 && $item->level > $end)
+				|| ($showAllChildren === 0 && $item->level > 1 && isset($path[$item->parent_id]) === false)
+				|| ($start > 1 && isset($path[$item->tree[$start - 2]]) === false))
 			{
-				foreach ($items as $i => $item)
-				{
-					$item->parent = false;
-
-					if (isset($items[$lastitem]) && $items[$lastitem]->id == $item->parent_id && $item->params->get('menu_show', 1) == 1)
-					{
-						$items[$lastitem]->parent = true;
-					}
-
-					if (($start && $start > $item->level)
-						|| ($end && $item->level > $end)
-						|| (!$showAll && $item->level > 1 && !in_array($item->parent_id, $path))
-						|| ($start > 1 && !in_array($item->tree[$start - 2], $path)))
-					{
-						unset($items[$i]);
-						continue;
-					}
-
-					// Exclude item with menu item option set to exclude from menu modules
-					if (($item->params->get('menu_show', 1) == 0) || in_array($item->parent_id, $hidden_parents))
-					{
-						$hidden_parents[] = $item->id;
-						unset($items[$i]);
-						continue;
-					}
-
-					$item->deeper     = false;
-					$item->shallower  = false;
-					$item->level_diff = 0;
-
-					if (isset($items[$lastitem]))
-					{
-						$items[$lastitem]->deeper     = ($item->level > $items[$lastitem]->level);
-						$items[$lastitem]->shallower  = ($item->level < $items[$lastitem]->level);
-						$items[$lastitem]->level_diff = ($items[$lastitem]->level - $item->level);
-					}
-
-					$lastitem     = $i;
-					$item->active = false;
-					$item->flink  = $item->link;
-
-					// Reverted back for CMS version 2.5.6
-					switch ($item->type)
-					{
-						case 'separator':
-							break;
-
-						case 'heading':
-							// No further action needed.
-							break;
-
-						case 'url':
-							if ((strpos($item->link, 'index.php?') === 0) && (strpos($item->link, 'Itemid=') === false))
-							{
-								// If this is an internal Joomla link, ensure the Itemid is set.
-								$item->flink = $item->link . '&Itemid=' . $item->id;
-							}
-							break;
-
-						case 'alias':
-							$item->flink = 'index.php?Itemid=' . $item->params->get('aliasoptions');
-							break;
-
-						default:
-							$item->flink = 'index.php?Itemid=' . $item->id;
-							break;
-					}
-
-					if ((strpos($item->flink, 'index.php?') !== false) && strcasecmp(substr($item->flink, 0, 4), 'http'))
-					{
-						$item->flink = JRoute::_($item->flink, true, $item->params->get('secure'));
-					}
-					else
-					{
-						$item->flink = JRoute::_($item->flink);
-					}
-
-					// We prevent the double encoding because for some reason the $item is shared for menu modules and we get double encoding
-					// when the cause of that is found the argument should be removed
-					$item->title        = htmlspecialchars($item->title, ENT_COMPAT, 'UTF-8', false);
-					$item->anchor_css   = htmlspecialchars($item->params->get('menu-anchor_css', ''), ENT_COMPAT, 'UTF-8', false);
-					$item->anchor_title = htmlspecialchars($item->params->get('menu-anchor_title', ''), ENT_COMPAT, 'UTF-8', false);
-					$item->anchor_rel = htmlspecialchars($item->params->get('menu-anchor_rel', ''), ENT_COMPAT, 'UTF-8', false);
-					$item->menu_image   = $item->params->get('menu_image', '') ?
-						htmlspecialchars($item->params->get('menu_image', ''), ENT_COMPAT, 'UTF-8', false) : '';
-				}
-
-				if (isset($items[$lastitem]))
-				{
-					$items[$lastitem]->deeper     = (($start ?: 1) > $items[$lastitem]->level);
-					$items[$lastitem]->shallower  = (($start ?: 1) < $items[$lastitem]->level);
-					$items[$lastitem]->level_diff = ($items[$lastitem]->level - ($start ?: 1));
-				}
+				unset($items[$i]);
+				continue;
 			}
 
-			$cache->store($items, $key);
+			$itemParams   = $item->params;
+			$showMenuItem = (int) $itemParams->get('menu_show', 1);
+
+			// Exclude item with menu item option set to exclude from menu modules
+			if ($showMenuItem === 0 || isset($hiddenParents[$item->parent_id]) === true)
+			{
+				$hiddenParents[$item->id] = 1;
+				unset($items[$i]);
+				continue;
+			}
+
+			$item->deeper     = false;
+			$item->shallower  = false;
+			$item->level_diff = 0;
+			$item->parent     = false;
+
+			$prevMenuItem = isset($items[$prevMenuItemId]) === true ? $items[$prevMenuItemId] : null;
+
+			if ($prevMenuItem !== null)
+			{
+				$items[$prevMenuItemId]->deeper     = $item->level > $prevMenuItem->level;
+				$items[$prevMenuItemId]->shallower  = $item->level < $prevMenuItem->level;
+				$items[$prevMenuItemId]->level_diff = $prevMenuItem->level - $item->level;
+				$items[$prevMenuItemId]->parent     = $showMenuItem === 1 && $prevMenuItem->id === $item->parent_id;
+			}
+
+			$item->flink          = $item->link;
+			$convertUriSchemeFlag = null;
+
+			// Route the menu item link.
+			switch ($item->type)
+			{
+				// No further action needed.
+				case 'separator':
+				case 'heading':
+					break;
+
+				// If this is an internal Joomla link, ensure the Itemid is set.
+				case 'url':
+					// If this is an internal Joomla link.
+					if (strpos($item->flink, 'index.php?') !== false)
+					{
+						// Ensure the Itemid is set.
+						if (strpos($item->link, 'Itemid=') === false)
+						{
+							$item->flink = $item->link . '&Itemid=' . $item->id;
+						}
+
+						// Check if a conversion of the url scheme in absolute url is needed (https to http or https to http).
+						if (($secure = $itemParams->get('secure')) !== null && stripos($item->flink, 'http:') === 0)
+						{
+							$convertUriSchemeFlag = $secure;
+						}
+					}
+
+					break;
+
+				case 'alias':
+					$item->flink = 'index.php?Itemid=' . $itemParams->get('aliasoptions', '');
+					break;
+
+				default:
+					$item->flink = 'index.php?Itemid=' . $item->id;
+					break;
+			}
+
+			$item->flink = \JRoute::_($item->flink, true, $convertUriSchemeFlag);
+
+			$menuAnchorCss   = $itemParams->get('menu-anchor_css');
+			$menuAnchorTitle = $itemParams->get('menu-anchor_title');
+			$menuAnchorRel   = $itemParams->get('menu-anchor_rel');
+			$menuImage       = $itemParams->get('menu_image');
+
+			// We prevent the double encoding because for some reason the $item is shared for menu modules and we get double encoding
+			// when the cause of that is found the argument should be removed
+			$item->title        = htmlspecialchars($item->title, ENT_COMPAT, 'UTF-8', false);
+			$item->anchor_css   = $menuAnchorCss !== null ? htmlspecialchars($menuAnchorCss, ENT_COMPAT, 'UTF-8', false) : '';
+			$item->anchor_title = $menuAnchorTitle !== null ? htmlspecialchars($menuAnchorTitle, ENT_COMPAT, 'UTF-8', false) : '';
+			$item->anchor_rel   = $menuAnchorRel !== null ? htmlspecialchars($menuAnchorRel, ENT_COMPAT, 'UTF-8', false) : '';
+			$item->menu_image   = $menuImage !== null ? htmlspecialchars($menuImage, ENT_COMPAT, 'UTF-8', false) : '';
+
+			// Preserve the last item key for the next loop.
+			$prevMenuItemId = $i;
 		}
+
+		if ($prevMenuItem !== null)
+		{
+			$level                              = $start ?: 1;
+			$items[$prevMenuItemId]->deeper     = $level > $prevMenuItem->level;
+			$items[$prevMenuItemId]->shallower  = $level < $prevMenuItem->level;
+			$items[$prevMenuItemId]->level_diff = $prevMenuItem->level - $level;
+			$items[$prevMenuItemId]->parent     = false;
+		}
+
+		// Store in cache.
+		$cache->store($items, $key);
 
 		return $items;
 	}
@@ -160,47 +177,33 @@ class ModMenuHelper
 	/**
 	 * Get base menu item.
 	 *
-	 * @param   \Joomla\Registry\Registry  &$params  The module options.
+	 * @param   \Joomla\Registry\Registry  $params  The module options.
 	 *
 	 * @return  object
 	 *
 	 * @since	3.0.2
 	 */
-	public static function getBase(&$params)
+	public static function getBase($params)
 	{
 		// Get base menu item from parameters
-		if ($params->get('base'))
-		{
-			$base = JFactory::getApplication()->getMenu()->getItem($params->get('base'));
-		}
-		else
-		{
-			$base = false;
-		}
+		$base = $params->get('base');
 
 		// Use active menu item if no base found
-		if (!$base)
-		{
-			$base = self::getActive($params);
-		}
-
-		return $base;
+		return $base !== null ? Factory::getApplication()->getMenu()->getItem($base) : self::getActive();
 	}
 
 	/**
 	 * Get active menu item.
 	 *
-	 * @param   \Joomla\Registry\Registry  &$params  The module options.
-	 *
 	 * @return  object
 	 *
 	 * @since	3.0.2
 	 */
-	public static function getActive(&$params)
+	public static function getActive()
 	{
-		$menu = JFactory::getApplication()->getMenu();
+		$active = Factory::getApplication()->getMenu()->getActive();
 
-		return $menu->getActive() ?: self::getDefault();
+		return $active ?: self::getDefault();
 	}
 
 	/**
@@ -210,17 +213,9 @@ class ModMenuHelper
 	 */
 	public static function getDefault()
 	{
-		$menu = JFactory::getApplication()->getMenu();
-		$lang = JFactory::getLanguage();
+		$app  = Factory::getApplication();
+		$menu = $app->getMenu();
 
-		// Look for the home menu
-		if (JLanguageMultilang::isEnabled())
-		{
-			return $menu->getDefault($lang->getTag());
-		}
-		else
-		{
-			return $menu->getDefault();
-		}
+		return Multilanguage::isEnabled() === true ? $menu->getDefault($app->getLanguage()->getTag()) : $menu->getDefault();
 	}
 }

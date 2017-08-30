@@ -9,12 +9,14 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Helper\ModuleHelper;
+
 // Include the menu functions only once
-JLoader::register('ModMenuHelper', __DIR__ . '/helper.php');
+\JLoader::register('ModMenuHelper', __DIR__ . '/helper.php');
 
 $list       = ModMenuHelper::getList($params);
 $base       = ModMenuHelper::getBase($params);
-$active     = ModMenuHelper::getActive($params);
+$active     = ModMenuHelper::getActive();
 $default    = ModMenuHelper::getDefault();
 $active_id  = $active->id;
 $default_id = $default->id;
@@ -22,7 +24,7 @@ $path       = $base->tree;
 $showAll    = $params->get('showAllChildren');
 $class_sfx  = htmlspecialchars($params->get('class_sfx'), ENT_COMPAT, 'UTF-8');
 
-if (count($list))
+if ($list !== [])
 {
-	require JModuleHelper::getLayoutPath('mod_menu', $params->get('layout', 'default'));
+	require ModuleHelper::getLayoutPath('mod_menu', $params->get('layout', 'default'));
 }

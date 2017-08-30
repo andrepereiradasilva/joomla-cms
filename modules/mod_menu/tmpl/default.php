@@ -9,6 +9,8 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Helper\ModuleHelper;
+
 $id = '';
 
 if ($tagId = $params->get('tag_id', ''))
@@ -16,36 +18,38 @@ if ($tagId = $params->get('tag_id', ''))
 	$id = ' id="' . $tagId . '"';
 }
 
+$pathSize    = count($path);
+$pathFlipped = array_flip($path);
+
 // The menu class is deprecated. Use nav instead
 ?>
 <ul<?php echo $id; ?> class="nav flex-column<?php echo $class_sfx; ?>">
-<?php foreach ($list as $i => &$item)
+<?php foreach ($list as $i => $item)
 {
-	$class = 'nav-item';
+	$aliasId = $item->type === 'alias' ? (int) $item->params->get('aliasoptions') : null;
+	$class   = 'nav-item';
 
-	if ($item->id == $default_id)
+	if ($item->id === $default_id)
 	{
 		$class .= ' default';
 	}
 
-	if ($item->id == $active_id || ($item->type === 'alias' && $item->params->get('aliasoptions') == $active_id))
+	if ($item->id === $active_id || ($aliasId !== null && $aliasId === $active_id))
 	{
 		$class .= ' current';
 	}
 
-	if (in_array($item->id, $path))
+	if (isset($pathFlipped[$item->id]) === true)
 	{
 		$class .= ' active';
 	}
 	elseif ($item->type === 'alias')
 	{
-		$aliasToId = $item->params->get('aliasoptions');
-
-		if (count($path) > 0 && $aliasToId == $path[count($path) - 1])
+		if ($pathSize > 0 && $aliasId === $path[$pathSize - 1])
 		{
 			$class .= ' active';
 		}
-		elseif (in_array($aliasToId, $path))
+		elseif (isset($pathFlipped[$aliasId]) === true)
 		{
 			$class .= ' alias-parent-active';
 		}
@@ -56,12 +60,12 @@ if ($tagId = $params->get('tag_id', ''))
 		$class .= ' divider';
 	}
 
-	if ($item->deeper)
+	if ($item->deeper === true)
 	{
 		$class .= ' deeper';
 	}
 
-	if ($item->parent)
+	if ($item->parent === true)
 	{
 		$class .= ' parent';
 	}
@@ -73,21 +77,21 @@ if ($tagId = $params->get('tag_id', ''))
 		case 'component':
 		case 'heading':
 		case 'url':
-			require JModuleHelper::getLayoutPath('mod_menu', 'default_' . $item->type);
+			require ModuleHelper::getLayoutPath('mod_menu', 'default_' . $item->type);
 			break;
 
 		default:
-			require JModuleHelper::getLayoutPath('mod_menu', 'default_url');
+			require ModuleHelper::getLayoutPath('mod_menu', 'default_url');
 			break;
 	endswitch;
 
 	// The next item is deeper.
-	if ($item->deeper)
+	if ($item->deeper === true)
 	{
 		echo '<ul class="list-unstyled small">';
 	}
 	// The next item is shallower.
-	elseif ($item->shallower)
+	elseif ($item->shallower === true)
 	{
 		echo '</li>';
 		echo str_repeat('</ul></li>', $item->level_diff);

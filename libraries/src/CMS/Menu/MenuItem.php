@@ -179,7 +179,7 @@ class MenuItem extends \stdClass
 	 * @var    array
 	 * @since  3.7.0
 	 */
-	public $tree = array();
+	public $tree = [];
 
 	/**
 	 * An array of the query string values for this item
@@ -187,7 +187,7 @@ class MenuItem extends \stdClass
 	 * @var    array
 	 * @since  3.7.0
 	 */
-	public $query = array();
+	public $query = [];
 
 	/**
 	 * Class constructor
@@ -196,7 +196,7 @@ class MenuItem extends \stdClass
 	 *
 	 * @since   3.7.0
 	 */
-	public function __construct($data = array())
+	public function __construct($data = [])
 	{
 		foreach ((array) $data as $key => $value)
 		{
@@ -216,12 +216,7 @@ class MenuItem extends \stdClass
 	 */
 	public function __get($name)
 	{
-		if ($name === 'params')
-		{
-			return $this->getParams();
-		}
-
-		return $this->get($name);
+		return $name === 'params' ? $this->getParams() : $this->get($name);
 	}
 
 	/**
@@ -259,12 +254,7 @@ class MenuItem extends \stdClass
 	 */
 	public function __isset($name)
 	{
-		if ($name === 'params')
-		{
-			return !($this->params instanceof Registry);
-		}
-
-		return $this->get($name) !== null;
+		return $name === 'params' ? !($this->params instanceof Registry) : $this->get($name) !== null;
 	}
 
 	/**
@@ -276,24 +266,7 @@ class MenuItem extends \stdClass
 	 */
 	public function getParams()
 	{
-		if (!($this->params instanceof Registry))
-		{
-			try
-			{
-				$this->params = new Registry($this->params);
-			}
-			catch (RuntimeException $e)
-			{
-				/*
-				 * Joomla shipped with a broken sample json string for 4 years which caused fatals with new
-				 * error checks. So for now we catch the exception here - but one day we should remove it and require
-				 * valid JSON.
-				 */
-				$this->params = new Registry;
-			}
-		}
-
-		return $this->params;
+		return $this->params instanceof Registry ? $this->params : new Registry($this->params);
 	}
 
 	/**
@@ -323,12 +296,7 @@ class MenuItem extends \stdClass
 	 */
 	public function get($property, $default = null)
 	{
-		if (isset($this->$property))
-		{
-			return $this->$property;
-		}
-
-		return $default;
+		return isset($this->$property) ? $this->$property : $default;
 	}
 
 	/**

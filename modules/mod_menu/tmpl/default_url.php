@@ -30,7 +30,7 @@ $linktype = $item->title;
 
 if ($item->menu_image)
 {
-	$linktype = JHtml::_('image', $item->menu_image, $item->title);
+	$linktype = \JHtml::_('image', $item->menu_image, $item->title);
 
 	if ($item->params->get('menu_text', 1))
 	{
@@ -50,4 +50,4 @@ elseif ($item->browserNav == 2)
 	$attributes['onclick'] = "window.open(this.href, 'targetWindow', '" . $options . "'); return false;";
 }
 
-echo JHtml::_('link', JFilterOutput::ampReplace(htmlspecialchars($item->flink, ENT_COMPAT, 'UTF-8', false)), $linktype, $attributes);
+echo \JHtml::_('link', htmlspecialchars($item->flink, ENT_COMPAT, 'UTF-8', false), $linktype, $attributes);
