@@ -290,6 +290,15 @@ abstract class ModuleHelper
 	 */
 	public static function getLayoutPath($module, $layout = 'default')
 	{
+		static $paths = array();
+
+		$cacheKey = $module . $layout;
+
+		if (isset($paths[$cacheKey]))
+		{
+			return $paths[$cacheKey];
+		}
+
 		$template = \JFactory::getApplication()->getTemplate();
 		$defaultLayout = $layout;
 
@@ -310,15 +319,21 @@ abstract class ModuleHelper
 		// If the template has a layout override use it
 		if (file_exists($tPath))
 		{
-			return $tPath;
+			$paths[$cacheKey] = $tPath;
+
+			return $paths[$cacheKey];
 		}
 
 		if (file_exists($bPath))
 		{
-			return $bPath;
+			$paths[$cacheKey] = $bPath;
+
+			return $paths[$cacheKey];
 		}
 
-		return $dPath;
+		$paths[$cacheKey] = $dPath;
+
+		return $paths[$cacheKey];
 	}
 
 	/**
