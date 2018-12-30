@@ -9,6 +9,9 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\Registry\Registry;
 
 /**
@@ -44,12 +47,6 @@ abstract class JHtmlFormbehavior
 			return;
 		}
 
-		// If no debugging value is set, use the configuration setting
-		if ($debug === null)
-		{
-			$debug = JDEBUG;
-		}
-
 		// Default settings
 		if (!isset($options['disable_search_threshold']))
 		{
@@ -69,30 +66,26 @@ abstract class JHtmlFormbehavior
 
 		if (!isset($options['placeholder_text_multiple']))
 		{
-			$options['placeholder_text_multiple'] = JText::_('JGLOBAL_TYPE_OR_SELECT_SOME_OPTIONS');
+			$options['placeholder_text_multiple'] = Text::_('JGLOBAL_TYPE_OR_SELECT_SOME_OPTIONS');
 		}
 
 		if (!isset($options['placeholder_text_single']))
 		{
-			$options['placeholder_text_single'] = JText::_('JGLOBAL_SELECT_AN_OPTION');
+			$options['placeholder_text_single'] = Text::_('JGLOBAL_SELECT_AN_OPTION');
 		}
 
 		if (!isset($options['no_results_text']))
 		{
-			$options['no_results_text'] = JText::_('JGLOBAL_SELECT_NO_RESULTS_MATCH');
+			$options['no_results_text'] = Text::_('JGLOBAL_SELECT_NO_RESULTS_MATCH');
 		}
 
-		$displayData = array(
-			'debug'     => $debug,
+		LayoutHelper::render('joomla.html.formbehavior.chosen', array(
+			'debug'    => (boolean) ($debug === null ? JDEBUG : $debug),
 			'options'  => $options,
 			'selector' => $selector,
-		);
-
-		JLayoutHelper::render('joomla.html.formbehavior.chosen', $displayData);
+		));
 
 		static::$loaded[__METHOD__][$selector] = true;
-
-		return;
 	}
 
 	/**
@@ -109,43 +102,30 @@ abstract class JHtmlFormbehavior
 	 */
 	public static function ajaxchosen(Registry $options, $debug = null)
 	{
-		// Retrieve options/defaults
-		$selector       = $options->get('selector', '.tagfield');
-		$type           = $options->get('type', 'GET');
-		$url            = $options->get('url', null);
-		$dataType       = $options->get('dataType', 'json');
-		$jsonTermKey    = $options->get('jsonTermKey', 'term');
-		$afterTypeDelay = $options->get('afterTypeDelay', '500');
-		$minTermLength  = $options->get('minTermLength', '3');
+		// Retrieve the selector and the Ajax URL that is mandatory
+		$selector = $options->get('selector', '.tagfield');
+		$url      = $options->get('url', null);
 
-		// Ajax URL is mandatory
-		if (!empty($url))
+		if (empty($url) || isset(static::$loaded[__METHOD__][$selector]))
 		{
-			if (isset(static::$loaded[__METHOD__][$selector]))
-			{
-				return;
-			}
-
-			// Requires chosen to work
-			static::chosen($selector, $debug);
-
-			$displayData = array(
-				'url'            => $url,
-				'debug'          => $debug,
-				'options'        => $options,
-				'selector'       => $selector,
-				'type'           => $type,
-				'dataType'       => $dataType,
-				'jsonTermKey'    => $jsonTermKey,
-				'afterTypeDelay' => $afterTypeDelay,
-				'minTermLength'  => $minTermLength,
-			);
-
-			JLayoutHelper::render('joomla.html.formbehavior.ajaxchosen', $displayData);
-
-			static::$loaded[__METHOD__][$selector] = true;
+			return;
 		}
 
-		return;
+		// Requires chosen to work
+		HTMLHelper::_('formbehavior.chosen', $selector, $debug);
+
+		LayoutHelper::render('joomla.html.formbehavior.ajaxchosen', array(
+			'url'            => $url,
+			'debug'          => $debug,
+			'options'        => $options,
+			'selector'       => $selector,
+			'type'           => $options->get('type', 'GET'),
+			'dataType'       => $options->get('dataType', 'json'),
+			'jsonTermKey'    => $options->get('jsonTermKey', 'term'),
+			'afterTypeDelay' => $options->get('afterTypeDelay', '500'),
+			'minTermLength'  => $options->get('minTermLength', '3'),
+		));
+
+		static::$loaded[__METHOD__][$selector] = true;
 	}
 }
