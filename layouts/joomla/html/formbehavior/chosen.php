@@ -9,6 +9,9 @@
 
 defined('JPATH_BASE') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+
 /**
  * Layout variables
  * ---------------------
@@ -21,14 +24,14 @@ defined('JPATH_BASE') or die;
 extract($displayData);
 
 // Include jQuery
-JHtml::_('jquery.framework');
-JHtml::_('script', 'jui/chosen.jquery.min.js', array('version' => 'auto', 'relative' => true, 'detectDebug' => $debug));
-JHtml::_('stylesheet', 'jui/chosen.css', array('version' => 'auto', 'relative' => true));
+HTMLHelper::_('jquery.framework');
+HTMLHelper::_('script', 'jui/chosen.jquery.min.js', array('version' => 'auto', 'relative' => true, 'detectBrowser' => false, 'detectDebug' => $debug));
+HTMLHelper::_('stylesheet', 'jui/chosen.css', array('version' => 'auto', 'relative' => true));
 
 // Options array to json options string
 $options_str = json_encode($options, ($debug && defined('JSON_PRETTY_PRINT') ? JSON_PRETTY_PRINT : false));
 
-JFactory::getDocument()->addScriptDeclaration(
+Factory::getDocument()->addScriptDeclaration(
 	'
 	jQuery(function ($) {
 		initChosen();
