@@ -12,14 +12,13 @@ defined('JPATH_PLATFORM') or die;
 
 use Joomla\CMS\Environment\Browser;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Filesystem\Path;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Utilities\ArrayHelper;
-
-\JLoader::import('joomla.environment.browser');
-\JLoader::import('joomla.filesystem.file');
-\JLoader::import('joomla.filesystem.path');
 
 /**
  * Utility class for all HTML drawing classes
@@ -69,16 +68,34 @@ abstract class HTMLHelper
 	 */
 	protected static function extract($key)
 	{
+		static $keys = array();
+
+		if (isset($keys[$key]))
+		{
+			return $keys[$key];
+		}
+
 		$key = preg_replace('#[^A-Z0-9_\.]#i', '', $key);
 
 		// Check to see whether we need to load a helper file
-		$parts = explode('.', $key);
+		$parts         = explode('.', $key);
+		$numberOfParts = count($parts);
 
-		$prefix = count($parts) === 3 ? array_shift($parts) : 'JHtml';
-		$file   = count($parts) === 2 ? array_shift($parts) : '';
-		$func   = array_shift($parts);
+		if ($numberOfParts === 3)
+		{
+			$prefix = $parts[0];
+			$file   = $parts[1];
+		}
+		else
+		{
+			$prefix = 'JHtml';
+			$file = $numberOfParts === 2 && strtolower($parts[0]) !== 'jhtml' ? $parts[0] : '';
+		}
 
-		return array(strtolower($prefix . '.' . $file . '.' . $func), $prefix, $file, $func);
+		$func       = $parts[$numberOfParts - 1];
+		$keys[$key] = array(strtolower($prefix . ($file !== '' ? '.' . $file : '') . '.' . $func), $prefix, $file, $func);
+		
+		return $keys[$key];
 	}
 
 	/**
@@ -100,22 +117,22 @@ abstract class HTMLHelper
 	{
 		list($key, $prefix, $file, $func) = static::extract($key);
 
-		if (array_key_exists($key, static::$registry))
+		$args = func_get_args();
+
+		// Remove function name from arguments
+		unset($args[0]);
+
+		// Class and method already checked, all fine, call it.
+		if (isset(static::$registry[$key]))
 		{
-			$function = static::$registry[$key];
-			$args     = func_get_args();
-
-			// Remove function name from arguments
-			array_shift($args);
-
-			return static::call($function, $args);
+			return static::call(static::$registry[$key], $args);
 		}
 
 		$className = $prefix . ucfirst($file);
 
 		if (!class_exists($className))
 		{
-			$path = \JPath::find(static::$includePaths, strtolower($file) . '.php');
+			$path = Path::find(static::$includePaths, strtolower($file) . '.php');
 
 			if (!$path)
 			{
@@ -137,11 +154,7 @@ abstract class HTMLHelper
 			throw new \InvalidArgumentException(sprintf('%s::%s not found.', $className, $func), 500);
 		}
 
-		static::register($key, $toCall);
-		$args = func_get_args();
-
-		// Remove function name from arguments
-		array_shift($args);
+		static::$registry[$key] = $toCall;
 
 		return static::call($toCall, $args);
 	}
@@ -229,14 +242,19 @@ abstract class HTMLHelper
 		}
 
 		// PHP 5.3 workaround
-		$temp = array();
-
-		foreach ($args as &$arg)
+		if (version_compare(PHP_VERSION, '5.4.0') > 0)
 		{
-			$temp[] = &$arg;
+			$temp = array();
+
+			foreach ($args as &$arg)
+			{
+				$temp[] = &$arg;
+			}
+
+			return call_user_func_array($function, $temp);
 		}
 
-		return call_user_func_array($function, $temp);
+		return call_user_func_array($function, $args);
 	}
 
 	/**
@@ -318,7 +336,7 @@ abstract class HTMLHelper
 	 *
 	 * @return  array    files to be included.
 	 *
-	 * @see     JBrowser
+	 * @see     Joomla\CMS\Environment\Browser
 	 * @since   1.6
 	 */
 	protected static function includeRelativeFiles($folder, $file, $relative, $detect_browser, $detect_debug)
@@ -330,8 +348,8 @@ abstract class HTMLHelper
 		}
 
 		// Extract extension and strip the file
-		$strip = \JFile::stripExt($file);
-		$ext   = \JFile::getExt($file);
+		$strip = File::stripExt($file);
+		$ext   = File::getExt($file);
 
 		// Prepare array of files
 		$includes = array();
@@ -578,7 +596,7 @@ abstract class HTMLHelper
 		if ($returnPath !== -1)
 		{
 			$includes = static::includeRelativeFiles('images', $file, $relative, false, false);
-			$file = count($includes) ? $includes[0] : null;
+			$file     = isset($includes[0]) ? $includes[0] : null;
 		}
 
 		// If only path is required
@@ -706,7 +724,7 @@ abstract class HTMLHelper
 		// Include MooTools framework
 		if ($options['framework'])
 		{
-			static::_('behavior.framework');
+			HTMLHelper::_('behavior.framework');
 		}
 
 		$includes = static::includeRelativeFiles('js', $file, $options['relative'], $options['detectBrowser'], $options['detectDebug']);
@@ -781,48 +799,42 @@ abstract class HTMLHelper
 	 */
 	public static function date($input = 'now', $format = null, $tz = true, $gregorian = false)
 	{
-		// UTC date converted to user time zone.
-		if ($tz === true)
-		{
-			// Get a date object based on UTC.
-			$date = Factory::getDate($input, 'UTC');
-
-			// Set the correct time zone based on the user configuration.
-			$date->setTimezone(Factory::getUser()->getTimezone());
-		}
-		// UTC date converted to server time zone.
-		elseif ($tz === false)
-		{
-			// Get a date object based on UTC.
-			$date = Factory::getDate($input, 'UTC');
-
-			// Set the correct time zone based on the server configuration.
-			$date->setTimezone(new \DateTimeZone(Factory::getConfig()->get('offset')));
-		}
 		// No date conversion.
-		elseif ($tz === null)
+		if ($tz === null)
 		{
 			$date = Factory::getDate($input);
 		}
-		// UTC date converted to given time zone.
 		else
 		{
 			// Get a date object based on UTC.
 			$date = Factory::getDate($input, 'UTC');
 
-			// Set the correct time zone based on the server configuration.
-			$date->setTimezone(new \DateTimeZone($tz));
+			// UTC date converted to user configuration time zone.
+			if ($tz === true)
+			{
+				$date->setTimezone(Factory::getUser()->getTimezone());
+			}
+			// UTC date converted to server configuration time zone.
+			elseif ($tz === false)
+			{
+				$date->setTimezone(new \DateTimeZone(Factory::getConfig()->get('offset')));
+			}
+			// UTC date converted to given configuration time zone.
+			else
+			{
+				$date->setTimezone(new \DateTimeZone($tz));
+			}
 		}
 
 		// If no format is given use the default locale based format.
 		if (!$format)
 		{
-			$format = \JText::_('DATE_FORMAT_LC1');
+			$format = Text::_('DATE_FORMAT_LC1');
 		}
 		// $format is an existing language key
 		elseif (Factory::getLanguage()->hasKey($format))
 		{
-			$format = \JText::_($format);
+			$format = Text::_($format);
 		}
 
 		if ($gregorian)
@@ -861,40 +873,28 @@ abstract class HTMLHelper
 				}
 			}
 
-			if (isset($title['title']))
-			{
-				$title = $title['title'];
-			}
-			else
-			{
-				$title = '';
-			}
+			$title = isset($title['title']) ? $title['title'] : '';
 		}
 
 		if (!$text)
 		{
-			$alt = htmlspecialchars($alt, ENT_COMPAT, 'UTF-8');
-			$text = static::image($image, $alt, null, true);
+			$alt  = htmlspecialchars($alt, ENT_COMPAT, 'UTF-8');
+			$text = HTMLHelper::_('image', $image, $alt, null, true);
 		}
 
-		if ($href)
-		{
-			$tip = '<a href="' . $href . '">' . $text . '</a>';
-		}
-		else
-		{
-			$tip = $text;
-		}
+		$tip = $href ? '<a href="' . $href . '">' . $text . '</a>' : $text;
 
+		// Still using MooTools tooltips!
 		if ($class === 'hasTip')
 		{
-			// Still using MooTools tooltips!
-			$tooltip = htmlspecialchars($tooltip, ENT_COMPAT, 'UTF-8');
-
 			if ($title)
 			{
-				$title = htmlspecialchars($title, ENT_COMPAT, 'UTF-8');
+				$title   = htmlspecialchars($title, ENT_COMPAT, 'UTF-8');
 				$tooltip = $title . '::' . $tooltip;
+			}
+			else
+			{
+				$tooltip = htmlspecialchars($tooltip, ENT_COMPAT, 'UTF-8');
 			}
 		}
 		else
@@ -910,7 +910,7 @@ abstract class HTMLHelper
 	 *
 	 * @param   string   $title      The title of the tooltip (or combined '::' separated string).
 	 * @param   string   $content    The content to tooltip.
-	 * @param   boolean  $translate  If true will pass texts through JText.
+	 * @param   boolean  $translate  If true will pass texts through Joomla\CMS\Language\Text.
 	 * @param   boolean  $escape     If true will pass texts through htmlspecialchars.
 	 *
 	 * @return  string  The tooltip string
@@ -919,50 +919,49 @@ abstract class HTMLHelper
 	 */
 	public static function tooltipText($title = '', $content = '', $translate = true, $escape = true)
 	{
-		// Initialise return value.
-		$result = '';
-
 		// Don't process empty strings
-		if ($content !== '' || $title !== '')
+		if ($content === '' && $title === '')
 		{
-			// Split title into title and content if the title contains '::' (old Mootools format).
-			if ($content === '' && !(strpos($title, '::') === false))
-			{
-				list($title, $content) = explode('::', $title, 2);
-			}
+			return '';
+		}
 
-			// Pass texts through JText if required.
-			if ($translate)
-			{
-				$title = \JText::_($title);
-				$content = \JText::_($content);
-			}
+		// Split title into title and content if the title contains '::' (old Mootools format).
+		if ($content === '' && !(strpos($title, '::') === false))
+		{
+			list($title, $content) = explode('::', $title, 2);
+		}
 
-			// Use only the content if no title is given.
-			if ($title === '')
-			{
-				$result = $content;
-			}
-			// Use only the title, if title and text are the same.
-			elseif ($title === $content)
-			{
-				$result = '<strong>' . $title . '</strong>';
-			}
-			// Use a formatted string combining the title and content.
-			elseif ($content !== '')
-			{
-				$result = '<strong>' . $title . '</strong><br />' . $content;
-			}
-			else
-			{
-				$result = $title;
-			}
+		// Pass texts through Joomla\CMS\Language\Text if required.
+		if ($translate)
+		{
+			$title   = $title !== '' ? Text::_($title) : '';
+			$content = $content !== '' ? Text::_($content) : '';
+		}
 
-			// Escape everything, if required.
-			if ($escape)
-			{
-				$result = htmlspecialchars($result);
-			}
+		// Use only the content if no title is given.
+		if ($title === '')
+		{
+			$result = $content;
+		}
+		// Use only the title, if title and text are the same.
+		elseif ($title === $content)
+		{
+			$result = '<strong>' . $title . '</strong>';
+		}
+		// Use a formatted string combining the title and content.
+		elseif ($content !== '')
+		{
+			$result = '<strong>' . $title . '</strong><br />' . $content;
+		}
+		else
+		{
+			$result = $title;
+		}
+
+		// Escape everything, if required.
+		if ($escape)
+		{
+			return htmlspecialchars($result, ENT_COMPAT, 'UTF-8');
 		}
 
 		return $result;
@@ -990,8 +989,9 @@ abstract class HTMLHelper
 	 */
 	public static function calendar($value, $name, $id, $format = '%Y-%m-%d', $attribs = array())
 	{
-		$tag       = Factory::getLanguage()->getTag();
-		$calendar  = Factory::getLanguage()->getCalendar();
+		$language  = Factory::getLanguage();
+		$tag       = $language->getTag();
+		$calendar  = $language->getCalendar();
 		$direction = strtolower(Factory::getDocument()->getDirection());
 
 		// Get the appropriate file for the current language date helper
@@ -1018,32 +1018,8 @@ abstract class HTMLHelper
 			$localesPath = 'system/fields/calendar-locales/' . strtolower(substr($tag, 0, -3)) . '.js';
 		}
 
-		$readonly     = isset($attribs['readonly']) && $attribs['readonly'] === 'readonly';
-		$disabled     = isset($attribs['disabled']) && $attribs['disabled'] === 'disabled';
-		$autocomplete = isset($attribs['autocomplete']) && $attribs['autocomplete'] === '';
-		$autofocus    = isset($attribs['autofocus']) && $attribs['autofocus'] === '';
-		$required     = isset($attribs['required']) && $attribs['required'] === '';
-		$filter       = isset($attribs['filter']) && $attribs['filter'] === '';
-		$todayBtn     = isset($attribs['todayBtn']) ? $attribs['todayBtn'] : true;
-		$weekNumbers  = isset($attribs['weekNumbers']) ? $attribs['weekNumbers'] : true;
-		$showTime     = isset($attribs['showTime']) ? $attribs['showTime'] : false;
-		$fillTable    = isset($attribs['fillTable']) ? $attribs['fillTable'] : true;
-		$timeFormat   = isset($attribs['timeFormat']) ? $attribs['timeFormat'] : 24;
-		$singleHeader = isset($attribs['singleHeader']) ? $attribs['singleHeader'] : false;
-		$hint         = isset($attribs['placeholder']) ? $attribs['placeholder'] : '';
-		$class        = isset($attribs['class']) ? $attribs['class'] : '';
-		$onchange     = isset($attribs['onChange']) ? $attribs['onChange'] : '';
-		$minYear      = isset($attribs['minYear']) ? $attribs['minYear'] : null;
-		$maxYear      = isset($attribs['maxYear']) ? $attribs['maxYear'] : null;
-
-		$showTime     = ($showTime) ? "1" : "0";
-		$todayBtn     = ($todayBtn) ? "1" : "0";
-		$weekNumbers  = ($weekNumbers) ? "1" : "0";
-		$fillTable    = ($fillTable) ? "1" : "0";
-		$singleHeader = ($singleHeader) ? "1" : "0";
-
 		// Format value when not nulldate ('0000-00-00 00:00:00'), otherwise blank it as it would result in 1970-01-01.
-		if ($value && $value !== Factory::getDbo()->getNullDate() && strtotime($value) !== false)
+		if ($value && strtotime($value) !== false && $value !== Factory::getDbo()->getNullDate())
 		{
 			$tz = date_default_timezone_get();
 			date_default_timezone_set('UTC');
@@ -1055,35 +1031,33 @@ abstract class HTMLHelper
 			$inputvalue = '';
 		}
 
-		$data = array(
+		return LayoutHelper::render('joomla.form.field.calendar', array(
 			'id'           => $id,
 			'name'         => $name,
-			'class'        => $class,
+			'class'        => isset($attribs['class']) ? $attribs['class'] : '',
 			'value'        => $inputvalue,
 			'format'       => $format,
-			'filter'       => $filter,
-			'required'     => $required,
-			'readonly'     => $readonly,
-			'disabled'     => $disabled,
-			'hint'         => $hint,
-			'autofocus'    => $autofocus,
-			'autocomplete' => $autocomplete,
-			'todaybutton'  => $todayBtn,
-			'weeknumbers'  => $weekNumbers,
-			'showtime'     => $showTime,
-			'filltable'    => $fillTable,
-			'timeformat'   => $timeFormat,
-			'singleheader' => $singleHeader,
+			'filter'       => isset($attribs['filter']) && $attribs['filter'] === '',
+			'required'     => isset($attribs['required']) && $attribs['required'] === '',
+			'readonly'     => isset($attribs['readonly']) && $attribs['readonly'] === 'readonly',
+			'disabled'     => isset($attribs['disabled']) && $attribs['disabled'] === 'disabled',
+			'hint'         => isset($attribs['placeholder']) ? $attribs['placeholder'] : '',
+			'autofocus'    => isset($attribs['autofocus']) && $attribs['autofocus'] === '',
+			'autocomplete' => isset($attribs['autocomplete']) && $attribs['autocomplete'] === '',
+			'todaybutton'  => isset($attribs['todayBtn']) ? (string) ((boolean) $attribs['todayBtn']) : '1',
+			'weeknumbers'  => isset($attribs['weekNumbers']) ? (string) ((boolean) $attribs['weekNumbers']) : '1',
+			'showtime'     => isset($attribs['showTime']) ? (string) ((boolean) $attribs['showTime']) : '0',
+			'filltable'    => isset($attribs['fillTable']) ? (string) ((boolean) $attribs['fillTable']) : '1',
+			'timeformat'   => isset($attribs['timeFormat']) ? $attribs['timeFormat'] : 24,
+			'singleheader' => isset($attribs['singleHeader']) ? (string) ((boolean) $attribs['singleHeader']) : '0',
 			'tag'          => $tag,
 			'helperPath'   => $helperPath,
 			'localesPath'  => $localesPath,
 			'direction'    => $direction,
-			'onchange'     => $onchange,
-			'minYear'      => $minYear,
-			'maxYear'      => $maxYear,
-		);
-
-		return LayoutHelper::render('joomla.form.field.calendar', $data, null, null);
+			'onchange'     => isset($attribs['onChange']) ? $attribs['onChange'] : '',
+			'minYear'      => isset($attribs['minYear']) ? $attribs['minYear'] : null,
+			'maxYear'      => isset($attribs['maxYear']) ? $attribs['maxYear'] : null,
+		), null, null);
 	}
 
 	/**
@@ -1103,7 +1077,7 @@ abstract class HTMLHelper
 		{
 			if (!empty($dir) && !in_array($dir, static::$includePaths))
 			{
-				array_unshift(static::$includePaths, \JPath::clean($dir));
+				array_unshift(static::$includePaths, Path::clean($dir));
 			}
 		}
 
@@ -1123,7 +1097,7 @@ abstract class HTMLHelper
 	public static function getJSObject(array $array = array())
 	{
 		Log::add(
-			__METHOD__ . " is deprecated. Use json_encode() or \\Joomla\\Registry\\Registry::toString('json') instead.",
+			__METHOD__ . " is deprecated. Use json_encode() or Joomla\Registry\Registry::toString('json') instead.",
 			Log::WARNING,
 			'deprecated'
 		);
@@ -1151,19 +1125,12 @@ abstract class HTMLHelper
 			}
 			elseif (is_string($v))
 			{
-				if (strpos($v, '\\') === 0)
-				{
-					// Items such as functions and JSON objects are prefixed with \, strip the prefix and don't encode them
-					$elements[] = $key . ': ' . substr($v, 1);
-				}
-				else
-				{
-					// The safest way to insert a string
-					$elements[] = $key . ': ' . json_encode((string) $v);
-				}
+				// Items such as functions and JSON objects are prefixed with \, strip the prefix if needed and don't encode them, otherwhise encode them
+				$elements[] = $key . ': ' . (strpos($v, '\\') === 0 ? substr($v, 1) : json_encode((string) $v));
 			}
 			else
 			{
+				// Is object or array
 				$elements[] = $key . ': ' . static::getJSObject(is_object($v) ? get_object_vars($v) : $v);
 			}
 		}

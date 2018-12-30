@@ -9,6 +9,9 @@
 
 defined('JPATH_PLATFORM') or die;
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\HTML\HTMLHelper;
+
 /**
  * Utility class for jQuery JavaScript behaviors
  *
@@ -38,34 +41,29 @@ abstract class JHtmlJquery
 	public static function framework($noConflict = true, $debug = null, $migrate = true)
 	{
 		// Only load once
-		if (!empty(static::$loaded[__METHOD__]))
+		if (isset(static::$loaded[__METHOD__]))
 		{
 			return;
 		}
 
 		// If no debugging value is set, use the configuration setting
-		if ($debug === null)
-		{
-			$debug = (boolean) JFactory::getConfig()->get('debug');
-		}
+		$debug = (boolean) ($debug === null ? JDEBUG : $debug);
 
-		JHtml::_('script', 'jui/jquery.min.js', array('version' => 'auto', 'relative' => true, 'detectDebug' => $debug));
+		HTMLHelper::_('script', 'jui/jquery.min.js', array('version' => 'auto', 'relative' => true, 'detectBrowser' => false, 'detectDebug' => $debug));
 
 		// Check if we are loading in noConflict
 		if ($noConflict)
 		{
-			JHtml::_('script', 'jui/jquery-noconflict.js', array('version' => 'auto', 'relative' => true));
+			HTMLHelper::_('script', 'jui/jquery-noconflict.js', array('version' => 'auto', 'relative' => true, 'detectBrowser' => false, 'detectDebug' => $debug));
 		}
 
 		// Check if we are loading Migrate
 		if ($migrate)
 		{
-			JHtml::_('script', 'jui/jquery-migrate.min.js', array('version' => 'auto', 'relative' => true, 'detectDebug' => $debug));
+			HTMLHelper::_('script', 'jui/jquery-migrate.min.js', array('version' => 'auto', 'relative' => true, 'detectBrowser' => false, 'detectDebug' => $debug));
 		}
 
 		static::$loaded[__METHOD__] = true;
-
-		return;
 	}
 
 	/**
@@ -86,26 +84,22 @@ abstract class JHtmlJquery
 		$supported = array('core', 'sortable');
 
 		// Include jQuery
-		static::framework();
+		HTMLHelper::_('jquery.framework');
 
 		// If no debugging value is set, use the configuration setting
-		if ($debug === null)
-		{
-			$debug = JDEBUG;
-		}
+		$debug = (boolean) ($debug === null ? JDEBUG : $debug);
 
 		// Load each of the requested components
 		foreach ($components as $component)
 		{
 			// Only attempt to load the component if it's supported in core and hasn't already been loaded
-			if (in_array($component, $supported) && empty(static::$loaded[__METHOD__][$component]))
+			if (!isset(static::$loaded[__METHOD__][$component]) && in_array($component, $supported, true))
 			{
-				JHtml::_('script', 'jui/jquery.ui.' . $component . '.min.js', array('version' => 'auto', 'relative' => true, 'detectDebug' => $debug));
+				HTMLHelper::_('script', 'jui/jquery.ui.' . $component . '.min.js', array('version' => 'auto', 'relative' => true, 'detectBrowser' => false, 'detectDebug' => $debug));
+
 				static::$loaded[__METHOD__][$component] = true;
 			}
 		}
-
-		return;
 	}
 
 	/**
@@ -122,17 +116,17 @@ abstract class JHtmlJquery
 	public static function token($name = 'csrf.token')
 	{
 		// Only load once
-		if (!empty(static::$loaded[__METHOD__][$name]))
+		if (isset(static::$loaded[__METHOD__][$name]))
 		{
 			return;
 		}
 
-		static::framework();
-		JHtml::_('form.csrf', $name);
+		// Include jQuery
+		HTMLHelper::_('jquery.framework');
 
-		$doc = JFactory::getDocument();
+		HTMLHelper::_('form.csrf', $name);
 
-		$doc->addScriptDeclaration(
+		Factory::getDocument()->addScriptDeclaration(
 <<<JS
 ;(function ($) {
 	$.ajaxSetup({
