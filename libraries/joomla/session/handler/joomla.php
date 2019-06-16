@@ -157,7 +157,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 
 		if ($config->get('cookie_domain', '') != '')
 		{
-			$cookie['domain'] = $config->get('cookie_domain');
+			$cookie['domain'] = $config->get('cookie_domain', '');
 		}
 
 		if ($config->get('cookie_path', '') != '')
