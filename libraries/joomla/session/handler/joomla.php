@@ -81,7 +81,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			if ($session_clean)
 			{
 				$this->setId($session_clean);
-				$cookie->set($session_name, '', 1);
+				$cookie->set($session_name, '', array('expires'  => 1));
 			}
 		}
 
@@ -109,7 +109,24 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 		{
 			$cookie = session_get_cookie_params();
 
-			setcookie($sessionName, '', 1, $cookie['path'], $cookie['domain'], $cookie['secure'], true);
+			$cookieOptions = array(
+				'expires'  => 1,
+				'path'     => $cookie['path'],
+				'domain'   => $cookie['domain'],
+				'secure'   => $cookie['secure'],
+				'httponly' => $cookie['httponly'],
+				'samesite' => array_key_exists('samesite', $cookie) === true ? $cookie['samesite'] : '',
+			);
+
+			// Restore config
+			if (version_compare(PHP_VERSION, '7.3', '>='))
+			{
+				setcookie($sessionName, '', $cookieOptions);
+			}
+			else
+			{
+				setcookie($sessionName, '', $cookieOptions['expires'], $cookieOptions['path'], $cookieOptions['domain'], $cookieOptions['secure'], $cookieOptions['httponly']);
+			}
 		}
 
 		parent::clear();
@@ -148,7 +165,17 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['path'] = $config->get('cookie_path');
 		}
 
-		session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], true);
+		$cookie['httponly'] = true;
+		$cookie['samesite'] = $config->get('cookie_samesite', '');
+
+		if (version_compare(PHP_VERSION, '7.3', '>='))
+		{
+			session_set_cookie_params($cookie);
+		}
+		else
+		{
+			session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly']);
+		}
 	}
 
 	/**

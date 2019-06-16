@@ -84,26 +84,25 @@ class BannersControllerTracks extends JControllerLegacy
 			$cookieDomain   = $app->get('cookie_domain', '');
 			$cookiePath     = $app->get('cookie_path', '/');
 			$isHttpsForced  = $app->isHttpsForced();
+			$cookieSameSite = $app->get('cookie_samesite', '');
 
-			$app->input->cookie->set(
-				JApplicationHelper::getHash($this->context . '.basename'),
-				$form['basename'],
-				$cookieLifeTime,
-				$cookiePath,
-				$cookieDomain,
-				$isHttpsForced,
-				true
-			);
+			$app->input->cookie->set(JApplicationHelper::getHash($this->context . '.basename'), $form['basename'], array(
+				'expires'  => $cookieLifeTime,
+				'path'     => $cookiePath,
+				'domain'   => $cookieDomain,
+				'secure'   => $isHttpsForced,
+				'httponly' => true,
+				'samesite' => $cookieSameSite,
+			));
 
-			$app->input->cookie->set(
-				JApplicationHelper::getHash($this->context . '.compressed'),
-				$form['compressed'],
-				$cookieLifeTime,
-				$cookiePath,
-				$cookieDomain,
-				$isHttpsForced,
-				true
-			);
+			$app->input->cookie->set(JApplicationHelper::getHash($this->context . '.compressed'), $form['compressed'], array(
+				'expires'  => $cookieLifeTime,
+				'path'     => $cookiePath,
+				'domain'   => $cookieDomain,
+				'secure'   => $isHttpsForced,
+				'httponly' => true,
+				'samesite' => $cookieSameSite,
+			));
 
 			// Push the model into the view (as default).
 			$view->setModel($model, true);

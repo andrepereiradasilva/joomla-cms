@@ -50,12 +50,17 @@ class PlgSystemLogout extends JPlugin
 			return;
 		}
 
-		$hash  = JApplicationHelper::getHash('PlgSystemLogout');
-
 		if ($this->app->input->cookie->getString($hash))
 		{
 			// Destroy the cookie.
-			$this->app->input->cookie->set($hash, '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set(JApplicationHelper::getHash('PlgSystemLogout'), '', array(
+				'expires'  => 1,
+				'path'     => $this->app->get('cookie_path', '/'),
+				'domain'   => $this->app->get('cookie_domain', ''),
+				'secure'   => $this->app->isHttpsForced(),
+				'httponly' => true,
+				'samesite' => $this->app->get('cookie_samesite', ''),
+			));
 
 			// Set the error handler for E_ALL to be the class handleError method.
 			JError::setErrorHandling(E_ALL, 'callback', array('PlgSystemLogout', 'handleError'));
@@ -77,15 +82,14 @@ class PlgSystemLogout extends JPlugin
 		if ($this->app->isClient('site'))
 		{
 			// Create the cookie.
-			$this->app->input->cookie->set(
-				JApplicationHelper::getHash('PlgSystemLogout'),
-				true,
-				time() + 86400,
-				$this->app->get('cookie_path', '/'),
-				$this->app->get('cookie_domain', ''),
-				$this->app->isHttpsForced(),
-				true
-			);
+			$this->app->input->cookie->set(JApplicationHelper::getHash('PlgSystemLogout'), true, array(
+				'expires'  => time() + 86400,
+				'path'     => $this->app->get('cookie_path', '/'),
+				'domain'   => $this->app->get('cookie_domain', ''),
+				'secure'   => $this->app->isHttpsForced(),
+				'httponly' => true,
+				'samesite' => $this->app->get('cookie_samesite', ''),
+			));
 		}
 
 		return true;
