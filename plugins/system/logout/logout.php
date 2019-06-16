@@ -50,10 +50,12 @@ class PlgSystemLogout extends JPlugin
 			return;
 		}
 
+		$hash  = JApplicationHelper::getHash('PlgSystemLogout');
+
 		if ($this->app->input->cookie->getString($hash))
 		{
 			// Destroy the cookie.
-			$this->app->input->cookie->set(JApplicationHelper::getHash('PlgSystemLogout'), '', array(
+			$this->app->input->cookie->set($hash, '', array(
 				'expires'  => 1,
 				'path'     => $this->app->get('cookie_path', '/'),
 				'domain'   => $this->app->get('cookie_domain', ''),
