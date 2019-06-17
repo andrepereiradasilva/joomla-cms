@@ -11,6 +11,7 @@ namespace Joomla\CMS\Application;
 defined('JPATH_PLATFORM') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Uri\Uri;
 
 /**
  * Application helper functions
@@ -170,6 +171,38 @@ class ApplicationHelper
 		}
 
 		return;
+	}
+
+	/**
+	 * Gets application base dynamic path Uri.
+	 *
+	 * This method will return a application base Uri to use in cookies path.
+	 * It takes in consideration shsred sessions and directoy installation.
+	 *
+	 * @param   string  $cookiePath  The cookie path.
+	 *
+	 * @return  string  The application base Uri.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getCookieBaseDynamicPath($cookiePath = '')
+	{
+		// Only process if the cookie path is the default.
+		if ($trimedCookiePath !== '' && $cookiePath !== '/')
+		{
+			return $cookiePath;
+		}
+
+		$baseUri = rtrim(Uri::base(true), '/');
+
+		// If in administrator application and not in shared sessions mode, the cookie path is the same.
+		if (defined('JPATH_ROOT') === true && defined('JPATH_BASE') === true && defined('JPATH_ADMINISTRATOR') === true
+			&& JPATH_BASE === JPATH_ADMINISTRATOR && (int) \JFactory::getConfig()->get('shared_session', '0') === 1)
+		{
+			$baseUri = str_replace(str_replace(JPATH_ROOT, '', JPATH_BASE), '', $baseUri);
+		}
+
+		return $baseUri . '/';
 	}
 
 	/**
