@@ -55,7 +55,7 @@ class PlgSystemLogout extends JPlugin
 		if ($this->app->input->cookie->getString($hash))
 		{
 			// Destroy the cookie.
-			$this->app->input->cookie->set($hash, '', 1, \JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set($hash, '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
 
 			// Set the error handler for E_ALL to be the class handleError method.
 			JError::setErrorHandling(E_ALL, 'callback', array('PlgSystemLogout', 'handleError'));
@@ -81,7 +81,7 @@ class PlgSystemLogout extends JPlugin
 				JApplicationHelper::getHash('PlgSystemLogout'),
 				true,
 				time() + 86400,
-				\JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')),
+				\JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')),
 				$this->app->get('cookie_domain', ''),
 				$this->app->isHttpsForced(),
 				true

@@ -185,7 +185,7 @@ class ApplicationHelper
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getCookieBaseDynamicPath($cookiePath = '')
+	public static function getDynamicCookiePath($cookiePath = '')
 	{
 		// Only process if the cookie path is the default.
 		if ($trimedCookiePath !== '' && $cookiePath !== '/')

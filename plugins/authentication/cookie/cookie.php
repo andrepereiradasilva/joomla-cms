@@ -93,7 +93,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($cookieArray) !== 2)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
 			JLog::add('Invalid cookie detected.', JLog::WARNING, 'error');
 
 			return false;
@@ -141,7 +141,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($results) !== 1)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
 			$response->status = JAuthentication::STATUS_FAILURE;
 
 			return false;
@@ -174,7 +174,7 @@ class PlgAuthenticationCookie extends JPlugin
 			}
 
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
 
 			// Issue warning by email to user and/or admin?
 			JLog::add(JText::sprintf('PLG_AUTH_COOKIE_ERROR_LOG_LOGIN_FAILED', $results[0]->user_id), JLog::WARNING, 'security');
@@ -258,7 +258,7 @@ class PlgAuthenticationCookie extends JPlugin
 				$cookieValue   = $this->app->input->cookie->get($oldCookieName);
 
 				// Destroy the old cookie in the browser
-				$this->app->input->cookie->set($oldCookieName, '', 1, \JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+				$this->app->input->cookie->set($oldCookieName, '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
 			}
 
 			$cookieArray = explode('.', $cookieValue);
@@ -325,7 +325,7 @@ class PlgAuthenticationCookie extends JPlugin
 			$cookieName,
 			$cookieValue,
 			time() + $lifetime,
-			\JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')),
+			\JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')),
 			$this->app->get('cookie_domain', ''),
 			$this->app->isHttpsForced(),
 			true
@@ -416,7 +416,7 @@ class PlgAuthenticationCookie extends JPlugin
 		}
 
 		// Destroy the cookie
-		$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+		$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
 
 		return true;
 	}
