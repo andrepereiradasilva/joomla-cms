@@ -155,10 +155,10 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['path'] = $config->get('cookie_path', '');
 		}
 
-		// Use cookie path is empty, use a dynamic cookie path.
+		// If  cookie path is empty, use a dynamic cookie path.
 		if ($cookie['path'] === '')
 		{
-			$cookie['path'] = \JApplicationHelper::getCookiePath();
+			$cookie['path'] = \JApplicationHelper::getCookiePath('');
 		}
 
 		session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], true);
