@@ -143,13 +143,23 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['domain'] = $config->get('cookie_domain');
 		}
 
+		// If cookie path doesn't exist or, in php configuration, is the root of the domain, ignore it.
+		if (isset($cookie['path']) === false || $cookie['path'] === '/')
+		{
+			$cookie['path'] = '';
+		}
+
+		// If cookie path if forced in joomla configuration, use it.
 		if ($config->get('cookie_path', '') !== '')
 		{
 			$cookie['path'] = $config->get('cookie_path', '');
 		}
 
-		// Append dynamic paths if no cookie path.
-		$cookie['path'] = JApplicationHelper::getCookiePath(isset($cookie['path']) ? $cookie['path'] : '');
+		// Use cookie path is empty, use a dynamic cookie path.
+		if ($cookie['path'] === '')
+		{
+			$cookie['path'] = \JApplicationHelper::getCookiePath();
+		}
 
 		session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], true);
 	}
