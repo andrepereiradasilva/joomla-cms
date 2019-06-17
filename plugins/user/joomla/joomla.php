@@ -266,7 +266,7 @@ class PlgUserJoomla extends JPlugin
 				'joomla_user_state',
 				'logged_in',
 				0,
-				\JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')),
+				\JApplicationHelper::getCookiePath(),
 				$this->app->get('cookie_domain', ''),
 				$this->app->isHttpsForced(),
 				true
@@ -336,7 +336,7 @@ class PlgUserJoomla extends JPlugin
 		// Delete "user state" cookie used for reverse caching proxies like Varnish, Nginx etc.
 		if ($this->app->isClient('site'))
 		{
-			$this->app->input->cookie->set('joomla_user_state', '', 1, \JApplicationHelper::getDynamicCookiePath($this->app->get('cookie_path', '/')), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set('joomla_user_state', '', 1, \JApplicationHelper::getCookiePath(), $this->app->get('cookie_domain', ''));
 		}
 
 		return true;

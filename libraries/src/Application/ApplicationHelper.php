@@ -174,21 +174,31 @@ class ApplicationHelper
 	}
 
 	/**
-	 * Gets application base dynamic path Uri.
+	 * Gets application cookie path.
 	 *
-	 * This method will return a application base Uri to use in cookies path.
-	 * It takes in consideration shsred sessions and directoy installation.
+	 * This method will return a uri to use in cookies path.
+	 * If forced in joomla or php configuration will use that path, otherwhise
+	 * calculates a dynamic path to use in the cookies. For this takes in 
+	 * consideration the application being used, shared sessions and joomla
+	 * directory of installation.
 	 *
-	 * @param   string  $cookiePath  The cookie path.
+	 * @param   null|string  $cookiePath  The cookie path.
 	 *
 	 * @return  string  The application base Uri.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getDynamicCookiePath($cookiePath = '')
+	public static function getCookiePath($cookiePath = null)
 	{
-		// Only process if the cookie path is the default.
-		if ($trimedCookiePath !== '' && $cookiePath !== '/')
+		$config = \JFactory::getConfig();
+
+		if ($cookiePath === null)
+		{
+			$cookiePath = $config->get('cookie_path', '');
+		}
+
+		// Only use dynamic cookie paths if the cookie path is not forced in joomla or php configuration.
+		if ($cookiePath !== '')
 		{
 			return $cookiePath;
 		}
@@ -197,7 +207,7 @@ class ApplicationHelper
 
 		// If in administrator application and not in shared sessions mode, the cookie path is the same.
 		if (defined('JPATH_ROOT') === true && defined('JPATH_BASE') === true && defined('JPATH_ADMINISTRATOR') === true
-			&& JPATH_BASE === JPATH_ADMINISTRATOR && (int) \JFactory::getConfig()->get('shared_session', '0') === 1)
+			&& JPATH_BASE === JPATH_ADMINISTRATOR && (int) $config->get('shared_session', '0') === 1)
 		{
 			$baseUri = str_replace(str_replace(JPATH_ROOT, '', JPATH_BASE), '', $baseUri);
 		}
