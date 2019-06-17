@@ -873,7 +873,7 @@ class PlgSystemLanguageFilter extends JPlugin
 				JApplicationHelper::getHash('language'),
 				$languageCode,
 				time() + 365 * 86400,
-				$this->app->get('cookie_path', '/'),
+				\JApplicationHelper::getCookieBaseDynamicPath($this->app->get('cookie_path', '/')),
 				$this->app->get('cookie_domain', ''),
 				$this->app->isHttpsForced(),
 				true

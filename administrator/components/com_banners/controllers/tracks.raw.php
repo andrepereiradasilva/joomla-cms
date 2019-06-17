@@ -82,7 +82,7 @@ class BannersControllerTracks extends JControllerLegacy
 			// Create one year cookies.
 			$cookieLifeTime = time() + 365 * 86400;
 			$cookieDomain   = $app->get('cookie_domain', '');
-			$cookiePath     = $app->get('cookie_path', '/');
+			$cookiePath     = \JApplicationHelper::getCookieBaseDynamicPath($app->get('cookie_path', '/'));
 			$isHttpsForced  = $app->isHttpsForced();
 
 			$app->input->cookie->set(
