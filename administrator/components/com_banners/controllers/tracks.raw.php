@@ -80,29 +80,18 @@ class BannersControllerTracks extends JControllerLegacy
 			$model->setState('compressed', $form['compressed']);
 
 			// Create one year cookies.
-			$cookieLifeTime = time() + 365 * 86400;
-			$cookieDomain   = $app->get('cookie_domain', '');
-			$cookiePath     = \JApplicationHelper::getCookiePath();
-			$isHttpsForced  = $app->isHttpsForced();
+			$cookieParams = \JApplicationHelper::getCookieParameters(array('expires' => time() + 365 * 86400));
 
 			$app->input->cookie->set(
-				JApplicationHelper::getHash($this->context . '.basename'),
+				\JApplicationHelper::getHash($this->context . '.basename'),
 				$form['basename'],
-				$cookieLifeTime,
-				$cookiePath,
-				$cookieDomain,
-				$isHttpsForced,
-				true
+				$cookieParams
 			);
 
 			$app->input->cookie->set(
-				JApplicationHelper::getHash($this->context . '.compressed'),
+				\JApplicationHelper::getHash($this->context . '.compressed'),
 				$form['compressed'],
-				$cookieLifeTime,
-				$cookiePath,
-				$cookieDomain,
-				$isHttpsForced,
-				true
+				$cookieParams
 			);
 
 			// Push the model into the view (as default).

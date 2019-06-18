@@ -11,6 +11,7 @@ namespace Joomla\CMS\Application;
 defined('JPATH_PLATFORM') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
 use Joomla\CMS\Uri\Uri;
 
 /**
@@ -174,35 +175,35 @@ class ApplicationHelper
 	}
 
 	/**
-	 * Gets the path to use in cookies.
+	 * Get the cookie parameters.
 	 *
-	 * This method will return a uri to use in cookies path.
-	 * If forced in joomla or php configuration will use that path, otherwhise calculates
-	 * a dynamic path to use in the cookies. For this takes in consideration the application
-	 * being used, shared sessions and joomla directory of installation.
+	 * @param   array  $cookieParameters  The cookie parameters.
 	 *
-	 * @param   null|string  $cookiePath  The cookie path.
-	 *
-	 * @return  string  The application base Uri.
+	 * @return  array  The cookie parameters.
 	 *
 	 * @since   __DEPLOY_VERSION__
 	 */
-	public static function getCookiePath($cookiePath = null)
+	public static function getCookieParameters($cookieParameters = array())
 	{
-		$config = \JFactory::getConfig();
+		// Use expires in cookie set and lifetime in other methods
+		$timeKey = array_key_exists('lifetime', $cookieParameters) === true ? 'lifetime' : 'expires';
 
-		// Didn't send any value, use as base the config cookie_path value.
-		if ($cookiePath === null)
+		$config = Factory::getConfig();
+
+		if ((int) $config->get('cookie_mode', '0') === 0)
 		{
-			$cookiePath = $config->get('cookie_path', '');
+			// Manual cookie parameters
+			return array(
+				$timeKey   => isset($cookieParameters[$timeKey]) ? $cookieParameters[$timeKey] : 0,
+				'path'     => isset($cookieParameters['path']) ? $cookieParameters['path'] : $config->get('cookie_path', ''),
+				'domain'   => isset($cookieParameters['domain']) ? $cookieParameters['domain'] : $config->get('cookie_domain', ''),
+				'secure'   => isset($cookieParameters['secure']) ? $cookieParameters['secure'] : Factory::getApplication()->isHttpsForced(),
+				'httponly' => isset($cookieParameters['httponly']) ? $cookieParameters['httponly'] : true,
+				'samesite' => isset($cookieParameters['samesite']) ? $cookieParameters['samesite'] : $config->get('cookie_samesite', ''),
+			);
 		}
 
-		// Only use dynamic cookie paths if the cookie path is not forced in joomla or php configuration.
-		if ($cookiePath !== '')
-		{
-			return $cookiePath;
-		}
-
+		// In auto cookie parameters path is dynamic. Takes in consideration: application being used, shared sessions and joomla directory of installation.
 		$cookiePath = rtrim(Uri::base(true), '/');
 
 		// In administrator application with shared sessions, the cookie path is the same for site and administrator applications.
@@ -212,7 +213,35 @@ class ApplicationHelper
 			$cookiePath = str_replace(str_replace(JPATH_ROOT, '', JPATH_BASE), '', $cookiePath);
 		}
 
-		return $cookiePath . '/';
+		$cookiePath .= '/';
+
+		// Auto cookie parameters, only expires/lifetime and secure parameters can be changed.
+		return array(
+			$timeKey   => isset($cookieParameters[$timeKey]) ? $cookieParameters[$timeKey] : 0,
+			'path'     => $cookiePath,
+			'domain'   => '',
+			'secure'   => isset($cookieParameters['secure']) ? $cookieParameters['secure'] : Factory::getApplication()->isHttpsForced(),
+			'httponly' => true,
+			'samesite' => 'Strict',
+		);
+	}
+
+	/**
+	 * Destroy cookie.
+	 *
+	 * @param   string  $cookieName  Cookie name
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function destroyCookie($cookieName = '')
+	{
+		Factory::getApplication()->input->cookie->set(
+			$cookieName,
+			'',
+			self::getCookieParameters(array('expires' => 1))
+		);
 	}
 
 	/**

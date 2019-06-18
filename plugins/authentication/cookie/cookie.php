@@ -93,7 +93,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($cookieArray) !== 2)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookiePath(), $this->app->get('cookie_domain', ''));
+			\JApplicationHelper::destroyCookie($cookieName);
 			JLog::add('Invalid cookie detected.', JLog::WARNING, 'error');
 
 			return false;
@@ -141,7 +141,7 @@ class PlgAuthenticationCookie extends JPlugin
 		if (count($results) !== 1)
 		{
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookiePath(), $this->app->get('cookie_domain', ''));
+			\JApplicationHelper::destroyCookie($cookieName);
 			$response->status = JAuthentication::STATUS_FAILURE;
 
 			return false;
@@ -174,7 +174,7 @@ class PlgAuthenticationCookie extends JPlugin
 			}
 
 			// Destroy the cookie in the browser.
-			$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookiePath(), $this->app->get('cookie_domain', ''));
+			\JApplicationHelper::destroyCookie($cookieName);
 
 			// Issue warning by email to user and/or admin?
 			JLog::add(JText::sprintf('PLG_AUTH_COOKIE_ERROR_LOG_LOGIN_FAILED', $results[0]->user_id), JLog::WARNING, 'security');
@@ -258,7 +258,7 @@ class PlgAuthenticationCookie extends JPlugin
 				$cookieValue   = $this->app->input->cookie->get($oldCookieName);
 
 				// Destroy the old cookie in the browser
-				$this->app->input->cookie->set($oldCookieName, '', 1, \JApplicationHelper::getCookiePath(), $this->app->get('cookie_domain', ''));
+				\JApplicationHelper::destroyCookie($oldCookieName);
 			}
 
 			$cookieArray = explode('.', $cookieValue);
@@ -314,21 +314,17 @@ class PlgAuthenticationCookie extends JPlugin
 
 		// Get the parameter values
 		$lifetime = $this->params->get('cookie_lifetime', 60) * 24 * 60 * 60;
-		$length   = $this->params->get('key_length', 16);
 
 		// Generate new cookie
-		$token       = JUserHelper::genRandomPassword($length);
-		$cookieValue = $token . '.' . $series;
+		$token = JUserHelper::genRandomPassword($this->params->get('key_length', 16));
 
 		// Overwrite existing cookie with new value
+		$cookie = \JApplicationHelper::getCookieParameters(array('expires' => time() + $lifetime));
+
 		$this->app->input->cookie->set(
 			$cookieName,
-			$cookieValue,
-			time() + $lifetime,
-			\JApplicationHelper::getCookiePath(),
-			$this->app->get('cookie_domain', ''),
-			$this->app->isHttpsForced(),
-			true
+			$token . '.' . $series,
+			\JApplicationHelper::getCookieParameters(array('expires' => time() + $lifetime))
 		);
 
 		$query = $this->db->getQuery(true);
@@ -416,7 +412,7 @@ class PlgAuthenticationCookie extends JPlugin
 		}
 
 		// Destroy the cookie
-		$this->app->input->cookie->set($cookieName, '', 1, \JApplicationHelper::getCookiePath(), $this->app->get('cookie_domain', ''));
+		\JApplicationHelper::destroyCookie($cookieName);
 
 		return true;
 	}

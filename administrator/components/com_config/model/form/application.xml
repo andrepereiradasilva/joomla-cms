@@ -1201,12 +1201,26 @@
 		label="CONFIG_COOKIE_SETTINGS_LABEL">
 
 		<field
+			name="cookie_mode"
+			type="radio"
+			label="COM_CONFIG_FIELD_COOKIE_MODE_LABEL"
+			description="COM_CONFIG_FIELD_COOKIE_MODE_DESC"
+			class="btn-group btn-group-yesno"
+			default="0"
+			filter="integer"
+			>
+			<option value="1">JYES</option>
+			<option value="0">JNO</option>
+		</field>
+
+		<field
 			name="cookie_domain"
 			type="text"
 			label="COM_CONFIG_FIELD_COOKIE_DOMAIN_LABEL"
 			description="COM_CONFIG_FIELD_COOKIE_DOMAIN_DESC"
 			filter="string"
 			size="40"
+			showon="cookie_mode:0"
 		/>
 
 		<field
@@ -1216,7 +1230,22 @@
 			description="COM_CONFIG_FIELD_COOKIE_PATH_DESC"
 			filter="string"
 			size="40"
+			showon="cookie_mode:0"
 		/>
+
+		<field
+			name="cookie_samesite"
+			type="list"
+			label="COM_CONFIG_FIELD_COOKIE_SAMESITE_LABEL"
+			description="COM_CONFIG_FIELD_COOKIE_SAMESITE_DESC"
+			default=""
+			filter="string"
+			showon="cookie_mode:0"
+			>
+			<option value="">COM_CONFIG_FIELD_COOKIE_SAMESITE_VALUE_NONE</option>
+			<option value="Lax">COM_CONFIG_FIELD_COOKIE_SAMESITE_VALUE_LAX</option>
+			<option value="Strict">COM_CONFIG_FIELD_COOKIE_SAMESITE_VALUE_STRICT</option>
+		</field>
 
 	</fieldset>
 

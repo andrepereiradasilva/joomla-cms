@@ -81,7 +81,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			if ($session_clean)
 			{
 				$this->setId($session_clean);
-				$cookie->set($session_name, '', 1);
+				\JApplicationHelper::destroyCookie($session_name);
 			}
 		}
 
@@ -107,9 +107,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 		 */
 		if (isset($_COOKIE[$sessionName]))
 		{
-			$cookie = session_get_cookie_params();
-
-			setcookie($sessionName, '', 1, $cookie['path'], $cookie['domain'], $cookie['secure'], true);
+			\JApplicationHelper::destroyCookie($sessionName);
 		}
 
 		parent::clear();
@@ -136,17 +134,11 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['secure'] = true;
 		}
 
-		$config = JFactory::getConfig();
+		$config = \JFactory::getConfig();
 
-		if ($config->get('cookie_domain', '') != '')
+		if ($config->get('cookie_domain', '') !== '')
 		{
-			$cookie['domain'] = $config->get('cookie_domain');
-		}
-
-		// If cookie path doesn't exist or, in php configuration, is the root of the domain, ignore it.
-		if (isset($cookie['path']) === false || $cookie['path'] === '/')
-		{
-			$cookie['path'] = '';
+			$cookie['domain'] = $config->get('cookie_domain', '');
 		}
 
 		// If cookie path if forced in joomla configuration, use it.
@@ -155,13 +147,18 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['path'] = $config->get('cookie_path', '');
 		}
 
-		// If  cookie path is empty, use a dynamic cookie path.
-		if ($cookie['path'] === '')
-		{
-			$cookie['path'] = \JApplicationHelper::getCookiePath('');
-		}
+		$cookie['httponly'] = true;
 
-		session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], true);
+		$cookie = \JApplicationHelper::getCookieParameters($cookie);
+
+		if (version_compare(PHP_VERSION, '7.3', '>='))
+		{
+			session_set_cookie_params($cookie);
+		}
+		else
+		{
+			session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly']);
+		}
 	}
 
 	/**

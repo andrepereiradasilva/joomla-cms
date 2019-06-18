@@ -145,8 +145,10 @@ class JConfig
 	public $feed_email = 'none';
 
 	/* Cookie Settings */
+	public $cookie_mode = '1';
 	public $cookie_domain = '';
 	public $cookie_path = '';
+	public $cookie_samesite = 'Strict';
 
 	/* Miscellaneous Settings */
 	public $asset_id = '1';
