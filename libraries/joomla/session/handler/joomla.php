@@ -81,7 +81,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			if ($session_clean)
 			{
 				$this->setId($session_clean);
-				$cookie->set($session_name, '', 1);
+				$cookie->set($session_name, '', array('expires' => 1));
 			}
 		}
 
@@ -107,9 +107,19 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 		 */
 		if (isset($_COOKIE[$sessionName]))
 		{
-			$cookie = session_get_cookie_params();
+			$cookie             = session_get_cookie_params();
+			unset($cookie['lifetime']);
+			$cookie['expires']  = 1;
+			$cookie['httponly'] = true;
 
-			setcookie($sessionName, '', 1, $cookie['path'], $cookie['domain'], $cookie['secure'], true);
+			if (version_compare(PHP_VERSION, '7.3', '>='))
+			{
+				setcookie($cookie);
+			}
+			else
+			{
+				setcookie($sessionName, '', $cookie['expires'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly']);
+			}
 		}
 
 		parent::clear();
@@ -136,19 +146,37 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['secure'] = true;
 		}
 
-		$config = JFactory::getConfig();
+		$config = \JFactory::getConfig();
 
-		if ($config->get('cookie_domain', '') != '')
+		if ($config->get('cookie_domain', '') !== '')
 		{
-			$cookie['domain'] = $config->get('cookie_domain');
+			$cookie['domain'] = $config->get('cookie_domain', '');
 		}
 
-		if ($config->get('cookie_path', '') != '')
+		// If cookie path is forced in joomla configuration, use it.
+		if ($config->get('cookie_path', '') !== '')
 		{
-			$cookie['path'] = $config->get('cookie_path');
+			$cookie['path'] = $config->get('cookie_path', '');
 		}
 
-		session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], true);
+		// If cookie same site is forced in joomla configuration, use it.
+		if ($config->get('cookie_samesite', '') !== '')
+		{
+			$cookie['samesite'] = $config->get('cookie_samesite', '');
+		}
+
+		$cookie['httponly'] = true;
+
+		$cookie = \JApplicationHelper::getCookieParameters($cookie);
+
+		if (version_compare(PHP_VERSION, '7.3', '>='))
+		{
+			session_set_cookie_params($cookie);
+		}
+		else
+		{
+			session_set_cookie_params($cookie['lifetime'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly']);
+		}
 	}
 
 	/**

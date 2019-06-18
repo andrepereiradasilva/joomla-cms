@@ -762,8 +762,7 @@ abstract class UserHelper
 		$db->setQuery($query)->execute();
 
 		// Destroy the cookie in the browser.
-		$app = \JFactory::getApplication();
-		$app->input->cookie->set($cookieName, '', 1, $app->get('cookie_path', '/'), $app->get('cookie_domain', ''));
+		\JApplicationHelper::destroyCookie($cookieName);
 
 		return true;
 	}

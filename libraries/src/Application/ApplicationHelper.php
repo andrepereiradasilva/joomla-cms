@@ -11,6 +11,8 @@ namespace Joomla\CMS\Application;
 defined('JPATH_PLATFORM') or die;
 
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
 
 /**
  * Application helper functions
@@ -170,6 +172,76 @@ class ApplicationHelper
 		}
 
 		return;
+	}
+
+	/**
+	 * Get the cookie parameters.
+	 *
+	 * @param   array  $cookieParameters  The cookie parameters.
+	 *
+	 * @return  array  The cookie parameters.
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function getCookieParameters($cookieParameters = array())
+	{
+		// Use expires in cookie set and lifetime in other methods
+		$timeKey = array_key_exists('lifetime', $cookieParameters) === true ? 'lifetime' : 'expires';
+
+		$config = Factory::getConfig();
+
+		if ((int) $config->get('cookie_auto', '0') === 0)
+		{
+			// Manual cookie parameters
+			return array(
+				$timeKey   => isset($cookieParameters[$timeKey]) ? $cookieParameters[$timeKey] : 0,
+				'path'     => isset($cookieParameters['path']) ? $cookieParameters['path'] : $config->get('cookie_path', ''),
+				'domain'   => isset($cookieParameters['domain']) ? $cookieParameters['domain'] : $config->get('cookie_domain', ''),
+				'secure'   => isset($cookieParameters['secure']) ? $cookieParameters['secure'] : Factory::getApplication()->isHttpsForced(),
+				'httponly' => isset($cookieParameters['httponly']) ? $cookieParameters['httponly'] : true,
+				'samesite' => isset($cookieParameters['samesite']) ? $cookieParameters['samesite'] : $config->get('cookie_samesite', ''),
+			);
+		}
+
+		// In auto cookie parameters path is dynamic. Takes in consideration: application being used, shared sessions and joomla directory of installation.
+		$cookiePath = rtrim(Uri::base(true), '/');
+
+		// In administrator application with shared sessions, the cookie path is the same for site and administrator applications.
+		if (defined('JPATH_ROOT') === true && defined('JPATH_BASE') === true && defined('JPATH_ADMINISTRATOR') === true
+			&& JPATH_BASE === JPATH_ADMINISTRATOR && (int) $config->get('shared_session', '0') === 1)
+		{
+			$cookiePath = str_replace(str_replace(JPATH_ROOT, '', JPATH_BASE), '', $cookiePath);
+		}
+
+		$cookiePath .= '/';
+
+		// Auto cookie parameters, only expires/lifetime and secure parameters can be changed.
+		return array(
+			$timeKey   => isset($cookieParameters[$timeKey]) ? $cookieParameters[$timeKey] : 0,
+			'path'     => $cookiePath,
+			'domain'   => '',
+			'secure'   => isset($cookieParameters['secure']) ? $cookieParameters['secure'] : Factory::getApplication()->isHttpsForced(),
+			'httponly' => true,
+			'samesite' => 'Strict',
+		);
+	}
+
+	/**
+	 * Destroy cookie.
+	 *
+	 * @param   string  $cookieName  Cookie name
+	 *
+	 * @return  void
+	 *
+	 * @since   __DEPLOY_VERSION__
+	 */
+	public static function destroyCookie($cookieName = '')
+	{
+		Factory::getApplication()->input->cookie->set(
+			$cookieName,
+			'',
+			self::getCookieParameters(array('expires' => 1))
+		);
 	}
 
 	/**
