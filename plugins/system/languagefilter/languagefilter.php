@@ -869,15 +869,14 @@ class PlgSystemLanguageFilter extends JPlugin
 		if ((int) $this->params->get('lang_cookie', 0) === 1)
 		{
 			// Create a cookie with one year lifetime.
-			$this->app->input->cookie->set(
-				JApplicationHelper::getHash('language'),
-				$languageCode,
-				time() + 365 * 86400,
-				$this->app->get('cookie_path', '/'),
-				$this->app->get('cookie_domain', ''),
-				$this->app->isHttpsForced(),
-				true
-			);
+			$this->app->input->cookie->set(JApplicationHelper::getHash('language'), $languageCode, array(
+				'expires'  => time() + 365 * 86400,
+				'path'     => $this->app->get('cookie_path', '/'),
+				'domain'   => $this->app->get('cookie_domain', ''),
+				'secure'   => $this->app->isHttpsForced(),
+				'httponly' => true,
+				'samesite' => $this->app->get('cookie_samesite', ''),
+			));
 		}
 		// If not, set the user language in the session (that is already saved in a cookie).
 		else

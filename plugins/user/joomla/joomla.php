@@ -262,15 +262,14 @@ class PlgUserJoomla extends JPlugin
 		// Add "user state" cookie used for reverse caching proxies like Varnish, Nginx etc.
 		if ($this->app->isClient('site'))
 		{
-			$this->app->input->cookie->set(
-				'joomla_user_state',
-				'logged_in',
-				0,
-				$this->app->get('cookie_path', '/'),
-				$this->app->get('cookie_domain', ''),
-				$this->app->isHttpsForced(),
-				true
-			);
+			$this->app->input->cookie->set('joomla_user_state', 'logged_in', array(
+				'expires'  => 0,
+				'path'     => $this->app->get('cookie_path', '/'),
+				'domain'   => $this->app->get('cookie_domain', ''),
+				'secure'   => $this->app->isHttpsForced(),
+				'httponly' => true,
+				'samesite' => $this->app->get('cookie_samesite', ''),
+			));
 		}
 
 		return true;
@@ -336,7 +335,14 @@ class PlgUserJoomla extends JPlugin
 		// Delete "user state" cookie used for reverse caching proxies like Varnish, Nginx etc.
 		if ($this->app->isClient('site'))
 		{
-			$this->app->input->cookie->set('joomla_user_state', '', 1, $this->app->get('cookie_path', '/'), $this->app->get('cookie_domain', ''));
+			$this->app->input->cookie->set('joomla_user_state', '', array(
+				'expires'  => 1,
+				'path'     => $this->app->get('cookie_path', '/'),
+				'domain'   => $this->app->get('cookie_domain', ''),
+				'secure'   => $this->app->isHttpsForced(),
+				'httponly' => true,
+				'samesite' => $this->app->get('cookie_samesite', ''),
+			));
 		}
 
 		return true;

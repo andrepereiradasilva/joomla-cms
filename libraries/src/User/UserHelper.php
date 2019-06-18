@@ -763,7 +763,14 @@ abstract class UserHelper
 
 		// Destroy the cookie in the browser.
 		$app = \JFactory::getApplication();
-		$app->input->cookie->set($cookieName, '', 1, $app->get('cookie_path', '/'), $app->get('cookie_domain', ''));
+		$app->input->cookie->set($cookieName, '', array(
+			'expires'  => 1,
+			'path'     => $app->get('cookie_path', '/'),
+			'domain'   => $app->get('cookie_domain', ''),
+			'secure'   => $app->isHttpsForced(),
+			'httponly' => true,
+			'samesite' => $app->get('cookie_samesite', ''),
+		));
 
 		return true;
 	}

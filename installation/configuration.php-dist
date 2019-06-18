@@ -147,6 +147,7 @@ class JConfig
 	/* Cookie Settings */
 	public $cookie_domain = '';
 	public $cookie_path = '';
+	public $cookie_samesite = '';
 
 	/* Miscellaneous Settings */
 	public $asset_id = '1';

@@ -1218,6 +1218,19 @@
 			size="40"
 		/>
 
+		<field
+			name="cookie_samesite"
+			type="list"
+			label="COM_CONFIG_FIELD_COOKIE_SAMESITE_LABEL"
+			description="COM_CONFIG_FIELD_COOKIE_SAMESITE_DESC"
+			default=""
+			filter="string"
+			>
+			<option value="">COM_CONFIG_FIELD_COOKIE_SAMESITE_VALUE_NONE</option>
+			<option value="Lax">COM_CONFIG_FIELD_COOKIE_SAMESITE_VALUE_LAX</option>
+			<option value="Strict">COM_CONFIG_FIELD_COOKIE_SAMESITE_VALUE_STRICT</option>
+		</field>
+
 	</fieldset>
 
 	<fieldset
