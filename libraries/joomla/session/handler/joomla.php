@@ -81,7 +81,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			if ($session_clean)
 			{
 				$this->setId($session_clean);
-				\JApplicationHelper::destroyCookie($session_name);
+				$cookie->set($session_name, '', 1);
 			}
 		}
 
@@ -107,7 +107,19 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 		 */
 		if (isset($_COOKIE[$sessionName]))
 		{
-			\JApplicationHelper::destroyCookie($sessionName);
+			$cookie             = session_get_cookie_params();
+			unset($cookie['lifetime']);
+			$cookie['expires']  = 1;
+			$cookie['httponly'] = true;
+
+			if (version_compare(PHP_VERSION, '7.3', '>='))
+			{
+				setcookie($cookie);
+			}
+			else
+			{
+				setcookie($sessionName, '', $cookie['expires'], $cookie['path'], $cookie['domain'], $cookie['secure'], $cookie['httponly']);
+			}
 		}
 
 		parent::clear();
