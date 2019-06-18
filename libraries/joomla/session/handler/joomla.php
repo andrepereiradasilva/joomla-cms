@@ -153,10 +153,16 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 			$cookie['domain'] = $config->get('cookie_domain', '');
 		}
 
-		// If cookie path if forced in joomla configuration, use it.
+		// If cookie path is forced in joomla configuration, use it.
 		if ($config->get('cookie_path', '') !== '')
 		{
 			$cookie['path'] = $config->get('cookie_path', '');
+		}
+
+		// If cookie same site is forced in joomla configuration, use it.
+		if ($config->get('cookie_samesite', '') !== '')
+		{
+			$cookie['samesite'] = $config->get('cookie_samesite', '');
 		}
 
 		$cookie['httponly'] = true;
