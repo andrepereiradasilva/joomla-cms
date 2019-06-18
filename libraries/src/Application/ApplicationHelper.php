@@ -190,7 +190,7 @@ class ApplicationHelper
 
 		$config = Factory::getConfig();
 
-		if ((int) $config->get('cookie_mode', '0') === 0)
+		if ((int) $config->get('cookie_auto', '0') === 0)
 		{
 			// Manual cookie parameters
 			return array(
