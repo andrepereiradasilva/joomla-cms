@@ -73,6 +73,14 @@ use Joomla\CMS\Language\Text;
 			</tr>
 			<tr>
 				<th scope="row">
+					<?php echo Text::_('COM_ADMIN_DATABASE_CONNECTION_ENCRYPTION'); ?>
+				</th>
+				<td>
+					<?php echo $this->info['dbconnectionencryption']; ?>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">
 					<?php echo Text::_('COM_ADMIN_PHP_VERSION'); ?>
 				</th>
 				<td>
