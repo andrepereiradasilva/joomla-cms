@@ -207,6 +207,7 @@ class InfoCollector extends AbstractDataCollector implements AssetProvider
 			'dbcollation' => $info['dbcollation'] ?? '',
 			'dbconnectioncollation' => $info['dbconnectioncollation'] ?? '',
 			'dbconnectionencryption' => $info['dbconnectionencryption'] ?? '',
+			'dbconnencryptsupported' => $info['dbconnencryptsupported'] ?? '',
 		];
 	}
 }
