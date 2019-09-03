@@ -33,6 +33,15 @@ class InputFilter extends BaseInputFilter
 	public $stripUSC = 0;
 
 	/**
+	 * Flag to identify if database was already checked for Unicode Supplementary Characters (4-byte Unicode character).
+	 *
+	 * @var    boolean
+	 *
+	 * @since  __DEPLOY_VERSION__
+	 */
+	private $UTF8mb4SupportChecked = false;
+
+	/**
 	 * Constructor for inputFilter class. Only first parameter is required.
 	 *
 	 * @param   array    $tagsArray   List of user-defined tags
@@ -115,16 +124,14 @@ class InputFilter extends BaseInputFilter
 	 */
 	public function clean($source, $type = 'string')
 	{
-		static $stripUSCChecked = false;
-
 		/**
 		 * If Unicode Supplementary Characters stripping is not set we have to check with the database driver. If the
 		 * driver does not support USCs (i.e. there is no utf8mb4 support) we will enable USC stripping.
 		 * Lasy load this on clean method so the application doesn't the depend on the database to instanciate.
 		 */
-		if ($stripUSCChecked === false && $this->stripUSC === -1)
+		if ($this->UTF8mb4SupportChecked === false && $this->stripUSC === -1)
 		{
-			$stripUSCChecked = true;
+			$this->UTF8mb4SupportChecked = true;
 
 			try
 			{
