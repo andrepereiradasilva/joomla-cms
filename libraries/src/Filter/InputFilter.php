@@ -33,7 +33,7 @@ class InputFilter extends BaseInputFilter
 	public $stripUSC = 0;
 
 	/**
-	 * Flag to identify if database was already checked for Unicode Supplementary Characters (4-byte Unicode character).
+	 * Flag to identify if the database was checked for Unicode Supplementary Characters (4-byte Unicode character) support.
 	 *
 	 * @var    boolean
 	 *
