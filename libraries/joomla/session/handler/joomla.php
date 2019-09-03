@@ -74,7 +74,7 @@ class JSessionHandlerJoomla extends JSessionHandlerNative
 		// Get the JInputCookie object
 		$cookie = $this->input->cookie;
 
-		if (is_null($cookie->get($session_name)))
+		if (is_null($cookie->exists($session_name)))
 		{
 			$session_clean = $this->input->get($session_name, false, 'string');
 
