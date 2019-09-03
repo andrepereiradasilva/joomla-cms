@@ -49,7 +49,7 @@ abstract class JSessionStorage
 	 */
 	public static function getInstance($name = 'none', $options = array())
 	{
-		$name = strtolower(JFilterInput::getInstance()->clean($name, 'word'));
+		$name = preg_replace('#[^a-z_]#', '', strtolower($name));
 
 		if (empty(self::$instances[$name]))
 		{
