@@ -329,14 +329,45 @@ abstract class HTMLHelper
 			return array($file);
 		}
 
+		$file = trim($file, '/');
+
 		// Extract extension and strip the file
-		$strip = \JFile::stripExt($file);
-		$ext   = \JFile::getExt($file);
+		if (strpos($file, '/') !== false)
+		{
+			$fileParts = explode('/', $file, 4);
+			$fileName  = array_pop($fileParts);
+			$filePath  = implode('/', $fileParts);
+		}
+		else
+		{
+			$fileParts = array();
+			$fileName  = $file;
+			$filePath  = '';
+		}
 
-		// Prepare array of files
-		$includes = array();
+		// Extract extension and strip the file
+		$stripedFileName = \JFile::stripExt($fileName);
+		$fileExtension   = \JFile::getExt($fileName);
+        $debugMode       = '';
 
-		// Detect browser and compute potential files
+		// Detect debug mode
+		if ($detect_debug && JDEBUG)
+		{
+			$length = strlen($stripedFileName);
+
+			// Detect if we received a file in the format name.min.ext, if so, strip the .min part out, otherwise append -uncompressed
+			if ($length > 4 && strpos($stripedFileName, '.min', $length - 4) !== false)
+			{
+				$stripedFileName = substr($stripedFileName, 0, -4);
+				$debugMode       = '.min';
+			}
+			else
+			{
+				$debugMode = '-uncompressed';
+			}
+		}
+
+		// Detect browser and compute potential files suffixes
 		if ($detect_browser)
 		{
 			$navigator = Browser::getInstance();
@@ -346,207 +377,140 @@ abstract class HTMLHelper
 
 			// Try to include files named filename.ext, filename_browser.ext, filename_browser_major.ext, filename_browser_major_minor.ext
 			// where major and minor are the browser version names
-			$potential = array(
-				$strip,
-				$strip . '_' . $browser,
-				$strip . '_' . $browser . '_' . $major,
-				$strip . '_' . $browser . '_' . $major . '_' . $minor,
+			$addSuffixes = array(
+				'',
+				'_' . $browser,
+				'_' . $browser . '_' . $major,
+				'_' . $browser . '_' . $major . '_' . $minor,
 			);
 		}
 		else
 		{
-			$potential = array($strip);
+			$addSuffixes = array('');
 		}
 
-		// If relative search in template directory or media directory
-		if ($relative)
+		// Get the possible file names to check if they exist.
+		$filesToCheckContainer = array();
+		$globPattern           = $stripedFileName . ($addSuffixes !== array('') ? '*' : '');
+
+		foreach ($addSuffixes as $addSuffix)
 		{
-			// Get the template
-			$template = Factory::getApplication()->getTemplate();
-
-			// For each potential files
-			foreach ($potential as $strip)
+			if ($debugMode === '-uncompressed')
 			{
-				$files = array();
-
-				// Detect debug mode
-				if ($detect_debug && Factory::getConfig()->get('debug'))
-				{
-					/*
-					 * Detect if we received a file in the format name.min.ext
-					 * If so, strip the .min part out, otherwise append -uncompressed
-					 */
-					if (strlen($strip) > 4 && preg_match('#\.min$#', $strip))
-					{
-						$files[] = preg_replace('#\.min$#', '.', $strip) . $ext;
-					}
-					else
-					{
-						$files[] = $strip . '-uncompressed.' . $ext;
-					}
-				}
-
-				$files[] = $strip . '.' . $ext;
-
-				/*
-				 * Loop on 1 or 2 files and break on first found.
-				 * Add the content of the MD5SUM file located in the same folder to URL to ensure cache browser refresh
-				 * This MD5SUM file must represent the signature of the folder content
-				 */
-				foreach ($files as $file)
-				{
-					// If the file is in the template folder
-					$path = JPATH_THEMES . "/$template/$folder/$file";
-
-					if (file_exists($path))
-					{
-						$includes[] = Uri::base(true) . "/templates/$template/$folder/$file" . static::getMd5Version($path);
-
-						break;
-					}
-					else
-					{
-						// If the file contains any /: it can be in a media extension subfolder
-						if (strpos($file, '/'))
-						{
-							// Divide the file extracting the extension as the first part before /
-							list($extension, $file) = explode('/', $file, 2);
-
-							// If the file yet contains any /: it can be a plugin
-							if (strpos($file, '/'))
-							{
-								// Divide the file extracting the element as the first part before /
-								list($element, $file) = explode('/', $file, 2);
-
-								// Try to deal with plugins group in the media folder
-								$path = JPATH_ROOT . "/media/$extension/$element/$folder/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/media/$extension/$element/$folder/$file" . static::getMd5Version($path);
-
-									break;
-								}
-
-								// Try to deal with classical file in a media subfolder called element
-								$path = JPATH_ROOT . "/media/$extension/$folder/$element/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/media/$extension/$folder/$element/$file" . static::getMd5Version($path);
-
-									break;
-								}
-
-								// Try to deal with system files in the template folder
-								$path = JPATH_THEMES . "/$template/$folder/system/$element/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/templates/$template/$folder/system/$element/$file" . static::getMd5Version($path);
-
-									break;
-								}
-
-								// Try to deal with system files in the media folder
-								$path = JPATH_ROOT . "/media/system/$folder/$element/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/media/system/$folder/$element/$file" . static::getMd5Version($path);
-
-									break;
-								}
-							}
-							else
-							{
-								// Try to deals in the extension media folder
-								$path = JPATH_ROOT . "/media/$extension/$folder/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/media/$extension/$folder/$file" . static::getMd5Version($path);
-
-									break;
-								}
-
-								// Try to deal with system files in the template folder
-								$path = JPATH_THEMES . "/$template/$folder/system/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/templates/$template/$folder/system/$file" . static::getMd5Version($path);
-
-									break;
-								}
-
-								// Try to deal with system files in the media folder
-								$path = JPATH_ROOT . "/media/system/$folder/$file";
-
-								if (file_exists($path))
-								{
-									$includes[] = Uri::root(true) . "/media/system/$folder/$file" . static::getMd5Version($path);
-
-									break;
-								}
-							}
-						}
-						// Try to deal with system files in the media folder
-						else
-						{
-							$path = JPATH_ROOT . "/media/system/$folder/$file";
-
-							if (file_exists($path))
-							{
-								$includes[] = Uri::root(true) . "/media/system/$folder/$file" . static::getMd5Version($path);
-
-								break;
-							}
-						}
-					}
-				}
+				$filesToCheckContainer[] = array($stripedFileName . $addSuffix . '-uncompressed', $stripedFileName . $addSuffix);
+			}
+			elseif ($debugMode === '.min')
+			{
+				$filesToCheckContainer[] = array($stripedFileName . $addSuffix, $stripedFileName . $addSuffix . '.min');
+			}
+			else
+			{
+				$filesToCheckContainer[] = array(null, $stripedFileName . $addSuffix);
 			}
 		}
+
+		// Get the possible path names of the files.
+		$pathsToCheck = array();
+
 		// If not relative and http is not present in filename
+		if (!$relative)
+		{
+			$pathsToCheck[] = \JPATH_ROOT . "/$filePath/";
+		}
 		else
 		{
-			foreach ($potential as $strip)
+			$template = Factory::getApplication()->getTemplate();
+
+			// Simple path overried, no "/" so no extra path. Ex: template.css in the template css "folder"
+			if (!isset($fileParts[0]))
 			{
-				$files = array();
+				// Template folder
+				$pathsToCheck[] = \JPATH_THEMES . "/$template/$folder/";
 
-				// Detect debug mode
-				if ($detect_debug && Factory::getConfig()->get('debug'))
+				// System files in the media folder
+				$pathsToCheck[] = \JPATH_ROOT . "/media/system/$folder/";
+			}
+			// Small tree structures (modules, components, system files, etc). Ex: jui/jquery.js
+			elseif (!isset($fileParts[1]))
+			{
+				$extension  = $fileParts[0];
+				$restOfPath = $fileParts[1];
+
+				// Template folder
+				$pathsToCheck[] = \JPATH_THEMES . "/$template/$folder/$filePath/";
+
+				// Extension media folder
+				$pathsToCheck[] = \JPATH_ROOT . "/media/$extension/$folder/$restOfPath";
+
+				// System files in the template folder
+				$pathsToCheck[] = \JPATH_THEMES . "/$template/$folder/system/$restOfPath";
+
+				// System files in the media folder
+				$pathsToCheck[] = \JPATH_ROOT . "/media/system/$folder/$restOfPath";
+			}
+			// Big tree structures or plugins.
+			else
+			{
+				$extension  = $fileParts[0];
+				$element    = $fileParts[1];
+				$restOfPath = $fileParts[2];
+
+				// Template folder
+				$pathsToCheck[] = \JPATH_THEMES . "/$template/$folder/$filePath/";
+
+				// Plugins group in the media folder
+				$pathsToCheck[] = \JPATH_ROOT . "/media/$extension/$element/$folder/$restOfPath/";
+
+				// Classical file in a media subfolder called element
+				$pathsToCheck[] = \JPATH_ROOT . "/media/$extension/$folder/$element/$restOfPath/";
+
+				// System files in the template folder
+				$pathsToCheck[] = \JPATH_THEMES . "/$template/$folder/system/$element/$restOfPath/";
+
+				// System files in the media folder
+				$pathsToCheck[] = \JPATH_ROOT . "/media/system/$folder/$element/$restOfPath/";
+			}
+		}
+
+		// Get the possible path names of the files.
+		$fileExtensionSuffix  = $fileExtension !== '' ? '.' . $fileExtension : '';
+		$includes             = array();
+		$replateJPathFrom     = array(\JPATH_THEMES, \JPATH_ROOT);
+		$replateJPathTo       = array(Uri::base(true) . '/templates', Uri::root(true));
+
+		// Get existing files on all folders.
+		$paths = glob('{' . implode(',', $pathsToCheck) . '}' . $globPattern . $fileExtensionSuffix, GLOB_NOSORT | GLOB_BRACE);
+
+		// No files found.
+		if ($paths === array() || $paths === false)
+		{
+			return $includes;
+		}
+
+		foreach ($pathsToCheck as $pathToCheck)
+		{
+			foreach ($filesToCheckContainer as $filesToCheckContainerKey => $filesToCheck)
+			{
+				// Loop on 1 (normal) or 2 files (debug and normal) and break on first found.
+				foreach ($filesToCheck as $fileToCheck)
 				{
-					/*
-					 * Detect if we received a file in the format name.min.ext
-					 * If so, strip the .min part out, otherwise append -uncompressed
-					 */
-					if (strlen($strip) > 4 && preg_match('#\.min$#', $strip))
+					// No debug file. Continue to non debug file.
+					if ($fileToCheck === null)
 					{
-						$files[] = preg_replace('#\.min$#', '.', $strip) . $ext;
+						continue;
 					}
-					else
+
+					$path = $pathToCheck . $fileToCheck . $fileExtensionSuffix;
+
+					// Check if file path is in found files array.
+					if (in_array($path, $paths, true))
 					{
-						$files[] = $strip . '-uncompressed.' . $ext;
-					}
-				}
+						$includes[] = str_replace($replateJPathFrom, $replateJPathTo, $path) . static::getMd5Version($path);
 
-				$files[] = $strip . '.' . $ext;
+						// Remove found files from files to check arrays.
+						unset($filesToCheckContainer[$filesToCheckContainerKey]);
 
-				/*
-				 * Loop on 1 or 2 files and break on first found.
-				 * Add the content of the MD5SUM file located in the same folder to URL to ensure cache browser refresh
-				 * This MD5SUM file must represent the signature of the folder content
-				 */
-				foreach ($files as $file)
-				{
-					$path = JPATH_ROOT . "/$file";
-
-					if (file_exists($path))
-					{
-						$includes[] = Uri::root(true) . "/$file" . static::getMd5Version($path);
-
-						break;
+						continue 2;
 					}
 				}
 			}
